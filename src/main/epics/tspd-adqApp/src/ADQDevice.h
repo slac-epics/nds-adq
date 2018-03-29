@@ -2,6 +2,8 @@
 #define ADQDEVICE_H
 
 #include <ADQAPI.h>
+#include "ADQAIChannel.h"
+#include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
 
 class ADQDevice 
@@ -13,8 +15,15 @@ public:
 protected:
 
 private:
-    // function ADQControlUnit_ListDevices requires pointers to a list pointer (retList) and a length integer (retLen)
-    unsigned int* retLen = 4;
+    // ADQCU
+    void* m_adq_cu;
+    // ADQ device number
+    int m_adq_nr = 1;
+    // pointer to certain ADQ device
+    ADQInterface* m_adq_ptr = NULL;
+    // serial number
+    char* m_adq_sn;
+ // std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroups;
     nds::Node m_node;
 };
 

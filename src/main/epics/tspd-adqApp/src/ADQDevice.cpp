@@ -11,37 +11,46 @@
 ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters) :
     m_node(deviceName)
 {
-    void* adq_cu_ptr = CreateADQControlUnit(); // Creates an ADQControlUnit called adq_cu_ptr 
+    m_adq_cu = CreateADQControlUnit(); // Creates an ADQControlUnit called adq_cu_ptr 
     
-    if (adq_cu_ptr != NULL)
+    if (m_adq_cu != NULL)
     {
-        // Check how many ADQ devices are connected to the system; returns a number of devices
-        int nof_ADQ = ADQControlUnit_NofADQ(void* adq_cu_ptr); // the function returns int not unint!
-        
-        if (nof_ADQ > 0)
+        // Check DLL revisions 
+        int apirev = ADQAPI_GetRevision();
+        if (!IS_VALID_DLL_REVISION(apirev))
         {
-            unsigned int retLen = nof_ADQ;
+            throw nds::NdsError("ERROR: The linked header file and the loaded DLL are of different revisions. This may cause corrupt behavior.");
+        }
+
+        // Check how many ADQ devices are connected to the system; returns a number of devices
+        int nof_adq = ADQControlUnit_FindDevices(adq_cu); 
+        
+        if (nof_adq > 0)
+        {
+            m_adq_ptr = ADQControlUnit_GetADQ(m_adq_cu, m_adq_nr); // get pointer to interface of certain device
+          //std::shared_ptr<ADQAIChannelGroup> aichgrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adq_cu, m_adq_nr);
+          //m_AIChannelGroup.push_back(aichgrp);
+
+            // initialize certain device
+            m_node.initialize(this, factory);
+             
         }
         else
         {
-            // return a error
+            throw nds::NdsError("No ADQ devices found."); // return a error
         }
-        
-        // Lists devices connected to the system. The list is then returned as an array 
-        // which can be indexed from retList[0] to retList[retLen - 1], with each entry corresponding to an ADQ device.
-        unsigned int ADQControlUnit_ListDevices(void* adq_cu_ptr, struct ADQInfoListEntry** retList, &retLen);
-
-        unsigned int ADQControlUnit_OpenDeviceInterface(void* adq_cu_ptr, int ADQInfoListEntryNumber);
-        unsigned int ADQControlUnit_SetupDevice(void* adq_cu_ptr, int ADQInfoListEntryNumber);
+      
     }
-    
+    else
+    {
+        throw nds::NdsError("Failed to create ADQ Control Unit.");
+    }
 
-
-    m_node.initialize(this, factory)
 }
+
 ADQDevice::~ADQDevice()
 {
-    void ADQControlUnit_DeleteADQ(void * adq_cu_ptr, int ADQ_num);
+    ADQControlUnit_DeleteADQ(m_adq_cu, m_adq_nr);
 }
 
 NDS_DEFINE_DRIVER(adq, ADQDevice);
