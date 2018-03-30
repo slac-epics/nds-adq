@@ -6,6 +6,10 @@
 #include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
 
+// Enable debug stream for m_node
+#define ndsLogStream(m_node, debug)
+#define ndsDebugStream(m_node)	
+
 class ADQDevice 
 {
 public: 
@@ -20,7 +24,7 @@ private:
     // ADQ device number
     int m_adq_nr = 1;
     // pointer to certain ADQ device
-    ADQInterface* m_adq_ptr = NULL;
+    ADQInterface* m_adq_dev;
     // serial number
     char* m_adq_sn;
  // std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroups;
