@@ -34,6 +34,9 @@ private:
     char* adq_sn;
     // Serial number of needed ADQ
     char* specified_sn;
+    // PVs connected to EPICS records
+    nds::PVVariableIn<std::string> m_productName;
+
     // Pointer to channel group of device
     std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroup;
 

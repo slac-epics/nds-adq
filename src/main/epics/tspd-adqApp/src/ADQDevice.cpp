@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <string.h> 
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -10,6 +11,7 @@
 
 ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters) :
     m_node(deviceName)
+    //m_productName(nds::PVVariableIn<std::string>("ProductName"))
 {
     adq_cu = CreateADQControlUnit(); // Creates an ADQControlUnit called adq_cu 
     
@@ -19,7 +21,6 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
         int api_rev = ADQAPI_GetRevision();
         if (!IS_VALID_DLL_REVISION(api_rev))
         {
-            ndsErrorStream(m_node) << "ERROR: The linked header file and the loaded DLL are of different revisions. This may cause corrupt behavior." << std::endl;
             throw nds::NdsError("ERROR: The linked header file and the loaded DLL are of different revisions. This may cause corrupt behavior.");
         }
 
@@ -47,8 +48,6 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                                                                                                         //    |
                         if (success)                                                                    //    |
                         {                                                                               //    |                                                         
-                            // Get the number of ADQs connected to system; it should be always 1              |
-                            int n_of_adq = ADQControlUnit_NofADQ(adq_cu);                               //    |
                             adq_nr = 1;                                                                 //    |
                             // Get pointer to interface of certain device                                     |
                             m_adq_dev = ADQControlUnit_GetADQ(adq_cu, adq_nr);                          //    |
@@ -65,15 +64,17 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         }
                         else
                         {
-
+                            throw nds::NdsError("ERROR: Device failure during setup.");
+                            goto error;
                         } // ADQControlUnit_SetupDevice
                     }
                     else
                     {
-
+                        throw nds::NdsError("ERROR: Device failure during interface opening.");
+                        goto error;
                     } // ADQControlUnit_OpenDeviceInterface
 
-                } // end of the block
+                } // end of the serial number block
                 
                 // Check if ADQ started normally
                 unsigned int adq_ok = m_adq_dev->IsStartedOK(); // need a msg about OK start!
@@ -84,7 +85,7 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                     unsigned int adq_pid = m_adq_dev->GetProductID();
                     int adq_type = m_adq_dev->GetADQType();
                     const char* adq_opt = m_adq_dev->GetCardOption();
-
+               
                     // Get a pointer to channel group of device
                     std::shared_ptr<ADQAIChannelGroup> ai_chgrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adq_dev);
                     m_AIChannelGroup.push_back(ai_chgrp);
@@ -98,37 +99,38 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                 }
                 else
                 {
-
+                    throw nds::NdsError("ERROR: Device didn't start normally.");
+                    goto error;
                 } // IsStartedOK
             }
             else
             {
-                ndsErrorStream(m_node) << "ERROR: No ADQ devices found." << std::endl;
                 throw nds::NdsError("ERROR: No ADQ devices found.");
+                goto error;
             } // adq_list
 
         }
         else
         {
-            ndsErrorStream(m_node) << "ERROR: Listing all connected devices failed." << std::endl;
             throw nds::NdsError("ERROR: Listing all connected devices failed.");
+            goto error;
         } // ADQControlUnit_ListDevices
     }
     else
     {
-        ndsErrorStream(m_node) << "ERROR: Failed to create ADQ Control Unit." << std::endl;
         throw nds::NdsError("ERROR: Failed to create ADQ Control Unit.");
+        goto error;
     } // CreateADQControlUnit
 
 error:
     DeleteADQControlUnit(adq_cu);
-    throw nds::NdsError("ERROR: ADQ with specified serial number was not found.");
+    throw nds::NdsError("ERROR: ADQ Control Unit was deleted due to error.");
 } 
 
 ADQDevice::~ADQDevice()
 {
     DeleteADQControlUnit(adq_cu);
-    ndsInfoStream(m_node) << "Control Unit is deleted" << std::endl;
+    ndsInfoStream(m_node) << "ADQ Control Unit is deleted." << std::endl;
 }
 
 NDS_DEFINE_DRIVER(adq, ADQDevice);

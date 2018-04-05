@@ -1,0 +1,32 @@
+record(stringin, "$(PREFIX):IPN") {
+    field(DESC, "Product name of the device.")
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(ASYN_PORT), 0) ProductName")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(PREFIX):ISN") {
+    field(DESC, "Serial number of the device.")
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(ASYN_PORT), 0) SerialNumber")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(PREFIX):IPID") {
+    field(DESC, "Product ID of the device.")
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(ASYN_PORT), 0) ProductID")
+    field(SCAN, "I/O Intr")
+}
+
+record(stringin, "$(PREFIX):ITYPE") {
+    field(DESC, "Type of the device.")
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(ASYN_PORT), 0) ADQType")
+    field(SCAN, "I/O Intr")
+    
+record(stringin, "$(PREFIX):IOPT") {
+    field(DESC, "Option of the device.")
+    field(DTYP, "asynOctetRead")
+    field(INP,  "@asyn($(ASYN_PORT), 0) CardOption")
+    field(SCAN, "I/O Intr")

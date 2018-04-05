@@ -16,13 +16,14 @@ private:
     nds::Node m_node;
     nds::StateMachine m_stateMachine;
 
+    /*
     void switchOn();
     void switchOff();
     void start();
     void stop();
     void recover();
     bool allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
-
+    */
 };
 
 #endif /* ADQAICHANNEL_H */

@@ -14,6 +14,7 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     m_channelNum(channelNum)
 
 {
+    /*
     m_node = parentNode.addChild(nds::Node(name));
 
     m_stateMachine = nds::StateMachine(true,
@@ -41,5 +42,7 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     void ADQAIChannel::start();
     void ADQAIChannel::stop();
     void ADQAIChannel::recover();
-    bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
+    bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds::state_t); 
+    
+    */
 }
