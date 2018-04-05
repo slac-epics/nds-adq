@@ -10,8 +10,12 @@
 #include "ADQDevice.h"
 
 ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters) :
-    m_node(deviceName)
-    //m_productName(nds::PVVariableIn<std::string>("ProductName"))
+    m_node(deviceName),
+    m_productName(nds::PVVariableIn<std::string>("ProductName")),
+    m_serialNumber(nds::PVVariableIn<std::string>("SerialNumber")),
+    m_productID(nds::PVVariableIn<std::string>("ProductID")),
+    m_adqType(nds::PVVariableIn<std::string>("ADQType")),
+    m_cardOption(nds::PVVariableIn<std::string>("CardOption"))
 {
     adq_cu = CreateADQControlUnit(); // Creates an ADQControlUnit called adq_cu 
     
@@ -90,8 +94,23 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                     std::shared_ptr<ADQAIChannelGroup> ai_chgrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adq_dev);
                     m_AIChannelGroup.push_back(ai_chgrp);
 
+                    // Set PVs for device info
+                    m_productName.setScanType(nds::scanType_t::interrupt);
+                    m_node.addChild(m_productName);
+
+                    m_serialNumber.setScanType(nds::scanType_t::interrupt);
+                    m_node.addChild(m_serialNumber);
+
+
                     // Initialize certain device after declaration of all its PVs
                     m_node.initialize(this, factory);
+
+                    // Send device info to according EPICS records
+                    m_productName.push(m_productName.getTimestamp(), adq_pn);
+                    m_serialNumber.push(m_serialNumber.getTimestamp(), adq_sn);
+                    m_productID.push(m_productID.getTimestamp(), adq_pid);
+                    m_adqType.push(m_adqType.getTimestamp(), adq_type);
+                    m_cardOption.push(m_cardOption.getTimestamp(), adq_opt);
 
                     // Device information is returned
                     ndsInfoStream(m_node) << "Device started:\nADQ" << adq_type << adq_opt << "\nProduct name: " << adq_pn << \

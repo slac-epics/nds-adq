@@ -36,6 +36,10 @@ private:
     char* specified_sn;
     // PVs connected to EPICS records
     nds::PVVariableIn<std::string> m_productName;
+    nds::PVVariableIn<std::string> m_serialNumber;
+    nds::PVVariableIn<std::string> m_productID;
+    nds::PVVariableIn<std::string> m_adqType;
+    nds::PVVariableIn<std::string> m_cardOption;
 
     // Pointer to channel group of device
     std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroup;
