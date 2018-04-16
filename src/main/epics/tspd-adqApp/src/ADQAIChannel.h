@@ -15,6 +15,9 @@ protected:
 private:
     nds::Node m_node;
     nds::StateMachine m_stateMachine;
+    
+    int channel;
+    unsigned char channelsmask;
 
     /*
     void switchOn();

@@ -29,8 +29,8 @@ include $(TOP)/configure/CONFIG
 # Build the IOC support library
 CXX = g++
 
-# We enable the c++11 flag, plus we define the NDS3_DLL preprocessor macro.
-CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic -fPIC -pthread -DNDS3_DLL -DLINUX 
+# We enable the c++0x flag, plus we define the NDS3_DLL preprocessor macro.
+CXXFLAGS = -std=c++0x -Wall -Wextra -pedantic -fPIC -pthread -DNDS3_DLL
 
 # Flags passed to gcc during linking
 LINK = -shared -fPIC -Wl,-as-needed
@@ -40,19 +40,18 @@ TARGET = ../../lib/libtspd-adq.so
 
 LIBRARY_IOC += tspd-adq
 
-# Dependency on NDS3 and ADQAPI
-LIBS = -lnds3 -ladq
+# Dependency on NDS3
+LIBS = -lnds3
 
 # tspd-adq.dbd will be created and installed
-###DBD += tspd-adq.dbd
+# DBD += tspd-adq.dbd
 
 # tspd-adq_registerRecordDeviceDriver.cpp derives from tspd-adq.dbd
-tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQDevice.cpp
-#tspd-adq_INCLUDES += -I/opt/e ADQAIChannel.h  ADQAIChannelGroup.h  ADQDevice.h
-#OP_SYS_CFLAGS += -std=c++11
+SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQDevice.cpp
+INCLUDES += -I/opt/e ADQAIChannel.h  ADQAIChannelGroup.h  ADQDevice.h
+# OP_SYS_CFLAGS += -std=c++11
 
 OBJS = $(tspd-adq_SRCS:.cpp=.o)
-
 # Rules for building
 $(TARGET): $(OBJS)
 	$(CXX) $(LINK) -o $@ $^ $(LIBS)
@@ -62,8 +61,8 @@ clean:
 	$(RM) $(TARGET) $(OBJS)
 
 # Build the main IOC entry point on workstation OSs.
-#tspd-adq_SRCS_DEFAULT += tspd-adqMain.cpp
-#tspd-adq_SRCS_vxWorks += -nil-
+# tspd-adq_SRCS_DEFAULT += tspd-adqMain.cpp
+# tspd-adq_SRCS_vxWorks += -nil-
 
 #=============================
 # Include makefile snippets to add support for additional modules
@@ -76,7 +75,7 @@ tspd-adq_LIBS += $(CODAC_LIBS)
 #=============================
 # Include SNL program makefile snippets
 
-###-include ../*.snlprog
+-include ../*.snlprog
 
 #=============================
 # Finally link to the EPICS Base libraries
@@ -88,4 +87,3 @@ tspd-adq_LIBS += $(EPICS_BASE_IOC_LIBS)
 include $(TOP)/configure/RULES
 #----------------------------------------
 #  ADD RULES AFTER THIS LINE
-

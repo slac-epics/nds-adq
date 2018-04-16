@@ -30,6 +30,7 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
 
     m_node.addChild(m_stateMachine);
 
+    int SetLvlTrigChannel(int channel);
 
 
 

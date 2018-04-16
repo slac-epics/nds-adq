@@ -6,6 +6,7 @@
 #include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
 
+
 class ADQDevice 
 {
 public: 
@@ -23,8 +24,12 @@ private:
     void* adq_cu;
     // Pointer to ADQ info structure
     struct ADQInfoListEntry* adq_info_list;
-    // Number of ADQ devices connected to the system
+    // Number of ADQ devices connected to the system from ListDevices function
     unsigned int adq_list;
+    // Number of ADQ devices from NofADQ function
+    int n_of_adq;
+    // User input
+    char input;
     // ADQ device number from adq_list array; indexing starts from 0
     // Please note that the device number when using GetADQ/NofADQ/etc will not have anything to do with the index number used in this function.
     int adq_list_nr;
@@ -34,12 +39,9 @@ private:
     char* adq_sn;
     // Serial number of needed ADQ
     char* specified_sn;
-    // PVs connected to EPICS records
-    nds::PVVariableIn<std::string> m_productName;
-    nds::PVVariableIn<std::string> m_serialNumber;
-    nds::PVVariableIn<std::string> m_productID;
-    nds::PVVariableIn<std::string> m_adqType;
-    nds::PVVariableIn<std::string> m_cardOption;
+    // Var for for loop
+    unsigned int adq_found;
+
 
     // Pointer to channel group of device
     std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroup;

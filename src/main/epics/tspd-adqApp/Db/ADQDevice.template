@@ -12,6 +12,14 @@ record(stringin, "$(PREFIX):ISN") {
     field(SCAN, "I/O Intr")
 }
 
+record(stringout, "$(PREFIX):OSN") {
+    field(DESC, "Specified SN of the device.")
+    field(DTYP, "asynOctetWrite")
+    field(PINI, "YES")
+    field(OUT,  "@asyn($(ASYN_PORT), 0) SpecSerialNumber")
+    field(VAL, "SPD-06125")
+}
+
 record(stringin, "$(PREFIX):IPID") {
     field(DESC, "Product ID of the device.")
     field(DTYP, "asynOctetRead")
@@ -24,9 +32,11 @@ record(stringin, "$(PREFIX):ITYPE") {
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(ASYN_PORT), 0) ADQType")
     field(SCAN, "I/O Intr")
+}
     
 record(stringin, "$(PREFIX):IOPT") {
     field(DESC, "Option of the device.")
     field(DTYP, "asynOctetRead")
     field(INP,  "@asyn($(ASYN_PORT), 0) CardOption")
     field(SCAN, "I/O Intr")
+}

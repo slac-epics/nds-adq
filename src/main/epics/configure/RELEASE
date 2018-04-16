@@ -22,8 +22,13 @@
 # the CONFIG_SITE file.
 
 # Variables and paths to dependent modules:
-#MODULES = /path/to/modules
-#MYMODULE = $(MODULES)/my-module
+MODULES = /opt/codac-6.0/epics/src
+ASYN=$(MODULES)/asyn-4.32.ccs1
+NDS3=/usr/local/lib
+NDS3EPICS=/opt/nds3_epics
+
+# Module ADQ 
+ADQ=$(TOP)/lib/linux-x86_64
 
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ = $(MODULES)/seq-ver

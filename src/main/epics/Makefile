@@ -15,10 +15,6 @@ DIRS += $(wildcard iocBoot)
 $(foreach dir, $(filter-out configure, $(DIRS)), \
     $(eval $(dir)_DEPEND_DIRS += configure))
 
-# Any *App dirs depend on all *SharedTemplateApp dirs
-$(foreach dir, $(filter-out %SharedTemplateApp, $(filter %App, $(DIRS))), \
-    $(eval $(dir)_DEPEND_DIRS += $(filter %SharedTemplateApp, $(DIRS))))
-
 # Any *App dirs depend on all *Sup dirs
 $(foreach dir, $(filter %App, $(DIRS)), \
     $(eval $(dir)_DEPEND_DIRS += $(filter %Sup, $(DIRS))))
