@@ -10,13 +10,14 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
-ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum) :
-    m_channelNum(channelNum)
+ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface *& adq_dev) :
+    m_channelNum(channelNum),
+    m_adq_dev(adq_dev)
 
 {
-    /*
-    m_node = parentNode.addChild(nds::Node(name));
 
+    m_node = parentNode.addChild(nds::Node(name));
+/*
     m_stateMachine = nds::StateMachine(true,
                                      std::bind(&ADQAIChannel::switchOn, this),
                                      std::bind(&ADQAIChannel::switchOff, this),

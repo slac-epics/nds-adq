@@ -29,52 +29,65 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
         
         // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it!
         std::cout << "Enter device Serial Number (e.g. SPD-06215):" << std::endl;
-        std::cin >> &input;
+        std::cin >> input;
         // Convert (string)input to (char*)specified_sn for future comparison
-        specified_sn = &input;
-        std::cout << "DEBUG: " << "Specified serial num ADQ: " << specified_sn << std::endl;
+        specified_sn = input;
         if (success)
         {
             if (adq_list > 0)
             {
                 // This block searches a device with a specified serial number
-                for (adq_list_nr = 0; adq_list_nr < n_of_adq; ++adq_list_nr)
+                for (adq_list_nr = 0; adq_list_nr < adq_list; ++adq_list_nr)
                 {
                     // Opens communication channel to a certain ADQ device; 
-                    // this ADQ will show up when using functions NofADQ and GetADQ
+                    // this ADQ will show up in lists of functions NofADQ and GetADQ
                     success = ADQControlUnit_OpenDeviceInterface(adq_cu, adq_list_nr);
                     if (success)                                             
                     {
-                        // Make this device ready to use
-                        success = ADQControlUnit_SetupDevice(adq_cu, adq_list_nr);
-                        if (success)
+                        n_of_adq = ADQControlUnit_NofADQ(adq_cu);
+                        std::cout << "DEBUG: " << "Readback NofADQ: " << n_of_adq << std::endl;
+                        if (n_of_adq == 1)
                         {
-                            n_of_adq = ADQControlUnit_NofADQ(adq_cu);
-                            for (adq_nr = 1; adq_nr <= n_of_adq; ++adq_nr)
+                            // Make this device ready to use
+                            success = ADQControlUnit_SetupDevice(adq_cu, adq_list_nr);
+                            if (success)
                             {
+                                adq_nr = 1;
                                 // Get pointer to interface of certain device                                      
                                 m_adq_dev = ADQControlUnit_GetADQ(adq_cu, adq_nr);
                                 // Check if this ADQ serial number is the one specified                            
                                 adq_sn = m_adq_dev->GetBoardSerialNumber();
                                 std::cout << "DEBUG: " << "Readback board serial num ADQ: " << adq_sn << std::endl;
-                                if (!strcmp(adq_sn, specified_sn))
+                                int i = strcmp(specified_sn, adq_sn);
+                                std::cout << "DEBUG: " << "Are SN equal? : " << i << std::endl;
+ /*                               for (int z = 0; z < 20; ++z)
+                                {
+                                    printf(" %c[%d] %c[%d] \n", *(specified_sn + z), specified_sn[z], adq_sn[z], adq_sn[z]);
+                                }    */
+                                if (!strcmp(specified_sn, adq_sn))
                                 {
                                     adq_found = 1;
+                                    std::cout << "DEBUG: " << "ADQ is found: " << adq_found << std::endl;
                                     break;
                                 }
                                 else
                                 {
                                     ADQControlUnit_DeleteADQ(adq_cu, adq_nr);
                                 }
-                            }
+                            }  
+                            else
+                            {
+                                throw nds::NdsError("ERROR: Device failure during setup.");
+                                DeleteADQControlUnit(adq_cu);
+                                throw nds::NdsError("DELETED: ADQ Control Unit was deleted due to error.");
+                            } // ADQControlUnit_SetupDevice
                         }
                         else
                         {
-                            throw nds::NdsError("ERROR: Device failure during setup.");
+                            throw nds::NdsError("ERROR: More than one device is added to CU lists.");
                             DeleteADQControlUnit(adq_cu);
                             throw nds::NdsError("DELETED: ADQ Control Unit was deleted due to error.");
-                        } // ADQControlUnit_SetupDevice 
-                        
+                        }
                     }
                     else
                     {

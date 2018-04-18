@@ -1,42 +1,46 @@
-record(stringin, "$(PREFIX):IPN") {
-    field(DESC, "Product name of the device.")
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(ASYN_PORT), 0) ProductName")
+record(waveform, "$(PREFIX):${CH_GRP_ID}:IPN") {
+    field(DESC, "Product name of the device")
+    field(DTYP, "asynInt8ArrayIn")
+    field(FTVL, "CHAR")
+    field(NELM, 32)
+    field(INP,  "@asyn($(PREFIX)-${CH_GRP_ID}, 0) ProductName")
     field(SCAN, "I/O Intr")
-}
-
-record(stringin, "$(PREFIX):ISN") {
-    field(DESC, "Serial number of the device.")
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(ASYN_PORT), 0) SerialNumber")
-    field(SCAN, "I/O Intr")
-}
-
-record(stringout, "$(PREFIX):OSN") {
-    field(DESC, "Specified SN of the device.")
-    field(DTYP, "asynOctetWrite")
     field(PINI, "YES")
-    field(OUT,  "@asyn($(ASYN_PORT), 0) SpecSerialNumber")
-    field(VAL, "SPD-06125")
 }
 
-record(stringin, "$(PREFIX):IPID") {
-    field(DESC, "Product ID of the device.")
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(ASYN_PORT), 0) ProductID")
+record(waveform, "$(PREFIX):${CH_GRP_ID}:ISN") {
+    field(DESC, "Serial number of the device")
+    field(DTYP, "asynInt8ArrayIn")
+    field(FTVL, "CHAR")
+    field(NELM, 32)
+    field(INP,  "@asyn($(PREFIX)-${CH_GRP_ID}, 0) SerialNumber")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
-record(stringin, "$(PREFIX):ITYPE") {
-    field(DESC, "Type of the device.")
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(ASYN_PORT), 0) ADQType")
+record(longin, "$(PREFIX):${CH_GRP_ID}:IPID") {
+    field(DESC, "Product ID of the device")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-${CH_GRP_ID}, 0) ProductID")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "$(PREFIX):${CH_GRP_ID}:ITYPE") {
+    field(DESC, "Type of the device")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-${CH_GRP_ID}, 0) ADQType")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
     
-record(stringin, "$(PREFIX):IOPT") {
-    field(DESC, "Option of the device.")
-    field(DTYP, "asynOctetRead")
-    field(INP,  "@asyn($(ASYN_PORT), 0) CardOption")
+record(waveform, "$(PREFIX):${CH_GRP_ID}:IOPT") {
+    field(DESC, "Option of the device")
+    field(DTYP, "asynInt8ArrayIn")
+    field(FTVL, "CHAR")
+    field(NELM, 32)
+    field(INP,  "@asyn($(PREFIX)-${CH_GRP_ID}, 0) CardOption")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
+

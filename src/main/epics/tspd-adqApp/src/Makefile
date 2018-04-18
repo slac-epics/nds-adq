@@ -30,7 +30,7 @@ include $(TOP)/configure/CONFIG
 CXX = g++
 
 # We enable the c++11 flag, plus we define the NDS3_DLL preprocessor macro.
-CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic -fPIC -pthread -DNDS3_DLL -DLINUX 
+CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic -fPIC -pthread -DNDS3_DLL -DLINUX
 
 # Flags passed to gcc during linking
 LINK = -shared -fPIC -Wl,-as-needed
@@ -41,7 +41,7 @@ TARGET = ../../lib/libtspd-adq.so
 LIBRARY_IOC += tspd-adq
 
 # Dependency on NDS3 and ADQAPI
-LIBS = -lnds3 -ladq
+LIBS = -lnds3 -ladq -lrt
 
 # tspd-adq.dbd will be created and installed
 ###DBD += tspd-adq.dbd

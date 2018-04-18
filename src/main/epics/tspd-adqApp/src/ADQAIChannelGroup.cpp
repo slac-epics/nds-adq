@@ -2,6 +2,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <ctime>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -10,48 +11,79 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
-ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& m_adq_dev) :
+ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adq_dev) :
     m_node(nds::Port(name, nds::nodeType_t::generic)),
-    m_productName(nds::PVVariableIn<std::string>("ProductName")),
-    m_serialNumber(nds::PVVariableIn<std::string>("SerialNumber")),
-    m_productID(nds::PVVariableIn<std::string>("ProductID")),
-    m_adqType(nds::PVVariableIn<std::string>("ADQType")),
-    m_cardOption(nds::PVVariableIn<std::string>("CardOption"))
-
-{
-    /*
+    m_adq_dev(adq_dev),
+    m_productNamePV(nds::PVDelegateIn<std::string>("ProductName", std::bind(&ADQAIChannelGroup::getProductName,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_serialNumberPV(nds::PVDelegateIn<std::string>("SerialNumber", std::bind(&ADQAIChannelGroup::getSerialNumber,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_productIDPV(nds::PVDelegateIn<std::int32_t>("ProductID", std::bind(&ADQAIChannelGroup::getProductID,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_adqTypePV(nds::PVDelegateIn<std::int32_t>("ADQType", std::bind(&ADQAIChannelGroup::getADQType,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_cardOptionPV(nds::PVDelegateIn<std::string>("CardOption", std::bind(&ADQAIChannelGroup::getCardOption,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2)))
+{ 
+    parentNode.addChild(m_node);
+    
     // Set PVs for device info
-    m_productName.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_productName);
+    m_productNamePV.setScanType(nds::scanType_t::interrupt);
+    m_productNamePV.setMaxElements(32);
+    m_node.addChild(m_productNamePV);
+    
+    m_serialNumberPV.setScanType(nds::scanType_t::interrupt);
+    m_serialNumberPV.setMaxElements(32);
+    m_node.addChild(m_serialNumberPV);
 
-    m_serialNumber.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_serialNumber);
+    m_productIDPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_productIDPV);
 
-    m_productID.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_productID);
+    m_adqTypePV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_adqTypePV);
 
-    m_adqType.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_adqType);
+    m_cardOptionPV.setScanType(nds::scanType_t::interrupt);
+    m_cardOptionPV.setMaxElements(32);
+    m_node.addChild(m_cardOptionPV);
 
-    m_cardOption.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_cardOption);
+}
 
-    // Get device info
+void ADQAIChannelGroup::getProductName(timespec* pTimestamp, std::string* pValue)
+{
     char* adq_pn = m_adq_dev->GetBoardProductName();
-    unsigned int adq_pid = m_adq_dev->GetProductID();
-    int adq_type = m_adq_dev->GetADQType();
-    const char* adq_opt = m_adq_dev->GetCardOption();
+    *pValue = std::string(adq_pn);
+}
+
+void ADQAIChannelGroup::getSerialNumber(timespec* pTimestamp, std::string* pValue)
+{
     char* adq_sn = m_adq_dev->GetBoardSerialNumber();
+    *pValue = std::string(adq_sn);
+}
 
-    // Send device info to according EPICS records
-    m_productName.push(m_productName.getTimestamp(), adq_pn);
-    m_serialNumber.push(m_serialNumber.getTimestamp(), adq_sn);
-    m_productID.push(m_productID.getTimestamp(), adq_pid);
-    m_adqType.push(m_adqType.getTimestamp(), adq_type);
-    m_cardOption.push(m_cardOption.getTimestamp(), adq_opt);
+void ADQAIChannelGroup::getProductID(timespec* pTimestamp, std::int32_t* pValue)
+{
+    unsigned int adq_pid = m_adq_dev->GetProductID();
+    *pValue = std::int32_t(adq_pid);
+}
 
-    // Device information is returned
-    ndsInfoStream(m_node) << "Device started:\nADQ" << adq_type << adq_opt << "\nProduct name: " << adq_pn << \
-        "\nSerial number: " << adq_sn << "\nProduct ID: " << adq_pid << std::endl;
-*/
+void ADQAIChannelGroup::getADQType(timespec* pTimestamp, std::int32_t* pValue)
+{
+    int adq_type = m_adq_dev->GetADQType();
+    *pValue = std::int32_t(adq_type);
+}
+
+void ADQAIChannelGroup::getCardOption(timespec* pTimestamp, std::string* pValue)
+{
+    const char* adq_opt = m_adq_dev->GetCardOption();
+    *pValue = std::string(adq_opt);
 }

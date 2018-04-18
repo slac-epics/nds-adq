@@ -5,14 +5,17 @@
 
 class ADQAIChannel
 {
-    ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum);
+    ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface *& adq_dev);
 
+public:
     std::int32_t m_channelNum;
 
 protected:
-    ADQInterface * m_adq_dev;
 
 private:
+    // pointer to certain ADQ device
+    ADQInterface * m_adq_dev;
+
     nds::Node m_node;
     nds::StateMachine m_stateMachine;
     
