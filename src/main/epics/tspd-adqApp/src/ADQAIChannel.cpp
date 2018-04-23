@@ -17,20 +17,22 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
 {
 
     m_node = parentNode.addChild(nds::Node(name));
-/*
-    m_stateMachine = nds::StateMachine(true,
-                                     std::bind(&ADQAIChannel::switchOn, this),
-                                     std::bind(&ADQAIChannel::switchOff, this),
-                                     std::bind(&ADQAIChannel::start, this),
-                                     std::bind(&ADQAIChannel::stop, this),
-                                     std::bind(&ADQAIChannel::recover, this),
-                                     std::bind(&ADQAIChannel::allowChange, this,
+
+
+
+    m_stateMachine = nds::StateMachine(true, std::bind(&ADQAIChannel::switchOn, this),
+                                             std::bind(&ADQAIChannel::switchOff, this),
+                                             std::bind(&ADQAIChannel::start, this),
+                                             std::bind(&ADQAIChannel::stop, this),
+                                             std::bind(&ADQAIChannel::recover, this),
+                                             std::bind(&ADQAIChannel::allowChange, 
+                                                 this,
                                                  std::placeholders::_1,
                                                  std::placeholders::_2,
                                                  std::placeholders::_3));
 
     m_node.addChild(m_stateMachine);
-
+/*
     int SetLvlTrigChannel(int channel);
 
 
@@ -48,3 +50,35 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     
     */
 }
+
+void ADQAIChannel::setState(nds::state_t newState)
+{
+    m_stateMachine.setState(newState);
+}
+
+void ADQAIChannel::switchOn()
+{
+
+}
+void ADQAIChannel::switchOff()
+{
+}
+void ADQAIChannel::start()
+{
+ 
+}
+void ADQAIChannel::stop()
+{
+ 
+}
+
+void ADQAIChannel::recover()
+{
+    throw nds::StateMachineRollBack("Cannot recover");
+}
+
+bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds::state_t)
+{
+    return true;
+}
+

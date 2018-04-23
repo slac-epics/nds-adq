@@ -5,10 +5,13 @@
 
 class ADQAIChannel
 {
+public: 
     ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface *& adq_dev);
 
-public:
     std::int32_t m_channelNum;
+
+    void setState(nds::state_t newState);
+
 
 protected:
 
@@ -22,14 +25,13 @@ private:
     int channel;
     unsigned char channelsmask;
 
-    /*
     void switchOn();
     void switchOff();
     void start();
     void stop();
     void recover();
     bool allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
-    */
+
 };
 
 #endif /* ADQAICHANNEL_H */
