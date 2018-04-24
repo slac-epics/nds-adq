@@ -7,6 +7,7 @@
 #include <nds3/nds.h>
 
 #include "ADQDevice.h"
+#include "ADQInfo.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
@@ -32,23 +33,9 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
                                                  std::placeholders::_3));
 
     m_node.addChild(m_stateMachine);
-/*
-    int SetLvlTrigChannel(int channel);
 
+ //  int SetLvlTrigChannel(int channel);
 
-
-    void ADQAIChannel::switchOn()
-    {
-
-    }
-
-    void ADQAIChannel::switchOff();
-    void ADQAIChannel::start();
-    void ADQAIChannel::stop();
-    void ADQAIChannel::recover();
-    bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds::state_t); 
-    
-    */
 }
 
 void ADQAIChannel::setState(nds::state_t newState)

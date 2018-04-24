@@ -11,11 +11,13 @@ cd "${TOP}"
 dbLoadDatabase "dbd/adq-test.dbd"
 adq_test_registerRecordDeviceDriver pdbbase
 
+## Load record instances
+dbLoadTemplate("db/ADQDevice.substitutions")
+
 drvAsynIPPortConfigure("adq_test","localhost:8007")
 
-
 ## Load record instances
-dbLoadRecords("db/ADQDevice.template","PREFIX=adq_test,CH_GRP_ID=AI")
+dbLoadRecords("db/ADQDevice.template", "PREFIX=adq_test, CHGR=AI, INFO=INFO")
 
 # Load library of ADQ module
 ndsLoadDriver("lib/linux-x86_64/libtspd-adq.so")

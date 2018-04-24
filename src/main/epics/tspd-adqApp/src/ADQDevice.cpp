@@ -8,9 +8,17 @@
 #include <nds3/nds.h>
 
 #include "ADQDevice.h"
+#include "ADQInfo.h"
+#include "ADQAIChannelGroup.h"
+#include "ADQAIChannel.h"
 
 ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters) :
-    m_node(deviceName)
+    m_node(deviceName),
+    m_productNamePV(nds::PVVariableIn<std::string>("ProductName")),
+    m_serialNumberPV(nds::PVVariableIn<std::string>("SerialNumber")),
+    m_productIDPV(nds::PVVariableIn<std::int32_t>("ProductID")),
+    m_adqTypePV(nds::PVVariableIn<std::int32_t>("ADQType")),
+    m_cardOptionPV(nds::PVVariableIn<std::string>("CardOption"))
 {
     adq_cu = CreateADQControlUnit(); // Creates an ADQControlUnit called adq_cu
     if (adq_cu != NULL)
@@ -100,25 +108,10 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         std::shared_ptr<ADQAIChannelGroup> ai_chgrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adq_dev);
                         m_AIChannelGroup.push_back(ai_chgrp);
 
- /*                       // Set PVs for device info
-                        m_productNamePV.setScanType(nds::scanType_t::interrupt);
-                        m_productNamePV.setMaxElements(32);
-                        m_node.addChild(m_productNamePV);
+                        // Get a pointer to common part of device
+                        std::shared_ptr<ADQInfo> info_adq = std::make_shared<ADQInfo>("INFO", m_node, m_adq_dev);
+                        m_Info.push_back(info_adq);
 
-                        m_serialNumberPV.setScanType(nds::scanType_t::interrupt);
-                        m_serialNumberPV.setMaxElements(32);
-                        m_node.addChild(m_serialNumberPV);
-
-                        m_productIDPV.setScanType(nds::scanType_t::interrupt);
-                        m_node.addChild(m_productIDPV);
-
-                        m_adqTypePV.setScanType(nds::scanType_t::interrupt);
-                        m_node.addChild(m_adqTypePV);
-
-                        m_cardOptionPV.setScanType(nds::scanType_t::interrupt);
-                        m_cardOptionPV.setMaxElements(32);
-                        m_node.addChild(m_cardOptionPV);
-*/
                         // Initialize certain device after declaration of all its PVs
                         m_node.initialize(this, factory);
 
@@ -159,68 +152,6 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
         throw nds::NdsError("DELETED: ADQ Control Unit was deleted due to error.");
     } // CreateADQControlUnit
 }
-/*
-void ADQDevice::setDeviceInfo()
-{
-    std::int32_t tmp_int;
-    std::string tmp_str;
-    struct timespec now = { 0, 0 };
-    clock_gettime(CLOCK_REALTIME, &now);
-
-    m_productNamePV.processAtInit(1);
-    m_productNamePV.read(&now, &tmp_str);
-    m_productNamePV.push(now, tmp_str);
-
-    m_serialNumberPV.processAtInit(1);
-    m_serialNumberPV.read(&now, &tmp_str);
-    m_serialNumberPV.push(now, tmp_str);
-
-    m_productIDPV.processAtInit(1);
-    m_productIDPV.read(&now, &tmp_int);
-    m_productIDPV.push(now, tmp_int);
-
-    m_adqTypePV.processAtInit(1);
-    m_adqTypePV.read(&now, &tmp_int);
-    m_adqTypePV.push(now, tmp_int);
-
-    m_cardOptionPV.processAtInit(1);
-    m_cardOptionPV.read(&now, &tmp_str);
-    m_cardOptionPV.push(now, tmp_str);
-
-    std::cout << "Device info is received." << std::endl;
-
-}
-
-void ADQDevice::getProductName(timespec* pTimestamp, std::string* pValue)
-{
-    char* adq_pn = m_adq_dev->GetBoardProductName();
-    *pValue = std::string(adq_pn);
-}
-
-void ADQDevice::getSerialNumber(timespec* pTimestamp, std::string* pValue)
-{
-    char* adq_sn = m_adq_dev->GetBoardSerialNumber();
-    *pValue = std::string(adq_sn);
-}
-
-void ADQDevice::getProductID(timespec* pTimestamp, std::int32_t* pValue)
-{
-    unsigned int adq_pid = m_adq_dev->GetProductID();
-    *pValue = std::int32_t(adq_pid);
-}
-
-void ADQDevice::getADQType(timespec* pTimestamp, std::int32_t* pValue)
-{
-    int adq_type = m_adq_dev->GetADQType();
-    *pValue = std::int32_t(adq_type);
-}
-
-void ADQDevice::getCardOption(timespec* pTimestamp, std::string* pValue)
-{
-    const char* adq_opt = m_adq_dev->GetCardOption();
-    *pValue = std::string(adq_opt);
-}
-*/
 
 ADQDevice::~ADQDevice()
 {

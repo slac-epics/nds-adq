@@ -2,6 +2,7 @@
 #define ADQDEVICE_H
 
 #include <ADQAPI.h>
+#include "ADQInfo.h"
 #include "ADQAIChannel.h"
 #include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
@@ -11,14 +12,14 @@ class ADQDevice
 public: 
     ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters);
     ~ADQDevice();
-
- /*   void setDeviceInfo();
+/*
+    void setDeviceInfo();
     void getProductName(timespec* pTimestamp, std::string* pValue);
     void getSerialNumber(timespec* pTimestamp, std::string* pValue);
     void getProductID(timespec* pTimestamp, std::int32_t* pValue);
     void getADQType(timespec* pTimestamp, std::int32_t* pValue);
     void getCardOption(timespec* pTimestamp, std::string* pValue);
- */   
+*/    
 protected:
 
 
@@ -50,15 +51,18 @@ private:
     // Var for for loop
     unsigned int adq_found;
 
- /*   // PVs connected to EPICS records
-    nds::PVDelegateIn<std::string> m_productNamePV;
-    nds::PVDelegateIn<std::string> m_serialNumberPV;
-    nds::PVDelegateIn<std::int32_t> m_productIDPV;
-    nds::PVDelegateIn<std::int32_t> m_adqTypePV;
-    nds::PVDelegateIn<std::string> m_cardOptionPV;
-*/
+    // PVs connected to EPICS records
+    nds::PVVariableIn<std::string> m_productNamePV;
+    nds::PVVariableIn<std::string> m_serialNumberPV;
+    nds::PVVariableIn<std::int32_t> m_productIDPV;
+    nds::PVVariableIn<std::int32_t> m_adqTypePV;
+    nds::PVVariableIn<std::string> m_cardOptionPV;
+
     // Pointer to channel group of device
     std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroup;
+
+    // Pointer to info part of device
+    std::vector<std::shared_ptr<ADQInfo> > m_Info;
 
     nds::Node m_node;
 };

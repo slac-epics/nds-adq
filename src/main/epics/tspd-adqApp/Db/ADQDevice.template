@@ -1,55 +1,54 @@
-record(waveform, "$(PREFIX):IPN") {
+record(waveform, "$(PREFIX):$(INFO):IPN") {
     field(DESC, "Product name of the device")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
     field(NELM, 32)
-    field(INP,  "@asyn($(PREFIX), 0) ProductName")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ProductName")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
-    field(PROC, "1")
 }
 
-record(waveform, "$(PREFIX):ISN") {
+record(waveform, "$(PREFIX):$(INFO):ISN") {
     field(DESC, "Serial number of the device")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
     field(NELM, 32)
-    field(INP,  "@asyn($(PREFIX), 0) SerialNumber")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) SerialNumber")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longin, "$(PREFIX):IPID") {
+record(longin, "$(PREFIX):$(INFO):IPID") {
     field(DESC, "Product ID of the device")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX), 0) ProductID")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ProductID")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longin, "$(PREFIX):ITYPE") {
+record(longin, "$(PREFIX):$(INFO):ITYPE") {
     field(DESC, "Type of the device")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX), 0) ADQType")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ADQType")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
     
-record(waveform, "$(PREFIX):IOPT") {
+record(waveform, "$(PREFIX):$(INFO):IOPT") {
     field(DESC, "Option of the device")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
     field(NELM, 32)
-    field(INP,  "@asyn($(PREFIX), 0) CardOption")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) CardOption")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(mbbo, "${PREFIX}:${CHANNEL}:TRIGMODE") {
+record(mbbo, "${PREFIX}:${CHGR}:TRIGMODE") {
     field(DESC, "Set trigger mode")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHANNEL}, 0)TriggerMode")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode")
     field(ZRVL, 0)
     field(ZRST, "SW trigger")
     field(ONVL, 1)
@@ -60,12 +59,12 @@ record(mbbo, "${PREFIX}:${CHANNEL}:TRIGMODE") {
     field(THST, "Internal trigger")
 }
 
-record(mbbi, "${PREFIX}:${CHANNEL}:TRIGMODE-RB") {
+record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(DESC, "Trigger mode readback")
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
-    field(INP, "@asyn(${PREFIX}-${CHANNEL}, 0)TriggerMode-RB")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode-RB")
     field(ZRVL, 0)
     field(ZRST, "SW trigger")
     field(ONVL, 1)
