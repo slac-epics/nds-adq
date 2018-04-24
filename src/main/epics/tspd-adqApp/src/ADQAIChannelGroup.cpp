@@ -17,10 +17,23 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_adq_dev(adq_dev),
     m_trigmode(0),
     m_trigmodeChanged(true),
+    m_adjustBias(0),
+    m_dbs_bypass(0),
+    m_dbs_dctarget(m_adjustBias),
+    m_dbs_lowsat(0),
+    m_dbs_upsat(0),
     m_trigmodePV(nds::PVDelegateIn<std::int32_t>("TriggerMode-RB", std::bind(&ADQAIChannelGroup::getTriggerMode,
                                                                         this,
                                                                         std::placeholders::_1,
-                                                                        std::placeholders::_2))) 
+                                                                        std::placeholders::_2))),
+    m_adjustBiasPV(nds::PVDelegateIn<std::int32_t>("AdjustBias-RB", std::bind(&ADQAIChannelGroup::getAdjustBias,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_dbsPV(nds::PVDelegateIn<std::int32_t>("DBS-RB", std::bind(&ADQAIChannelGroup::setDBS,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2)))
 { 
     parentNode.addChild(m_node);
 
@@ -47,7 +60,21 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_trigmodePV.setEnumeration(triggerModeList);
     m_node.addChild(m_trigmodePV);
 
-    // PVs for state machine.
+    // PVs for Adjustable Bias
+    m_node.addChild(nds::PVDelegateOut<std::int32_t>("AdjustBias",
+                                                   std::bind(&ADQAIChannelGroup::setAdjustBias,
+                                                             this,
+                                                             std::placeholders::_1,
+                                                             std::placeholders::_2),
+                                                   std::bind(&ADQAIChannelGroup::getAdjustBias,
+                                                             this,
+                                                             std::placeholders::_1,
+                                                             std::placeholders::_2)));
+
+    m_adjustBiasPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_adjustBiasPV);
+
+    // PVs for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
                                                              std::bind(&ADQAIChannelGroup::onSwitchOff, this),
                                                              std::bind(&ADQAIChannelGroup::onStart, this),
@@ -69,20 +96,74 @@ void ADQAIChannelGroup::setTriggerMode(const timespec &pTimestamp, const std::in
     clock_gettime(CLOCK_REALTIME, &now);
 
     m_trigmode = pValue + 1;
-    m_trigmodeChanged = true;
     success = m_adq_dev->SetTriggerMode(m_trigmode);
     if (success)
     {
-        std::int32_t tmp;
+        int tmp;
         m_trigmodePV.read(&now, &tmp);
         m_trigmodePV.push(now, tmp);
+        m_trigmodeChanged = true;
         std::cout << "Trigger Mode is set to " << m_trigmode << std::endl;
     }
 }
 
 void ADQAIChannelGroup::getTriggerMode(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_trigmode - 1;
+    int tmp;
+    tmp = m_adq_dev->GetTriggerMode();
+    *pValue = tmp - 1;
+}
+
+void ADQAIChannelGroup::setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue) // Setting ADC offset requires Sleep(1000) for proper setting time
+{
+    m_adjustBias = pValue;
+    success = m_adq_dev->HasAdjustableBias();
+    if (success)
+    {
+        for (ch = 0; ch < n_of_chan; ++ch)
+        {
+            success = m_adq_dev->SetAdjustableBias(ch+1, m_adjustBias);
+            if (!success)
+            {
+                const char tmp[5] = "ABCD";
+                ndsInfoStream(m_node) << "FAILURE: " << "Failed setting adjustable bias for channel " << tmp[ch] << std::endl;
+            }
+            else
+            {
+                m_biasChanged = true;
+            }
+        }
+    }
+}
+
+void ADQAIChannelGroup::getAdjustBias(timespec* pTimestamp, std::int32_t* pValue)    
+{
+    success = m_adq_dev->HasAdjustableBias();
+    if (success)
+    {
+        for (ch = 0; ch < n_of_chan; ++ch)
+        {
+            int tmp;
+            success = m_adq_dev->GetAdjustableBias(ch+1, &tmp);
+            *pValue = tmp;
+        }
+    }
+}
+
+void ADQAIChannelGroup::setDBS(const timespec &pTimestamp, const std::int32_t &pValue) // check pValue and decide how to connect all four m_ variables (gui access)
+{
+    success = m_adq_dev->GetNofDBSInstances(&dbs_n_of_inst);
+    if (success)
+    {
+        for (dbs_inst = 0; dbs_inst < dbs_n_of_inst; ++dbs_inst)
+        {
+            success = m_adq_dev->SetupDBS(dbs_inst, m_dbs_bypass, m_dbs_dctarget, m_dbs_lowsat, m_dbs_upsat);
+            if (!success)
+            {
+                ndsInfoStream(m_node) << "FAILURE: " << "Failed setting up DBS instance " << dbs_inst << std::endl;
+            }
+        }
+    }
 }
 
 void ADQAIChannelGroup::onSwitchOn()
