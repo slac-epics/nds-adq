@@ -16,7 +16,6 @@ public:
     void getADQType(timespec* pTimestamp, std::int32_t* pValue);
     void getCardOption(timespec* pTimestamp, std::string* pValue);
 
-    void setDeviceInfo();
 
 private:
     // pointer to certain ADQ device

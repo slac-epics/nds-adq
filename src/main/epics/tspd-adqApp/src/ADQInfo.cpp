@@ -57,33 +57,6 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_cardOptionPV.setMaxElements(32);
     m_node.addChild(m_cardOptionPV);
 
-    setDeviceInfo();
-}
-
-void ADQInfo::setDeviceInfo()
-{
-    std::int32_t tmp_int;
-    std::string tmp_str;
-    struct timespec now = { 0, 0 };
-    clock_gettime(CLOCK_REALTIME, &now);
-
-    m_productNamePV.read(&now, &tmp_str);
-    m_productNamePV.push(now, tmp_str);
-
-    m_serialNumberPV.read(&now, &tmp_str);
-    m_serialNumberPV.push(now, tmp_str);
-
-    m_productIDPV.read(&now, &tmp_int);
-    m_productIDPV.push(now, tmp_int);
-
-    m_adqTypePV.read(&now, &tmp_int);
-    m_adqTypePV.push(now, tmp_int);
-
-    m_cardOptionPV.read(&now, &tmp_str);
-    m_cardOptionPV.push(now, tmp_str);
-
-    std::cout << "Device info is received." << std::endl;
-
 }
 
 void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)

@@ -68,7 +68,7 @@ void ADQAIChannelGroup::setTriggerMode(const timespec &pTimestamp, const std::in
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
 
-    m_trigmode = pValue + std::int32_t(1);
+    m_trigmode = pValue + 1;
     m_trigmodeChanged = true;
     success = m_adq_dev->SetTriggerMode(m_trigmode);
     if (success)
@@ -76,17 +76,13 @@ void ADQAIChannelGroup::setTriggerMode(const timespec &pTimestamp, const std::in
         std::int32_t tmp;
         m_trigmodePV.read(&now, &tmp);
         m_trigmodePV.push(now, tmp);
-        std::cout << "Trigger Mode # " << tmp << std::endl;
-    }
-    else
-    {
-        std::cout << "SetTrigerMode failed" << std::endl;
+        std::cout << "Trigger Mode is set to " << m_trigmode << std::endl;
     }
 }
 
 void ADQAIChannelGroup::getTriggerMode(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_trigmode - std::int32_t(1);
+    *pValue = m_trigmode - 1;
 }
 
 void ADQAIChannelGroup::onSwitchOn()
