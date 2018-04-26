@@ -16,10 +16,7 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     m_adq_dev(adq_dev)
 
 {
-
     m_node = parentNode.addChild(nds::Node(name));
-
-
 
     m_stateMachine = nds::StateMachine(true, std::bind(&ADQAIChannel::switchOn, this),
                                              std::bind(&ADQAIChannel::switchOff, this),
@@ -35,6 +32,11 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     m_node.addChild(m_stateMachine);
 
  //  int SetLvlTrigChannel(int channel);
+
+}
+
+void ADQAIChannel::commitChanges()
+{
 
 }
 

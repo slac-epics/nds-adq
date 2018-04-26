@@ -18,10 +18,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_trigmode(0),
     m_trigmodeChanged(true),
     m_adjustBias(0),
-    m_dbs_bypass(0),
-    m_dbs_dctarget(m_adjustBias),
-    m_dbs_lowsat(0),
-    m_dbs_upsat(0),
+    m_channelmask(0x00),
     m_trigmodePV(nds::PVDelegateIn<std::int32_t>("TriggerMode-RB", std::bind(&ADQAIChannelGroup::getTriggerMode,
                                                                         this,
                                                                         std::placeholders::_1,
@@ -30,7 +27,15 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_dbsPV(nds::PVDelegateIn<std::int32_t>("DBS-RB", std::bind(&ADQAIChannelGroup::setDBS,
+    m_dbs_settingsPV(nds::PVDelegateIn<std::vector<std::int32_t>>("DBS-RB", std::bind(&ADQAIChannelGroup::getDBS,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_pattmodePV(nds::PVDelegateIn<std::int32_t>("PatternMode-RB", std::bind(&ADQAIChannelGroup::getPatternMode,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_channelmaskPV(nds::PVDelegateIn<std::string>("ChannelMask", std::bind(&ADQAIChannelGroup::getChanMask,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
@@ -74,6 +79,54 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_adjustBiasPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_adjustBiasPV);
 
+    // PV for DBS setup
+    nds::PVDelegateOut<std::vector<std::int32_t>> node_vect(nds::PVDelegateOut<std::vector<std::int32_t>>("DBS", std::bind(&ADQAIChannelGroup::setDBS,
+                                                                                                                         this,
+                                                                                                                         std::placeholders::_1,
+                                                                                                                         std::placeholders::_2),
+                                                                                                                std::bind(&ADQAIChannelGroup::getDBS,
+                                                                                                                         this,
+                                                                                                                         std::placeholders::_1,
+                                                                                                                         std::placeholders::_2)));
+    node_vect.setMaxElements(4);
+    m_node.addChild(node_vect);
+
+    m_dbs_settingsPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_dbs_settingsPV);
+
+    // PV for Pattern Mode
+    nds::enumerationStrings_t patternModeList;
+    patternModeList.push_back("Normal");
+    patternModeList.push_back("Test");
+    patternModeList.push_back("Count upwards");
+    patternModeList.push_back("Count downwards");
+    patternModeList.push_back("Alternating ups and downs");
+    node = nds::PVDelegateOut<std::int32_t>("PatternMode", std::bind(&ADQAIChannelGroup::setPatternMode,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2));
+    node.setEnumeration(patternModeList);
+    m_node.addChild(node);
+
+    m_pattmodePV.setScanType(nds::scanType_t::interrupt);
+    m_pattmodePV.setEnumeration(patternModeList);
+    m_node.addChild(m_pattmodePV);
+
+    // PV for channel enabling
+    nds::PVDelegateOut<std::string> node_vec(nds::PVDelegateOut<std::string>("ChannelMask", std::bind(&ADQAIChannelGroup::setChanMask,
+                                                                                                                         this,
+                                                                                                                         std::placeholders::_1,
+                                                                                                                         std::placeholders::_2),
+                                                                                                                        std::bind(&ADQAIChannelGroup::getChanMask,
+                                                                                                                         this,
+                                                                                                                         std::placeholders::_1,
+                                                                                                                         std::placeholders::_2)));
+  //  node_vect.setMaxElements(4);
+    m_node.addChild(node_vect);
+
+    m_channelmaskPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_channelmaskPV);
+
     // PVs for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
                                                              std::bind(&ADQAIChannelGroup::onSwitchOff, this),
@@ -103,7 +156,7 @@ void ADQAIChannelGroup::setTriggerMode(const timespec &pTimestamp, const std::in
         m_trigmodePV.read(&now, &tmp);
         m_trigmodePV.push(now, tmp);
         m_trigmodeChanged = true;
-        std::cout << "Trigger Mode is set to " << m_trigmode << std::endl;
+            ndsInfoStream(m_node) << "Trigger Mode is set to " << m_trigmode << std::endl;
     }
 }
 
@@ -126,7 +179,7 @@ void ADQAIChannelGroup::setAdjustBias(const timespec &pTimestamp, const std::int
             if (!success)
             {
                 const char tmp[5] = "ABCD";
-                ndsInfoStream(m_node) << "FAILURE: " << "Failed setting adjustable bias for channel " << tmp[ch] << std::endl;
+                ndsWarningStream(m_node) << "FAILURE: " << "Failed setting adjustable bias for channel " << tmp[ch] << std::endl;
             }
             else
             {
@@ -150,21 +203,88 @@ void ADQAIChannelGroup::getAdjustBias(timespec* pTimestamp, std::int32_t* pValue
     }
 }
 
-void ADQAIChannelGroup::setDBS(const timespec &pTimestamp, const std::int32_t &pValue) // check pValue and decide how to connect all four m_ variables (gui access)
+void ADQAIChannelGroup::setDBS(const timespec &pTimestamp, const std::vector<std::int32_t> &pValue)
 {
+    m_dbs_settings = pValue;
     success = m_adq_dev->GetNofDBSInstances(&dbs_n_of_inst);
     if (success)
     {
         for (dbs_inst = 0; dbs_inst < dbs_n_of_inst; ++dbs_inst)
         {
-            success = m_adq_dev->SetupDBS(dbs_inst, m_dbs_bypass, m_dbs_dctarget, m_dbs_lowsat, m_dbs_upsat);
+            success = m_adq_dev->SetupDBS(dbs_inst, m_dbs_settings[0], m_dbs_settings[1], m_dbs_settings[2], m_dbs_settings[3]);
             if (!success)
             {
-                ndsInfoStream(m_node) << "FAILURE: " << "Failed setting up DBS instance " << dbs_inst << std::endl;
+                ndsWarningStream(m_node) << "FAILURE: " << "Failed setting up DBS instance " << dbs_inst << std::endl;
             }
         }
     }
 }
+
+void ADQAIChannelGroup::getDBS(timespec* pTimestamp, std::vector<std::int32_t>* pValue)
+{
+    *pValue = m_dbs_settings;
+    ndsInfoStream(m_node) << "DBS settings: " << &pValue[0] << " " << &pValue[1] << " " << &pValue[2] << " " << &pValue[3] << std::endl;
+}
+
+void ADQAIChannelGroup::setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_pattmode = pValue;
+    success = m_adq_dev->SetTestPatternMode(m_pattmode);
+    if (!success)
+    {
+        ndsWarningStream(m_node) << "FAILURE: " << "Failed setting up pattern mode." << std::endl;
+    }
+}
+
+void ADQAIChannelGroup::getPatternMode(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_pattmode;
+    ndsInfoStream(m_node) << "Pattern Mode is set to " << m_pattmode << std::endl;
+}
+
+void ADQAIChannelGroup::setChanMask(const timespec &pTimestamp, const std::string &pValue)
+{
+    m_channels = pValue;
+    if (n_of_chan > 0)
+    {
+        if (m_channels[0] == 1)
+        {
+            m_channelmask |= 0x01;
+
+            if (m_channels[1] == 1)
+            {
+                m_channelmask |= 0x02;
+                
+                if (m_channels[2] == 1)
+                {
+                    m_channelmask |= 0x04;
+
+                    if (m_channels[3] == 1)
+                    {
+                        m_channelmask |= 0x08;
+                    }
+                }
+            }
+        }
+        m_channelmaskChanged = true;
+    }
+    else
+    {
+        ndsWarningStream(m_node) << "FAILURE: " << "No channels are found." << std::endl;
+    }
+}
+
+void ADQAIChannelGroup::getChanMask(timespec* pTimestamp, std::string* pValue)
+{
+    *pValue = m_channelmask;
+    ndsInfoStream(m_node) << "Channelmask is set to " << pValue << std::endl;
+}
+
+void ADQAIChannelGroup::commitChanges()
+{
+
+}
+
 
 void ADQAIChannelGroup::onSwitchOn()
 {

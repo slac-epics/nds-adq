@@ -51,13 +51,6 @@ private:
     // Var for for loop
     unsigned int adq_found;
 
-    // PVs connected to EPICS records
-    nds::PVVariableIn<std::string> m_productNamePV;
-    nds::PVVariableIn<std::string> m_serialNumberPV;
-    nds::PVVariableIn<std::int32_t> m_productIDPV;
-    nds::PVVariableIn<std::int32_t> m_adqTypePV;
-    nds::PVVariableIn<std::string> m_cardOptionPV;
-
     // Pointer to channel group of device
     std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroup;
 

@@ -75,3 +75,73 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(THST, "Internal trigger")
 }
 
+record(waveform, "$(PREFIX):$(CHGR):DBS") {
+    field(DESC, "DBS settings")
+    field(DTYP, "asynInt32ArrayOut")
+    field(FTVL, "LONG")
+    field(NELM, 4)
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0)DBS")
+    field(SCAN, "Passive")
+}
+
+record(waveform, "$(PREFIX):$(CHGR):DBS-RB") {
+    field(DESC, "DBS settings")
+    field(DTYP, "asynInt32ArrayIn")
+    field(FTVL, "LONG")
+    field(NELM, 4)
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0)DBS-RB")
+    field(SCAN, "Passive")
+}
+
+record(mbbo, "${PREFIX}:${CHGR}:PATTMODE") {
+    field(DESC, "Set trigger mode")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0)PatternMode")
+    field(ZRVL, 0)
+    field(ZRST, "Normal")
+    field(ONVL, 1)
+    field(ONST, "Test")
+    field(TWVL, 2)
+    field(TWST, "Count upwards")
+    field(THVL, 3)
+    field(THST, "Count downwards")
+    field(FRVL, 4)
+    field(FRST, "Alternating ups and downs")
+}
+
+record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
+    field(DESC, "Trigger mode readback")
+    field(DTYP, "asynInt32")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0)PatternMode-RB")
+    field(ZRVL, 0)
+    field(ZRST, "Normal")
+    field(ONVL, 1)
+    field(ONST, "Test")
+    field(TWVL, 2)
+    field(TWST, "Count upwards")
+    field(THVL, 3)
+    field(THST, "Count downwards")
+    field(FRVL, 4)
+    field(FRST, "Alternating ups and downs")
+}
+
+record(waveform, "$(PREFIX):$(CHGR):CHANMASK") {
+    field(DESC, "Enabling channels")
+    field(DTYP, "asynInt8ArrayOut")
+    field(FTVL, "LONG")
+    field(NELM, 4)
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask")
+    field(SCAN, "Passive")
+}
+
+record(waveform, "$(PREFIX):$(CHGR):CHANMASK-RB") {
+    field(DESC, "Enabling channels")
+    field(DTYP, "asynInt8ArrayIn")
+    field(FTVL, "LONG")
+    field(NELM, 4)
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask-RB")
+    field(SCAN, "Passive")
+}

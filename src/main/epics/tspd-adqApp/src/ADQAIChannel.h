@@ -11,9 +11,8 @@ public:
     int32_t m_channelNum;
 
     void setState(nds::state_t newState);
-
-
-protected:
+    
+    void commitChanges();
 
 private:
     // pointer to certain ADQ device

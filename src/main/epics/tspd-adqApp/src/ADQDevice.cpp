@@ -13,12 +13,7 @@
 #include "ADQAIChannel.h"
 
 ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters) :
-    m_node(deviceName),
-    m_productNamePV(nds::PVVariableIn<std::string>("ProductName")),
-    m_serialNumberPV(nds::PVVariableIn<std::string>("SerialNumber")),
-    m_productIDPV(nds::PVVariableIn<std::int32_t>("ProductID")),
-    m_adqTypePV(nds::PVVariableIn<std::int32_t>("ADQType")),
-    m_cardOptionPV(nds::PVVariableIn<std::string>("CardOption"))
+    m_node(deviceName)
 {
     adq_cu = CreateADQControlUnit(); // Creates an ADQControlUnit called adq_cu
     if (adq_cu != NULL)
@@ -112,8 +107,15 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         std::shared_ptr<ADQInfo> info_adq = std::make_shared<ADQInfo>("INFO", m_node, m_adq_dev);
                         m_Info.push_back(info_adq);
 
+                        m_node.setLogLevel(nds::logLevel_t::info);
+
                         // Initialize certain device after declaration of all its PVs
                         m_node.initialize(this, factory);
+
+                        //Test streams
+                            ndsInfoStream(m_node) << "test INFO" << std::endl;
+                            ndsWarningStream(m_node) << "test WARNING" << std::endl;
+                            ndsErrorStream(m_node) << "test ERROR" << std::endl;
 
                     }
                     else
