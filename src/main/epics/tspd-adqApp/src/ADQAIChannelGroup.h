@@ -28,10 +28,21 @@ public:
     void setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getPatternMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setChanMask(const timespec &pTimestamp, const std::string &pValue);
-    void getChanMask(timespec* pTimestamp, std::string* pValue);
+    void setChannels(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getChannels(timespec* pTimestamp, std::int32_t* pValue);
 
-    void commitChanges();
+    void setNofRecords(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getNofRecords(timespec* pTimestamp, std::int32_t* pValue);
+
+    void getMaxSamples(timespec* pTimestamp, std::int32_t* pValue);
+
+    void setNofSamples(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getNofSamples(timespec* pTimestamp, std::int32_t* pValue);
+
+    void setDAQMode(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDAQMode(timespec* pTimestamp, std::int32_t* pValue);
+
+    void commitChanges(bool calledFromAcquisitionThread = false);
 
     void onSwitchOn();
     void onSwitchOff();
@@ -41,46 +52,49 @@ public:
     bool allowChange(const nds::state_t currentLocal, const nds::state_t currentGlobal, const nds::state_t nextLocal);
     
 private:
-    // pointer to certain ADQ device
     ADQInterface * m_adq_dev;
 
-    // Success status
     unsigned int success;
-
-    // Number of channels
-    unsigned int n_of_chan;
-
-    // Channel number
+    unsigned int nofchan;
     unsigned int ch;
 
     int32_t m_trigmode;
-    bool m_trigmodeChanged;
     
-    // Bias ADC code (ADC offset)
     int m_adjustBias; 
-    bool m_biasChanged;
-
-    // DBS setup
+    
     unsigned int dbs_n_of_inst;
     unsigned char dbs_inst;
     std::vector<std::int32_t> m_dbs_settings; // 0 - bypass, 1 - DC target, 2 - lower saturation lvl, 3 - upper saturation lvl
-    bool m_dbsChanged;
     
-    // Pattern mode
     int32_t m_pattmode;
-    bool m_pattmodeChanged;
-
-    // Channel enabling
-    std::string m_channels; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
+    
+    int32_t m_nofrecords;
+    int32_t m_maxsamples;
+    int32_t m_nofsamples;
+    
+    int32_t m_daqmode;
+    
+    int32_t m_channels; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
     unsigned char m_channelmask; // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
+    
+    bool m_trigmodeChanged;
+    bool m_biasChanged;
+    bool m_dbsChanged;
+    bool m_pattmodeChanged;
+    bool m_nofrecordsChanged;
+    bool m_nofsamplesChanged;
+    bool m_daqmodeChanged;
     bool m_channelmaskChanged;
-
 
     nds::PVDelegateIn<std::int32_t> m_trigmodePV;
     nds::PVDelegateIn<std::int32_t> m_adjustBiasPV;
     nds::PVDelegateIn<std::vector<std::int32_t>> m_dbs_settingsPV;
     nds::PVDelegateIn<std::int32_t> m_pattmodePV;
-    nds::PVDelegateIn<std::string> m_channelmaskPV;
+    nds::PVDelegateIn<std::int32_t> m_channelsPV;
+    nds::PVDelegateIn<std::int32_t> m_nofrecordsPV;
+    nds::PVDelegateIn<std::int32_t> m_maxsamplesPV;
+    nds::PVDelegateIn<std::int32_t> m_nofsamplesPV;
+    nds::PVDelegateIn<std::int32_t> m_daqmodePV;
 };
 
 #endif /* ADQAICHANNELGROUP_H */

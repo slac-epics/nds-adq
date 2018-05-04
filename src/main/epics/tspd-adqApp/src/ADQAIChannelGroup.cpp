@@ -2,7 +2,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <ctime>
+#include <unistd.h>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -12,13 +12,19 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
+#define sleep(interval) usleep(1000*interval) // usleep - microsecond interval
+
 ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adq_dev) :
     m_node(nds::Port(name, nds::nodeType_t::generic)),
     m_adq_dev(adq_dev),
-    m_trigmode(0),
-    m_trigmodeChanged(true),
-    m_adjustBias(0),
-    m_channelmask(0x00),
+    m_trigmodeChanged(false),
+    m_biasChanged(false),
+    m_dbsChanged(false),
+    m_pattmodeChanged(false),
+    m_nofrecordsChanged(false),
+    m_nofsamplesChanged(false),
+    m_daqmodeChanged(false),
+    m_channelmaskChanged(false),
     m_trigmodePV(nds::PVDelegateIn<std::int32_t>("TriggerMode-RB", std::bind(&ADQAIChannelGroup::getTriggerMode,
                                                                         this,
                                                                         std::placeholders::_1,
@@ -35,14 +41,32 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_channelmaskPV(nds::PVDelegateIn<std::string>("ChannelMask", std::bind(&ADQAIChannelGroup::getChanMask,
+    m_channelsPV(nds::PVDelegateIn<std::int32_t>("Channels-RB", std::bind(&ADQAIChannelGroup::getChannels,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_nofrecordsPV(nds::PVDelegateIn<std::int32_t>("NofRecords-RB", std::bind(&ADQAIChannelGroup::getNofRecords,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_maxsamplesPV(nds::PVDelegateIn<std::int32_t>("MaxSamples-RB", std::bind(&ADQAIChannelGroup::getMaxSamples,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_nofsamplesPV(nds::PVDelegateIn<std::int32_t>("NofSamples-RB", std::bind(&ADQAIChannelGroup::getNofSamples,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_daqmodePV(nds::PVDelegateIn<std::int32_t>("DAQMode-RB", std::bind(&ADQAIChannelGroup::getDAQMode,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
 { 
     parentNode.addChild(m_node);
 
-    n_of_chan = m_adq_dev->GetNofChannels();
+    nofchan = m_adq_dev->GetNofChannels();
+
+    ndsInfoStream(m_node) << "Number of channels:" << nofchan << std::endl;
 
     // PVs for Trigger Mode
     nds::enumerationStrings_t triggerModeList;
@@ -113,19 +137,48 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(m_pattmodePV);
 
     // PV for channel enabling
-    nds::PVDelegateOut<std::string> node_vec(nds::PVDelegateOut<std::string>("ChannelMask", std::bind(&ADQAIChannelGroup::setChanMask,
-                                                                                                                         this,
-                                                                                                                         std::placeholders::_1,
-                                                                                                                         std::placeholders::_2),
-                                                                                                                        std::bind(&ADQAIChannelGroup::getChanMask,
-                                                                                                                         this,
-                                                                                                                         std::placeholders::_1,
-                                                                                                                         std::placeholders::_2)));
-  //  node_vect.setMaxElements(4);
-    m_node.addChild(node_vect);
+    node = nds::PVDelegateOut<std::int32_t>("Channels", std::bind(&ADQAIChannelGroup::setChannels,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2),
+                                                       std::bind(&ADQAIChannelGroup::getChannels,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2));
+    m_node.addChild(node);
 
-    m_channelmaskPV.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_channelmaskPV);
+    m_channelsPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_channelsPV);
+
+    // PV for records and samples
+    m_nofrecordsPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_nofrecordsPV);
+
+    m_maxsamplesPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_maxsamplesPV);
+
+    m_nofsamplesPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_nofsamplesPV);
+
+    // PVs for data acquisition modes
+    nds::enumerationStrings_t daqModeList;
+    daqModeList.push_back("Multi-Record");
+    daqModeList.push_back("Continuous streaming");
+    daqModeList.push_back("Triggered streaming");
+    node = nds::PVDelegateOut<std::int32_t>("DAQMode", std::bind(&ADQAIChannelGroup::setDAQMode,
+                                                                                     this,
+                                                                                     std::placeholders::_1,
+                                                                                     std::placeholders::_2),
+                                                       std::bind(&ADQAIChannelGroup::getDAQMode,
+                                                                                     this,
+                                                                                     std::placeholders::_1,
+                                                                                     std::placeholders::_2));
+    node.setEnumeration(daqModeList);
+    m_node.addChild(node);
+
+    m_daqmodePV.setScanType(nds::scanType_t::interrupt);
+    m_daqmodePV.setEnumeration(triggerModeList);
+    m_node.addChild(m_daqmodePV);
 
     // PVs for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
@@ -144,145 +197,304 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
 
 void ADQAIChannelGroup::setTriggerMode(const timespec &pTimestamp, const std::int32_t &pValue)
 {
-    // Don't use dbpf TriggerMode.PROC 1 after putting a value to TRIGMODE record, because it has SCAN=PASSIVE like TRIGMODE itself
-    struct timespec now = { 0, 0 };
-    clock_gettime(CLOCK_REALTIME, &now);
-
     m_trigmode = pValue + 1;
-    success = m_adq_dev->SetTriggerMode(m_trigmode);
-    if (success)
-    {
-        int tmp;
-        m_trigmodePV.read(&now, &tmp);
-        m_trigmodePV.push(now, tmp);
-        m_trigmodeChanged = true;
-            ndsInfoStream(m_node) << "Trigger Mode is set to " << m_trigmode << std::endl;
-    }
+    m_trigmodeChanged = true;
+    commitChanges();
 }
 
 void ADQAIChannelGroup::getTriggerMode(timespec* pTimestamp, std::int32_t* pValue)
 {
-    int tmp;
-    tmp = m_adq_dev->GetTriggerMode();
-    *pValue = tmp - 1;
+    *pValue = m_trigmode - 1;
 }
 
-void ADQAIChannelGroup::setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue) // Setting ADC offset requires Sleep(1000) for proper setting time
+void ADQAIChannelGroup::setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue) 
 {
     m_adjustBias = pValue;
-    success = m_adq_dev->HasAdjustableBias();
-    if (success)
-    {
-        for (ch = 0; ch < n_of_chan; ++ch)
-        {
-            success = m_adq_dev->SetAdjustableBias(ch+1, m_adjustBias);
-            if (!success)
-            {
-                const char tmp[5] = "ABCD";
-                ndsWarningStream(m_node) << "FAILURE: " << "Failed setting adjustable bias for channel " << tmp[ch] << std::endl;
-            }
-            else
-            {
-                m_biasChanged = true;
-            }
-        }
-    }
+    m_biasChanged = true;
+    commitChanges();
 }
 
 void ADQAIChannelGroup::getAdjustBias(timespec* pTimestamp, std::int32_t* pValue)    
 {
-    success = m_adq_dev->HasAdjustableBias();
-    if (success)
-    {
-        for (ch = 0; ch < n_of_chan; ++ch)
-        {
-            int tmp;
-            success = m_adq_dev->GetAdjustableBias(ch+1, &tmp);
-            *pValue = tmp;
-        }
-    }
+    *pValue = m_adjustBias;
 }
 
 void ADQAIChannelGroup::setDBS(const timespec &pTimestamp, const std::vector<std::int32_t> &pValue)
 {
     m_dbs_settings = pValue;
-    success = m_adq_dev->GetNofDBSInstances(&dbs_n_of_inst);
-    if (success)
-    {
-        for (dbs_inst = 0; dbs_inst < dbs_n_of_inst; ++dbs_inst)
-        {
-            success = m_adq_dev->SetupDBS(dbs_inst, m_dbs_settings[0], m_dbs_settings[1], m_dbs_settings[2], m_dbs_settings[3]);
-            if (!success)
-            {
-                ndsWarningStream(m_node) << "FAILURE: " << "Failed setting up DBS instance " << dbs_inst << std::endl;
-            }
-        }
-    }
+    m_dbsChanged = true;
+    commitChanges();
 }
 
 void ADQAIChannelGroup::getDBS(timespec* pTimestamp, std::vector<std::int32_t>* pValue)
 {
     *pValue = m_dbs_settings;
-    ndsInfoStream(m_node) << "DBS settings: " << &pValue[0] << " " << &pValue[1] << " " << &pValue[2] << " " << &pValue[3] << std::endl;
 }
 
 void ADQAIChannelGroup::setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_pattmode = pValue;
-    success = m_adq_dev->SetTestPatternMode(m_pattmode);
-    if (!success)
-    {
-        ndsWarningStream(m_node) << "FAILURE: " << "Failed setting up pattern mode." << std::endl;
-    }
+    m_pattmodeChanged = true;
 }
 
 void ADQAIChannelGroup::getPatternMode(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_pattmode;
-    ndsInfoStream(m_node) << "Pattern Mode is set to " << m_pattmode << std::endl;
 }
 
-void ADQAIChannelGroup::setChanMask(const timespec &pTimestamp, const std::string &pValue)
+void ADQAIChannelGroup::setChannels(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_channels = pValue;
-    if (n_of_chan > 0)
+    m_channelmaskChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getChannels(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_channels;
+}
+
+void ADQAIChannelGroup::setNofRecords(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_nofrecords = pValue;
+    m_nofrecordsChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getNofRecords(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_nofrecords;
+}
+
+void ADQAIChannelGroup::getMaxSamples(timespec* pTimestamp, std::int32_t* pValue)
+{
+    if (m_nofrecordsChanged)
     {
-        if (m_channels[0] == 1)
+        unsigned int max_nofsamples;
+        success = m_adq_dev->GetMaxNofSamplesFromNofRecords(m_nofrecords, &max_nofsamples);
+        if (success)
         {
-            m_channelmask |= 0x01;
+            m_maxsamples = max_nofsamples;
+            *pValue = m_maxsamples;
+            ndsInfoStream(m_node) << "SUCCESS:" << "MaxSamples" << m_maxsamples << std::endl;
+        }
+        else
+        {
+            ndsWarningStream(m_node) << "FAILURE: " << "GetMaxNofSamplesFromNofRecords" << std::endl;
+        }
+    }
+}
 
-            if (m_channels[1] == 1)
+void ADQAIChannelGroup::setNofSamples(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_nofsamples = pValue;
+    m_nofsamplesChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getNofSamples(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_nofsamples;
+}
+
+void ADQAIChannelGroup::setDAQMode(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_daqmode = pValue;
+    m_daqmodeChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getDAQMode(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_daqmode;
+}
+
+void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
+{
+    struct timespec now = { 0, 0 };
+    clock_gettime(CLOCK_REALTIME, &now);
+
+    if (!calledFromAcquisitionThread && (
+        m_stateMachine.getLocalState() != nds::state_t::on &&
+        m_stateMachine.getLocalState() != nds::state_t::stopping  &&
+        m_stateMachine.getLocalState() != nds::state_t::initializing)) {
+        return;
+    }
+
+    if (m_trigmodeChanged)
+    {
+        m_trigmodeChanged = false;
+        success = m_adq_dev->SetTriggerMode(m_trigmode);
+        if (success)
+        {
+ //           m_trigmodePV.read(&now, &m_trigmode);
+            m_trigmodePV.push(now, m_trigmode);
+            ndsInfoStream(m_node) << "SUCCESS:" << "Trigger Mode is set to" << m_trigmode << std::endl;
+        }
+    }
+    
+    if (m_biasChanged)
+    {
+        m_biasChanged = false;
+        const char chan[5] = "ABCD";
+        unsigned int i = 0;
+        success = m_adq_dev->HasAdjustableBias();
+        if (success)
+        {
+            for (ch = 0; ch < nofchan; ++ch)
             {
-                m_channelmask |= 0x02;
-                
-                if (m_channels[2] == 1)
+                success = m_adq_dev->SetAdjustableBias(ch + 1, m_adjustBias);
+                if (!success)
                 {
-                    m_channelmask |= 0x04;
-
-                    if (m_channels[3] == 1)
-                    {
-                        m_channelmask |= 0x08;
-                    }
+                    ndsWarningStream(m_node) << "FAILURE: " << "Failed setting adjustable bias for channel " << chan[ch] << std::endl;
+                }
+                else
+                {
+                    ++i;
+                    ndsInfoStream(m_node) << "SUCCESS:" << "Adjustable Bias for " << chan[ch] << " is set." << std::endl;
                 }
             }
+            sleep(1000);
+
+            if (i == nofchan)
+            {
+                ndsInfoStream(m_node) << "SUCCESS:" << "Adjustable Bias for all channels is set." << std::endl;
+            }
         }
-        m_channelmaskChanged = true;
     }
-    else
+
+    if (m_dbsChanged)
     {
-        ndsWarningStream(m_node) << "FAILURE: " << "No channels are found." << std::endl;
+        m_dbsChanged = false;
+        success = m_adq_dev->GetNofDBSInstances(&dbs_n_of_inst);
+        if (success)
+        {
+            for (dbs_inst = 0; dbs_inst < dbs_n_of_inst; ++dbs_inst)
+            {
+                success = m_adq_dev->SetupDBS(dbs_inst, m_dbs_settings[0], m_dbs_settings[1], m_dbs_settings[2], m_dbs_settings[3]);
+                if (!success)
+                {
+                    ndsWarningStream(m_node) << "FAILURE: " << "Failed setting up DBS instance " << dbs_inst << std::endl;
+                }
+                else
+                {
+                    ndsInfoStream(m_node) << "SUCCES: " << "DBS settings: " << &m_dbs_settings[0] << " " << &m_dbs_settings[1] << " " 
+                                                                            << &m_dbs_settings[2] << " " << &m_dbs_settings[3] << std::endl;
+                }
+            }
+            sleep(1000);
+        }
     }
-}
 
-void ADQAIChannelGroup::getChanMask(timespec* pTimestamp, std::string* pValue)
-{
-    *pValue = m_channelmask;
-    ndsInfoStream(m_node) << "Channelmask is set to " << pValue << std::endl;
-}
+    if (m_pattmodeChanged)
+    {
+        m_pattmodeChanged = false;
+        success = m_adq_dev->SetTestPatternMode(m_pattmode);
+        if (!success)
+        {
+            ndsWarningStream(m_node) << "FAILURE: " << "Failed setting up pattern mode." << std::endl;
+        }
+        else
+        {
+            m_pattmodePV.read(&now, &m_pattmode);
+            m_pattmodePV.push(now, m_pattmode);
+            ndsInfoStream(m_node) << "SUCCESS:" << "Pattern Mode is set to " << m_pattmode << std::endl;
+        }
+    }
 
-void ADQAIChannelGroup::commitChanges()
-{
+    if (m_channelmaskChanged)
+    {
+        m_channelmaskChanged = false;
+        m_channelmask = 0x00;
+        if (nofchan > 0)
+        {
+            if (m_channels == 1000)
+            {
+                m_channelmask |= 0x01;
+            }
+            if (m_channels == 1100)
+            {
+                m_channelmask |= 0x02;
+            }
+            if (m_channels == 1110)
+            {
+                m_channelmask |= 0x04;
+            }
+            if (m_channels == 1111)
+            {
+                m_channelmask |= 0x08;
+            }
+            ndsInfoStream(m_node) << "Channelmask is set to " << m_channelmask << std::endl;
+        }
+        else
+        {
+            ndsWarningStream(m_node) << "FAILURE: " << "No channels are found." << std::endl;
+        }
+    }
 
+    if (m_nofsamplesChanged || m_nofrecordsChanged || m_daqmodeChanged)
+    {
+        m_nofsamplesChanged = false;
+        m_nofrecordsChanged = false;
+        m_daqmodeChanged = false;
+
+        if (m_nofsamples > m_maxsamples)
+        {
+            ndsErrorStream(m_node) << "ERROR: " << "Chosen number of samples is higher than the MAX: " << m_nofsamples << ">" << m_maxsamples << std::endl;
+        }
+        else
+        {
+            switch (m_daqmode)
+            {
+            case 0:   // Multi-Record
+                int trigged;
+                success = m_adq_dev->MultiRecordSetChannelMask(m_channels);
+                if (success)
+                {
+                    success = m_adq_dev->MultiRecordSetup(m_nofrecords, m_nofsamples);
+                    if (success)
+                    {
+                        switch (m_trigmode)
+                        {
+                        case 0:        // SW trigger
+                            ndsInfoStream(m_node) << "Issuing Software trigger. " << std::endl;
+                            success = m_adq_dev->DisarmTrigger();
+                            if (success)
+                            {
+                                success = m_adq_dev->ArmTrigger();
+                                if (success)
+                                {
+                                    success = m_adq_dev->SWTrig();
+                                    if (success)
+                                    {
+                                        do
+                                        {
+                                            trigged = m_adq_dev->GetAcquiredAll();
+                                        } while (trigged == 0);
+
+                                        ndsInfoStream(m_node) << "All records are triggered." << m_channelmask << std::endl;
+                                    }
+                                }
+                            }
+                            break;
+                        case 1:       // External trigger
+                        case 2:       // Level trigger
+                        case 3:       // Internal trigger
+                            break;
+                        }
+                    }
+                }
+                break;
+            case 1:   // Continuous streaming
+                success = m_adq_dev->ContinuousStreamingSetup(m_channels);
+                break;
+            case 2:   // Triggered streaming
+                break;
+            }
+        }
+
+
+    }
 }
 
 

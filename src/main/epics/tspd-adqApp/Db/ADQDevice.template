@@ -1,3 +1,9 @@
+# # # # # # # # # # # # # # # # # # # # # #
+#                                         #
+#   Common information about ADQ device   #
+#                                         #
+# # # # # # # # # # # # # # # # # # # # # #
+
 record(waveform, "$(PREFIX):$(INFO):IPN") {
     field(DESC, "Product name of the device")
     field(DTYP, "asynInt8ArrayIn")
@@ -44,6 +50,12 @@ record(waveform, "$(PREFIX):$(INFO):IOPT") {
     field(PINI, "YES")
 }
 
+# # # # # # # # # # # # # # # # # # # # # #
+#                                         #
+#    Device settings for Channel Group    #
+#                                         #
+# # # # # # # # # # # # # # # # # # # # # #
+
 record(mbbo, "${PREFIX}:${CHGR}:TRIGMODE") {
     field(DESC, "Set trigger mode")
     field(DTYP, "asynInt32")
@@ -63,7 +75,6 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(DESC, "Trigger mode readback")
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
-    field(PINI, "YES")
     field(INP, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode-RB")
     field(ZRVL, 0)
     field(ZRST, "SW trigger")
@@ -73,6 +84,20 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(TWST, "Level trigger")
     field(THVL, 3)
     field(THST, "Internal trigger")
+}
+
+record(longin, "$(PREFIX):$(CHGR):ADJUSTBIAS-RB") {
+    field(DESC, "Adjusted BIAS")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) AdjustBias-RB")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(PREFIX):$(CHGR):ADJUSTBIAS") {
+    field(DESC, "Adjusted BIAS")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) AdjustBias")
+    field(SCAN, "Passive")
 }
 
 record(waveform, "$(PREFIX):$(CHGR):DBS") {
@@ -114,7 +139,6 @@ record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
     field(DESC, "Trigger mode readback")
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
-    field(PINI, "YES")
     field(INP, "@asyn(${PREFIX}-${CHGR}, 0)PatternMode-RB")
     field(ZRVL, 0)
     field(ZRST, "Normal")
@@ -128,20 +152,77 @@ record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
     field(FRST, "Alternating ups and downs")
 }
 
-record(waveform, "$(PREFIX):$(CHGR):CHANMASK") {
+record(longin, "$(PREFIX):$(CHGR):CHANNELS-RB") {
     field(DESC, "Enabling channels")
-    field(DTYP, "asynInt8ArrayOut")
-    field(FTVL, "LONG")
-    field(NELM, 4)
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) Channels-RB")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(PREFIX):$(CHGR):CHANNELS") {
+    field(DESC, "Enabling channels")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) Channels")
     field(SCAN, "Passive")
 }
 
-record(waveform, "$(PREFIX):$(CHGR):CHANMASK-RB") {
-    field(DESC, "Enabling channels")
-    field(DTYP, "asynInt8ArrayIn")
-    field(FTVL, "LONG")
-    field(NELM, 4)
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask-RB")
+record(longin, "$(PREFIX):$(CHGR):MAXSAMP-RB") {
+    field(DESC, "Product ID of the device")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) MaxSamples-RB")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(PREFIX):$(CHGR):NOFREC-RB") {
+    field(DESC, "Product ID of the device")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) NofRecords-RB")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(PREFIX):$(CHGR):NOFREC") {
+    field(DESC, "Product ID of the device")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(INFO), 0) NofRecords")
     field(SCAN, "Passive")
+}
+
+record(longin, "$(PREFIX):$(CHGR):NOFSAMP-RB") {
+    field(DESC, "Product ID of the device")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) Samples-RB")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "$(PREFIX):$(CHGR):NOFSAMP") {
+    field(DESC, "Product ID of the device")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(INFO), 0) NofSamples")
+    field(SCAN, "Passive")
+}
+
+record(mbbo, "${PREFIX}:${CHGR}:DAQMODE") {
+    field(DESC, "Set DAQ mode")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode")
+    field(ZRVL, 0)
+    field(ZRST, "Multi-Record")
+    field(ONVL, 1)
+    field(ONST, "Continuous streaming")
+    field(TWVL, 2)
+    field(TWST, "Triggered streaming")
+}
+
+record(mbbi, "${PREFIX}:${CHGR}:DAQMODE-RB") {
+    field(DESC, "DAQ mode readback")
+    field(DTYP, "asynInt32")
+    field(SCAN, "I/O Intr")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode-RB")
+    field(ZRVL, 0)
+    field(ZRST, "Multi-Record")
+    field(ONVL, 1)
+    field(ONST, "Continuous streaming")
+    field(TWVL, 2)
+    field(TWST, "Triggered streaming")
 }
