@@ -151,12 +151,29 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(m_channelsPV);
 
     // PV for records and samples
+    node = nds::PVDelegateOut<std::int32_t>("NofRecords", std::bind(&ADQAIChannelGroup::setNofRecords,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2),
+                                                          std::bind(&ADQAIChannelGroup::getNofRecords,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2));
+    m_node.addChild(node);
     m_nofrecordsPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_nofrecordsPV);
 
     m_maxsamplesPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_maxsamplesPV);
 
+    node = nds::PVDelegateOut<std::int32_t>("NofSamples", std::bind(&ADQAIChannelGroup::setNofSamples,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2),
+                                                          std::bind(&ADQAIChannelGroup::getNofSamples,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2));
     m_nofsamplesPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_nofsamplesPV);
 
@@ -192,7 +209,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                      std::placeholders::_2,
                                                                      std::placeholders::_3)));
 
-
+    commitChanges();
 }
 
 void ADQAIChannelGroup::setTriggerMode(const timespec &pTimestamp, const std::int32_t &pValue)

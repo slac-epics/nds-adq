@@ -167,37 +167,37 @@ record(longout, "$(PREFIX):$(CHGR):CHANNELS") {
 }
 
 record(longin, "$(PREFIX):$(CHGR):MAXSAMP-RB") {
-    field(DESC, "Product ID of the device")
+    field(DESC, "Max number of samples")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) MaxSamples-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) MaxSamples-RB")
     field(SCAN, "I/O Intr")
 }
 
 record(longin, "$(PREFIX):$(CHGR):NOFREC-RB") {
-    field(DESC, "Product ID of the device")
+    field(DESC, "Number of records")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) NofRecords-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofRecords-RB")
     field(SCAN, "I/O Intr")
 }
 
 record(longout, "$(PREFIX):$(CHGR):NOFREC") {
-    field(DESC, "Product ID of the device")
+    field(DESC, "Number of records")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(INFO), 0) NofRecords")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) NofRecords")
     field(SCAN, "Passive")
 }
 
 record(longin, "$(PREFIX):$(CHGR):NOFSAMP-RB") {
-    field(DESC, "Product ID of the device")
+    field(DESC, "Number of samples")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) Samples-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofSamples-RB")
     field(SCAN, "I/O Intr")
 }
 
 record(longout, "$(PREFIX):$(CHGR):NOFSAMP") {
-    field(DESC, "Product ID of the device")
+    field(DESC, "Number of samples")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(INFO), 0) NofSamples")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) NofSamples")
     field(SCAN, "Passive")
 }
 

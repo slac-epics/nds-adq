@@ -12,10 +12,9 @@ public:
 
     void setState(nds::state_t newState);
     
-    void commitChanges();
+    void commitChanges(bool calledFromAcquisitionThread = false);
 
 private:
-    // pointer to certain ADQ device
     ADQInterface * m_adq_dev;
 
     nds::Node m_node;

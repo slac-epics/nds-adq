@@ -18,10 +18,8 @@ public:
 
 
 private:
-    // pointer to certain ADQ device
     ADQInterface * m_adq_dev;
 
-    // PVs connected to EPICS records
     nds::PVDelegateIn<std::string> m_productNamePV;
     nds::PVDelegateIn<std::string> m_serialNumberPV;
     nds::PVDelegateIn<std::int32_t> m_productIDPV;

@@ -31,11 +31,13 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
 
     m_node.addChild(m_stateMachine);
 
+    commitChanges();
+
  //  int SetLvlTrigChannel(int channel);
 
 }
 
-void ADQAIChannel::commitChanges()
+void ADQAIChannel::commitChanges(bool calledFromAcquisitionThread)
 {
 
 }
