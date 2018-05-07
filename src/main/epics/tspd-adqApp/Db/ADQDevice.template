@@ -76,6 +76,7 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
     field(INP, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode-RB")
+    field(PINI, "YES")
     field(ZRVL, 0)
     field(ZRST, "SW trigger")
     field(ONVL, 1)
@@ -91,6 +92,7 @@ record(longin, "$(PREFIX):$(CHGR):ADJUSTBIAS-RB") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) AdjustBias-RB")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 record(longout, "$(PREFIX):$(CHGR):ADJUSTBIAS") {
@@ -116,6 +118,7 @@ record(waveform, "$(PREFIX):$(CHGR):DBS-RB") {
     field(NELM, 4)
     field(INP,  "@asyn($(PREFIX)-$(CHGR), 0)DBS-RB")
     field(SCAN, "Passive")
+    field(PINI, "YES")
 }
 
 record(mbbo, "${PREFIX}:${CHGR}:PATTMODE") {
@@ -140,6 +143,7 @@ record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
     field(INP, "@asyn(${PREFIX}-${CHGR}, 0)PatternMode-RB")
+    field(PINI, "YES")
     field(ZRVL, 0)
     field(ZRST, "Normal")
     field(ONVL, 1)
@@ -152,18 +156,29 @@ record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
     field(FRST, "Alternating ups and downs")
 }
 
-record(longin, "$(PREFIX):$(CHGR):CHANNELS-RB") {
-    field(DESC, "Enabling channels")
+record(longin, "$(PREFIX):$(CHGR):CHANNELBITS-RB") {
+    field(DESC, "Channel bit field")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) Channels-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelBits-RB")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
-record(longout, "$(PREFIX):$(CHGR):CHANNELS") {
-    field(DESC, "Enabling channels")
+record(longout, "$(PREFIX):$(CHGR):CHANNELBITS") {
+    field(DESC, "Channel bit field")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) Channels")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelBits")
     field(SCAN, "Passive")
+}
+
+record(waveform, "$(PREFIX):$(CHGR):CHANNELMASK-RB") {
+    field(DESC, "Channel bit mask")
+    field(DTYP, "asynInt8ArrayIn")
+    field(FTVL, "CHAR")
+    field(NELM, 8)
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ChannelMask-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 record(longin, "$(PREFIX):$(CHGR):MAXSAMP-RB") {
@@ -171,6 +186,7 @@ record(longin, "$(PREFIX):$(CHGR):MAXSAMP-RB") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) MaxSamples-RB")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 record(longin, "$(PREFIX):$(CHGR):NOFREC-RB") {
@@ -178,6 +194,7 @@ record(longin, "$(PREFIX):$(CHGR):NOFREC-RB") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofRecords-RB")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 record(longout, "$(PREFIX):$(CHGR):NOFREC") {
@@ -192,6 +209,7 @@ record(longin, "$(PREFIX):$(CHGR):NOFSAMP-RB") {
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofSamples-RB")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 record(longout, "$(PREFIX):$(CHGR):NOFSAMP") {
@@ -205,7 +223,7 @@ record(mbbo, "${PREFIX}:${CHGR}:DAQMODE") {
     field(DESC, "Set DAQ mode")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) DAQMode")
     field(ZRVL, 0)
     field(ZRST, "Multi-Record")
     field(ONVL, 1)
@@ -218,7 +236,8 @@ record(mbbi, "${PREFIX}:${CHGR}:DAQMODE-RB") {
     field(DESC, "DAQ mode readback")
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
-    field(INP, "@asyn(${PREFIX}-${CHGR}, 0)TriggerMode-RB")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) DAQMode-RB")
+    field(PINI, "YES")
     field(ZRVL, 0)
     field(ZRST, "Multi-Record")
     field(ONVL, 1)

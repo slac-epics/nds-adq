@@ -62,30 +62,30 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
 void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)
 {
     char* adq_pn = m_adq_dev->GetBoardProductName();
-    *pValue = std::string(adq_pn);
+    *pValue = adq_pn;
 }
 
 void ADQInfo::getSerialNumber(timespec* pTimestamp, std::string* pValue)
 {
     char* adq_sn = m_adq_dev->GetBoardSerialNumber();
-    *pValue = std::string(adq_sn);
+    *pValue = adq_sn;
 }
 
 void ADQInfo::getProductID(timespec* pTimestamp, std::int32_t* pValue)
 {
     unsigned int adq_pid = m_adq_dev->GetProductID();
-    *pValue = std::int32_t(adq_pid);
+    *pValue = adq_pid;
 }
 
 void ADQInfo::getADQType(timespec* pTimestamp, std::int32_t* pValue)
 {
     int adq_type = m_adq_dev->GetADQType();
-    *pValue = std::int32_t(adq_type);
+    *pValue = adq_type;
 }
 
 void ADQInfo::getCardOption(timespec* pTimestamp, std::string* pValue)
 {
     const char* adq_opt = m_adq_dev->GetCardOption();
-    *pValue = std::string(adq_opt);
+    *pValue = adq_opt;
 }
 

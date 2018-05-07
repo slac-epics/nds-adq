@@ -39,6 +39,12 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
 
 void ADQAIChannel::commitChanges(bool calledFromAcquisitionThread)
 {
+    if (!calledFromAcquisitionThread && (
+        m_stateMachine.getLocalState() != nds::state_t::on &&
+        m_stateMachine.getLocalState() != nds::state_t::stopping  &&
+        m_stateMachine.getLocalState() != nds::state_t::initializing)) {
+        return;
+    }
 
 }
 
