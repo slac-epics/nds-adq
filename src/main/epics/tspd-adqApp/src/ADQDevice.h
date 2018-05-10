@@ -12,16 +12,6 @@ class ADQDevice
 public: 
     ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters);
     ~ADQDevice();
-/*
-    void setDeviceInfo();
-    void getProductName(timespec* pTimestamp, std::string* pValue);
-    void getSerialNumber(timespec* pTimestamp, std::string* pValue);
-    void getProductID(timespec* pTimestamp, std::int32_t* pValue);
-    void getADQType(timespec* pTimestamp, std::int32_t* pValue);
-    void getCardOption(timespec* pTimestamp, std::string* pValue);
-*/    
-protected:
-
 
 private:
     // pointer to certain ADQ device

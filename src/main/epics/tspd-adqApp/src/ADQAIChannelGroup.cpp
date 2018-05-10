@@ -53,10 +53,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_recordsPV(nds::PVDelegateIn<std::int32_t>("CollectRecords-RB", std::bind(&ADQAIChannelGroup::getRecords,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
     m_maxsamplesPV(nds::PVDelegateIn<std::int32_t>("MaxSamples-RB", std::bind(&ADQAIChannelGroup::getMaxSamples,
                                                                         this,
                                                                         std::placeholders::_1,
@@ -73,6 +69,13 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     parentNode.addChild(m_node);
 
     nofchan = m_adq_dev->GetNofChannels();
+
+    for (size_t numChannel(0); numChannel != nofchan; ++numChannel)
+    {
+        std::ostringstream channelName;
+        channelName << "CH" << numChannel;
+        m_AIChannels.push_back(std::make_shared<ADQAIChannel>(channelName.str(), m_node, numChannel, m_adq_dev));
+    }
 
     // PVs for Trigger Mode
     nds::enumerationStrings_t triggerModeList;
@@ -173,18 +176,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_nofrecordsPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_nofrecordsPV);
 
-    node = nds::PVDelegateOut<std::int32_t>("CollectRecords", std::bind(&ADQAIChannelGroup::setRecords,
-                                                                     this,
-                                                                     std::placeholders::_1,
-                                                                     std::placeholders::_2),
-                                                              std::bind(&ADQAIChannelGroup::getRecords,
-                                                                     this,
-                                                                     std::placeholders::_1,
-                                                                     std::placeholders::_2));
-    m_node.addChild(node);
-    m_recordsPV.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_recordsPV);
-
     //PVs for samples
     m_maxsamplesPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_maxsamplesPV);
@@ -221,7 +212,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_daqmodePV.setEnumeration(triggerModeList);
     m_node.addChild(m_daqmodePV);
 
-    // PVs for state machine
+    // PV for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
                                                              std::bind(&ADQAIChannelGroup::onSwitchOff, this),
                                                              std::bind(&ADQAIChannelGroup::onStart, this),
@@ -312,17 +303,6 @@ void ADQAIChannelGroup::getNofRecords(timespec* pTimestamp, std::int32_t* pValue
     *pValue = m_nofrecords;
 }
 
-void ADQAIChannelGroup::setNofRecords(const timespec &pTimestamp, const std::int32_t &pValue)
-{
-    m_nofrecords = pValue;
-    commitChanges();
-}
-
-void ADQAIChannelGroup::getNofRecords(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_nofrecords;
-}
-
 void ADQAIChannelGroup::getMaxSamples(timespec* pTimestamp, std::int32_t* pValue)        
 {
     *pValue = m_maxsamples;
@@ -394,7 +374,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             }
         }
 
-        m_adjustBiasPV.push(now, m_adjustBias);
+        //m_adjustBiasPV.push(now, m_adjustBias);
     }
 
     if (m_dbsChanged)
@@ -425,7 +405,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             }
         }
 
-        m_dbs_settingsPV.push(now, m_adjustBias);
+        //m_dbs_settingsPV.push(now, m_dbs_settings);
     }
 
     if (m_pattmodeChanged)
@@ -441,7 +421,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             ndsInfoStream(m_node) << "SUCCESS:" << "Pattern Mode is set to " << m_pattmode << std::endl;
         }
 
-        m_pattmodePV.push(now, m_pattmode);
+        //m_pattmodePV.push(now, m_pattmode);
     }
 
     if (m_channelmaskChanged)
@@ -482,8 +462,8 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             ndsInfoStream(m_node) << "Channelmask is set to " << m_channelmask << std::endl;
         }
 
-        m_channelmaskPV.push(now, m_channelmask);
-        m_channelbitsPV.push(now, m_channelbits);
+        //m_channelmaskPV.push(now, m_channelmask);
+        //m_channelbitsPV.push(now, m_channelbits);
     }
 
     if (m_nofsamplesChanged || m_nofrecordsChanged || m_daqmodeChanged || m_trigmodeChanged)
@@ -510,7 +490,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             else
             {
                 m_maxsamples = max_nofsamples;
-                m_maxsamplesPV.push(now, m_maxsamples);
+                //m_maxsamplesPV.push(now, m_maxsamples);
                 ndsInfoStream(m_node) << "SUCCESS:" << "Maximum number of samples is " << m_maxsamples << std::endl;
 
                 if (m_nofsamples > m_maxsamples)
@@ -542,10 +522,10 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             }           
         }
         
-        m_nofrecordsPV.push(now, m_nofrecords);
-        m_nofsamplesPV.push(now, m_nofsamples);
-        m_daqmodePV.push(now, m_daqmode);
-        m_trigmodePV.push(now, m_trigmode);
+        //m_nofrecordsPV.push(now, m_nofrecords);
+        //m_nofsamplesPV.push(now, m_nofsamples);
+       // m_daqmodePV.push(now, m_daqmode);
+       // m_trigmodePV.push(now, m_trigmode);
     }
 }
 
@@ -612,9 +592,6 @@ bool ADQAIChannelGroup::allowChange(const nds::state_t currentLocal, const nds::
 
 void ADQAIChannelGroup::acquisition()
 {
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    unsigned int buffersize;
     int trigged;
 
     switch (m_trigmode)
@@ -639,59 +616,63 @@ void ADQAIChannelGroup::acquisition()
 
                     ndsInfoStream(m_node) << "Creating buffers..." << std::endl;
 
-                    buffersize = m_nofrecords * m_nofsamples;
+                    m_buffersize = m_nofrecords * m_nofsamples;
                     
                     switch (m_channelbits)
                     {
                     case 1000: // ch A
-                        buf_a = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[0] = (void*)buf_a;
+                        buf_a = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[0] = (void*)buf_a;
                         break;
                     case 0100: // ch B
-                        buf_b = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[1] = (void*)buf_b;
+                        buf_b = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[1] = (void*)buf_b;
                         break;
                     case 0010: // ch C
-                        buf_c = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[2] = (void*)buf_c;
+                        buf_c = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[2] = (void*)buf_c;
                         break;
                     case 0001: // ch D
-                        buf_d = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[3] = (void*)buf_d;
+                        buf_d = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[3] = (void*)buf_d;
                         break;
                     case 1100: // ch A+B
-                        buf_a = (short*)calloc(buffersize, sizeof(short));
-                        buf_b = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[0] = (void*)buf_a;
-                        target_buf[1] = (void*)buf_b;
+                        buf_a = (short*)calloc(m_buffersize, sizeof(short));
+                        buf_b = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[0] = (void*)buf_a;
+                        m_target_buf[1] = (void*)buf_b;
                         break;
                     case 0011: // ch C+D
-                        buf_c = (short*)calloc(buffersize, sizeof(short));
-                        buf_d = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[2] = (void*)buf_c;
-                        target_buf[3] = (void*)buf_d;
+                        buf_c = (short*)calloc(m_buffersize, sizeof(short));
+                        buf_d = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[2] = (void*)buf_c;
+                        m_target_buf[3] = (void*)buf_d;
                         break;
                     case 1111: // ch A+B+C+D
-                        buf_a = (short*)calloc(buffersize, sizeof(short));
-                        buf_b = (short*)calloc(buffersize, sizeof(short));
-                        buf_c = (short*)calloc(buffersize, sizeof(short));
-                        buf_d = (short*)calloc(buffersize, sizeof(short));
-                        target_buf[0] = (void*)buf_a;
-                        target_buf[1] = (void*)buf_b;
-                        target_buf[2] = (void*)buf_c;
-                        target_buf[3] = (void*)buf_d;
+                        buf_a = (short*)calloc(m_buffersize, sizeof(short));
+                        buf_b = (short*)calloc(m_buffersize, sizeof(short));
+                        buf_c = (short*)calloc(m_buffersize, sizeof(short));
+                        buf_d = (short*)calloc(m_buffersize, sizeof(short));
+                        m_target_buf[0] = (void*)buf_a;
+                        m_target_buf[1] = (void*)buf_b;
+                        m_target_buf[2] = (void*)buf_c;
+                        m_target_buf[3] = (void*)buf_d;
                         break;
                     }
 
-                    success = m_adq_dev->GetData(target_buf, buffersize, sizeof(short), 0, m_nofrecords, m_channelmask, 0, m_nofsamples, 0x00);
+                    success = m_adq_dev->GetData(m_target_buf, m_buffersize, sizeof(short), 0, m_nofrecords, m_channelmask, 0, m_nofsamples, 0x00);
                     if (!success)
                     {
                         ndsErrorStream(m_node) << "ERROR: " << "Failed to transfer data (GetData)." << std::endl;
                     }
                     else
                     {
-
+                        for (auto const& channel : m_AIChannels) {
+                            channel->read(m_target_buf + channel->m_channelNum, m_nofsamples);
+                        }
                     }
+
+                    
                 }
             }
         }

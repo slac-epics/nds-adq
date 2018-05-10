@@ -1,0 +1,7 @@
+file db/ADQDevice.template {
+    pattern { PREFIX, INFO, CHGR, CH }
+            { adq_test, INFO, AI, CH0 }
+            { adq_test, INFO, AI, CH1 }
+            { adq_test, INFO, AI, CH2 }
+            { adq_test, INFO, AI, CH3 }
+}

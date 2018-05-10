@@ -11,7 +11,9 @@ public:
     int32_t m_channelNum;
 
     void setState(nds::state_t newState);
-    
+
+    void read(void* data, std::int32_t samples);
+    void readback(timespec* pTimestamp, std::vector<uint8_t>* pValue);
     void commitChanges(bool calledFromAcquisitionThread = false);
 
 private:
@@ -19,7 +21,10 @@ private:
 
     nds::Node m_node;
     nds::StateMachine m_stateMachine;
-    
+    std::vector<uint8_t> m_data;
+
+    bool m_firstReadout;
+     
     int channel;
     unsigned char channelsmask;
 
@@ -30,6 +35,8 @@ private:
     void recover();
     bool allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
 
+    nds::PVDelegateIn<std::vector<uint8_t>> m_dataPV;
+
 };
 
-#endif /* ADQAICHANNEL_H */
+#endif /* ADQAICHANNEL_H; */

@@ -16,13 +16,6 @@ public:
     uint32_t m_numChannels;
     std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannels;
 
-    short* buf_a;
-    short* buf_b;
-    short* buf_c;
-    short* buf_d;
-
-    void* target_buf[8];
-
     void setTriggerMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTriggerMode(timespec* pTimestamp, std::int32_t* pValue);
 
@@ -49,10 +42,7 @@ public:
 
     void setDAQMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getDAQMode(timespec* pTimestamp, std::int32_t* pValue);
-
-    void setRecords(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getRecords(timespec* pTimestamp, std::int32_t* pValue);
-
+    
     void commitChanges(bool calledFromAcquisitionThread = false);
 
     void onSwitchOn();
@@ -66,6 +56,13 @@ public:
     
 private:
     ADQInterface * m_adq_dev;
+
+    short* buf_a;
+    short* buf_b;
+    short* buf_c;
+    short* buf_d;
+    void* m_target_buf[8];
+    int32_t m_buffersize;
 
     unsigned int success;
     unsigned int nofchan;
@@ -109,7 +106,6 @@ private:
     nds::PVDelegateIn<std::int32_t> m_maxsamplesPV;
     nds::PVDelegateIn<std::int32_t> m_nofsamplesPV;
     nds::PVDelegateIn<std::int32_t> m_daqmodePV;
-    nds::PVDelegateIn<std::int32_t> m_recordsPV;
 
     nds::Thread m_acquisitionThread;
 

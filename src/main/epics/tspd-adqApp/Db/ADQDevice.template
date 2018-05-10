@@ -176,7 +176,7 @@ record(waveform, "$(PREFIX):$(CHGR):CHANNELMASK-RB") {
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
     field(NELM, 8)
-    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ChannelMask-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
@@ -244,4 +244,15 @@ record(mbbi, "${PREFIX}:${CHGR}:DAQMODE-RB") {
     field(ONST, "Continuous streaming")
     field(TWVL, 2)
     field(TWST, "Triggered streaming")
+}
+
+record(waveform, "${PREFIX}:${CHGR}:${CH}:DATA") {
+    field(DESC, "Received data")
+    field(DTYP, "asynInt8ArrayIn")
+    field(FTVL, "UCHAR")
+    field(NELM, "2000")
+    field(SCAN, "I/O Intr")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0)${CH}-Data")
+    field(TSEL, "${DATA_TSEL=}")
+    field(FLNK, "${DATA_FLNK=}")
 }
