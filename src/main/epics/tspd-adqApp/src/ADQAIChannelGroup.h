@@ -4,7 +4,6 @@
 #include <nds3/nds.h>
 #include <time.h>
 
-
 class ADQAIChannelGroup
 {
 public:
@@ -22,14 +21,21 @@ public:
     void setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue);
     void getAdjustBias(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setDBS(const timespec &pTimestamp, const std::vector<std::int32_t> &pValue);
-    void getDBS(timespec* pTimestamp, std::vector<std::int32_t>* pValue);
+    void setDBSbypass(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDBSbypass(timespec* pTimestamp, std::int32_t* pValue);
+    void setDBSdc(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDBSdc(timespec* pTimestamp, std::int32_t* pValue);
+    void setDBSlowsat(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDBSlowsat(timespec* pTimestamp, std::int32_t* pValue);
+    void setDBSupsat(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDBSupsat(timespec* pTimestamp, std::int32_t* pValue);
 
     void setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getPatternMode(timespec* pTimestamp, std::int32_t* pValue);
 
     void setChannels(const timespec &pTimestamp, const std::int32_t &pValue);
     void getChannels(timespec* pTimestamp, std::int32_t* pValue);
+    void setChannelMask(const timespec &pTimestamp, const std::string &pValue);
     void getChannelMask(timespec* pTimestamp, std::string* pValue);
 
     void setNofRecords(const timespec &pTimestamp, const std::int32_t &pValue);
@@ -57,22 +63,24 @@ public:
 private:
     ADQInterface * m_adq_dev;
 
-    short* buf_a;
-    short* buf_b;
-    short* buf_c;
-    short* buf_d;
-    void* m_target_buf[8];
-    int32_t m_buffersize;
+    int32_t m_tr_nofbuf = 8;
+    short* tr_buffers[4];
+    int32_t m_tr_bufsize = 512*1024;
 
     unsigned int success;
     unsigned int nofchan;
-    unsigned int ch;
+    int ch;
 
     int32_t m_trigmode;    
     int32_t m_adjustBias;
     
     unsigned int dbs_n_of_inst;
     unsigned char dbs_inst;
+    unsigned int m_dbs_bypass;
+    int m_dbs_dctarget;
+    int m_dbs_lowsat;
+    int m_dbs_upsat;
+
     std::vector<std::int32_t> m_dbs_settings; // 0 - bypass, 1 - DC target, 2 - lower saturation lvl, 3 - upper saturation lvl
     
     int32_t m_pattmode;
@@ -84,23 +92,31 @@ private:
     
     int32_t m_daqmode;
     
+    int32_t m_channels;
     int32_t m_channelbits; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
-    unsigned char m_channelmask; // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
+    std::string m_channelmask; // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
+    unsigned char m_channelmask_tmp;
     
     bool m_trigmodeChanged;
     bool m_biasChanged;
-    bool m_dbsChanged;
+    bool m_dbsbypassChanged;
+    bool m_dbsdcChanged;
+    bool m_dbslowsatChanged;
+    bool m_dbsupsatChanged;
     bool m_pattmodeChanged;
     bool m_nofrecordsChanged;
     bool m_nofsamplesChanged;
     bool m_daqmodeChanged;
+    bool m_channelsChanged;
     bool m_channelmaskChanged;
 
     nds::PVDelegateIn<std::int32_t> m_trigmodePV;
     nds::PVDelegateIn<std::int32_t> m_adjustBiasPV;
-    nds::PVDelegateIn<std::vector<std::int32_t>> m_dbs_settingsPV;
+    nds::PVDelegateIn<std::int32_t> m_dbs_bypassPV;
+    nds::PVDelegateIn<std::int32_t> m_dbs_dctargetPV;
+    nds::PVDelegateIn<std::int32_t> m_dbs_lowsatPV;
+    nds::PVDelegateIn<std::int32_t> m_dbs_upsatPV;
     nds::PVDelegateIn<std::int32_t> m_pattmodePV;
-    nds::PVDelegateIn<std::int32_t> m_channelbitsPV;
     nds::PVDelegateIn<std::string> m_channelmaskPV;
     nds::PVDelegateIn<std::int32_t> m_nofrecordsPV;
     nds::PVDelegateIn<std::int32_t> m_maxsamplesPV;

@@ -28,7 +28,8 @@ private:
     // Number of ADQ devices from NofADQ function
     int n_of_adq;
     // User input
-    char input[100];
+    char input_raw[100];
+    const char* input;
     // ADQ device number from adq_list array; indexing starts from 0
     // Please note that the device number when using GetADQ/NofADQ/etc will not have anything to do with the index number used in this function.
     int adq_list_nr;

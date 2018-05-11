@@ -31,9 +31,12 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
         std::cout << "DEBUG: " << "Listed ADQs: " << adq_list  << std::endl;
         
         // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it!
-        std::cout << "Enter device Serial Number (e.g. SPD-06215):" << std::endl;
-        std::cin >> input;
-        specified_sn = input;
+        std::cout << "Enter device Serial Number (e.g. 06215):" << std::endl;
+        std::cin >> input_raw;
+        std::string prefix = "SPD-";
+        prefix.insert(4, input_raw);
+        input = prefix.c_str();
+        specified_sn = (char*)input;
         if (success)
         {
             if (adq_list > 0)
