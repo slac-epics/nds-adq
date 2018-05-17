@@ -12,8 +12,8 @@ public:
 
     void setState(nds::state_t newState);
 
-    void read(void* data, std::int32_t samples);
-    void readback(timespec* pTimestamp, std::vector<uint8_t>* pValue);
+    void read_trigstr(short* rawdata, std::int32_t total_samples);
+    void readback(timespec* pTimestamp, std::vector<double>* pValue);
     void commitChanges(bool calledFromAcquisitionThread = false);
 
 private:
@@ -21,7 +21,7 @@ private:
 
     nds::Node m_node;
     nds::StateMachine m_stateMachine;
-    std::vector<uint8_t> m_data;
+    std::vector<double> m_data;
 
     bool m_firstReadout;
      
@@ -35,7 +35,8 @@ private:
     void recover();
     bool allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
 
-    nds::PVDelegateIn<std::vector<uint8_t>> m_dataPV;
+    //nds::PVDelegateIn<std::vector<uint8_t>> m_dataPV;
+    nds::PVDelegateIn<std::vector<double>> m_dataPV;
 
 };
 

@@ -14,7 +14,7 @@
 ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface *& adq_dev) :
     m_channelNum(channelNum),
     m_adq_dev(adq_dev),
-    m_dataPV(nds::PVDelegateIn<std::vector<uint8_t>>("Data", std::bind(&ADQAIChannel::readback,
+    m_dataPV(nds::PVDelegateIn<std::vector<double>>("Data", std::bind(&ADQAIChannel::readback,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
@@ -23,7 +23,7 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
 
     // PV for data
     m_dataPV.setScanType(nds::scanType_t::interrupt);
-    m_dataPV.setMaxElements(2000);
+    m_dataPV.setMaxElements(30000000);
     m_node.addChild(m_dataPV);
 
     // PV for state machine
@@ -88,7 +88,12 @@ bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds
     return true;
 }
 
-void ADQAIChannel::read(void* data, int32_t samples)
+void ADQAIChannel::readback(timespec* pTimestamp, std::vector<double>* pValue)    // Dummy method for the DATA PVs; methods eith name "read_***" are actual methods that push received data to PVs
+{
+
+}
+
+void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t buffer_size, std::int32_t total_samples)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -103,26 +108,53 @@ void ADQAIChannel::read(void* data, int32_t samples)
         return;
     }
 
-    short data_ch;
+    double* data_ch;
+    int i;
     m_data.clear();
-    m_data.reserve(sizeof(samples));
-    std::vector<uint8_t>::iterator target = m_data.begin();
+    m_data.reserve(total_samples);
+    std::vector<double>::iterator target = m_data.begin();
 
-    data_ch = ((uint8_t*)data)[m_channelNum];
+    m_data.resize(total_samples);
 
-    m_data.resize(sizeof(samples));
-
-    for (target; target != m_data.end(); ++target)
+    for (i = 0; i < total_samples; ++i, ++target)
     {
-        *target = data_ch;
+        *target = ((double)rawdata[i]);
     }
-
+    
     m_dataPV.push(now, m_data);
 
     commitChanges(true);
 }
 
-void ADQAIChannel::readback(timespec* pTimestamp, std::vector<uint8_t>* pValue)
+void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
 {
+    struct timespec now;
+    clock_gettime(CLOCK_REALTIME, &now);
 
+    if (m_stateMachine.getLocalState() != nds::state_t::running)
+    {
+        // Print the warning message the first time this function is inappropriately called 
+        if (m_firstReadout) {
+            m_firstReadout = false;
+            ndsInfoStream(m_node) << "Channel " << m_channelNum << " is not running." << std::endl;
+        }
+        return;
+    }
+
+    double* data_ch;
+    int i;
+    m_data.clear();
+    m_data.reserve(total_samples);
+    std::vector<double>::iterator target = m_data.begin();
+
+    m_data.resize(total_samples);
+
+    for (i = 0; i < total_samples; ++i, ++target)
+    {
+        *target = ((double)rawdata[i]);
+    }
+
+    m_dataPV.push(now, m_data);
+
+    commitChanges(true);
 }

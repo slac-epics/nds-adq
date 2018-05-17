@@ -56,6 +56,37 @@ record(waveform, "$(PREFIX):$(INFO):IOPT") {
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
+# # # # # # # # # # # # # # # # # # # # # #
+#            Common settings              #
+# # # # # # # # # # # # # # # # # # # # # #
+
+record(mbbo, "${PREFIX}:${CHGR}:DAQMODE") {
+    field(DESC, "Set DAQ mode")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) DAQMode")
+    field(ZRVL, 0)
+    field(ZRST, "Multi-Record")
+    field(ONVL, 1)
+    field(ONST, "Continuous streaming")
+    field(TWVL, 2)
+    field(TWST, "Triggered streaming")
+}
+
+record(mbbi, "${PREFIX}:${CHGR}:DAQMODE-RB") {
+    field(DESC, "DAQ mode readback")
+    field(DTYP, "asynInt32")
+    field(SCAN, "I/O Intr")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) DAQMode-RB")
+    field(PINI, "YES")
+    field(ZRVL, 0)
+    field(ZRST, "Multi-Record")
+    field(ONVL, 1)
+    field(ONST, "Continuous streaming")
+    field(TWVL, 2)
+    field(TWST, "Triggered streaming")
+}
+
 record(mbbo, "${PREFIX}:${CHGR}:TRIGMODE") {
     field(DESC, "Set trigger mode")
     field(DTYP, "asynInt32")
@@ -300,31 +331,107 @@ record(longout, "$(PREFIX):$(CHGR):NOFSAMP") {
     field(SCAN, "Passive")
 }
 
-record(mbbo, "${PREFIX}:${CHGR}:DAQMODE") {
-    field(DESC, "Set DAQ mode")
+# # # # # # # # # # # # # # # # # # # # # #
+#              Level trigger              #
+# # # # # # # # # # # # # # # # # # # # # #
+
+record(longout, "$(PREFIX):$(CHGR):TRIGLVL") {
+    field(DESC, "Trigger level")
     field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) TriggerLevel")
     field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) DAQMode")
-    field(ZRVL, 0)
-    field(ZRST, "Multi-Record")
-    field(ONVL, 1)
-    field(ONST, "Continuous streaming")
-    field(TWVL, 2)
-    field(TWST, "Triggered streaming")
 }
 
-record(mbbi, "${PREFIX}:${CHGR}:DAQMODE-RB") {
-    field(DESC, "DAQ mode readback")
+record(longin, "$(PREFIX):$(CHGR):TRIGLVL-RB") {
+    field(DESC, "Trigger level readback")
     field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) TriggerLevel-RB")
     field(SCAN, "I/O Intr")
-    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) DAQMode-RB")
+    field(PINI, "YES")
+}
+
+record(mbbo, "${PREFIX}:${CHGR}:TRIGEDGE") {
+    field(DESC, "Trigger level")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TriggerEdge")
+    field(ZRVL, 0)
+    field(ZRST, "Falling edge")
+    field(ONVL, 1)
+    field(ONST, "Rising edge")
+}
+
+record(mbbi, "${PREFIX}:${CHGR}:TRIGEDGE-RB") {
+    field(DESC, "Trigger level readback")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TriggerEdge-RB")
     field(PINI, "YES")
     field(ZRVL, 0)
-    field(ZRST, "Multi-Record")
+    field(ZRST, "Falling edge")
     field(ONVL, 1)
-    field(ONST, "Continuous streaming")
+    field(ONST, "Rising edge")
     field(TWVL, 2)
-    field(TWST, "Triggered streaming")
+    field(TWST, "C+D")
+    field(THVL, 3)
+    field(THST, "A")
+    field(FRVL, 4)
+    field(FRST, "B")
+    field(FVVL, 5)
+    field(FVST, "C")
+    field(SXVL, 6)
+    field(SXST, "D")
+}
+
+#On ADQ7 only a single bit in the mask can be set, only one channel is allowed to at once generate the
+#trigger. On ADQ14 only masks 1,2,4,8 (single bit) and masks 3 (A+B), 12 (C+D), 15 (A+B+C+D)
+#are allowed.
+
+record(mbbo, "${PREFIX}:${CHGR}:TRIGCHAN") {
+    field(DESC, "Trigger level")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TriggerChannel")
+    field(ZRVL, 0)
+    field(ZRST, "None")
+    field(ONVL, 1)
+    field(ONST, "A")
+    field(TWVL, 2)
+    field(TWST, "B")
+    field(THVL, 3)
+    field(THST, "C")
+    field(FRVL, 4)
+    field(FRST, "D")
+    field(FVVL, 5)
+    field(FVST, "A+B")
+    field(SXVL, 6)
+    field(SXST, "A+C")
+    field(SVVL, 7)
+    field(SVST, "A+B+C+D")
+}
+
+record(mbbi, "${PREFIX}:${CHGR}:TRIGCHAN-RB") {
+    field(DESC, "Trigger level readback")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TriggerChannel-RB")
+    field(PINI, "YES")
+    field(ZRVL, 0)
+    field(ZRST, "None")
+    field(ONVL, 1)
+    field(ONST, "A")
+    field(TWVL, 2)
+    field(TWST, "B")
+    field(THVL, 3)
+    field(THST, "C")
+    field(FRVL, 4)
+    field(FRST, "D")
+    field(FVVL, 5)
+    field(FVST, "A+B")
+    field(SXVL, 6)
+    field(SXST, "A+C")
+    field(SVVL, 7)
+    field(SVST, "A+B+C+D")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #
@@ -394,14 +501,21 @@ record(mbbi, "${PREFIX}:${CHGR}:STAT-RB") {
 
 record(waveform, "${PREFIX}:${CHGR}:${CH}:DATA") {
     field(DESC, "Received data")
-    field(DTYP, "asynInt8ArrayIn")
-    field(FTVL, "UCHAR")
-    field(NELM, "2000")
+    field(DTYP, "asynFloat64ArrayIn")
+    field(FTVL, "DOUBLE")
+    field(NELM, "30000000")
+    field(PREC, "3")
     field(SCAN, "I/O Intr")
+    field(PINI, "YES")
     field(INP, "@asyn(${PREFIX}-${CHGR}, 0)${CH}-Data")
-    field(TSEL, "${DATA_TSEL=}")
-    field(FLNK, "${DATA_FLNK=}")
 }
+
+#record(ai, "${PREFIX}:${CHGR}:${CH}:DATA") {
+#    field(DESC, "Received data")
+#    field(DTYP, "asynFloat64")
+#    field(SCAN, "I/O Intr")
+#    field(INP, "@asyn(${PREFIX}-${CHGR}, 0)${CH}-Data")
+#}
 
 record(mbbo, "${PREFIX}:${CHGR}:${CH}:STAT") {
     field(DESC, "Set local state CH")
