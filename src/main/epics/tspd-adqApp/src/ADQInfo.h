@@ -16,6 +16,12 @@ public:
     void getADQType(timespec* pTimestamp, std::int32_t* pValue);
     void getCardOption(timespec* pTimestamp, std::string* pValue);
 
+    void getTempLocal(timespec* pTimestamp, std::int32_t* pValue);
+    void getTempADCone(timespec* pTimestamp, std::int32_t* pValue);
+    void getTempADCtwo(timespec* pTimestamp, std::int32_t* pValue);
+    void getTempFPGA(timespec* pTimestamp, std::int32_t* pValue);
+    void getTempDd(timespec* pTimestamp, std::int32_t* pValue);
+
 
 private:
     ADQInterface * m_adq_dev;
@@ -26,7 +32,11 @@ private:
     nds::PVDelegateIn<std::int32_t> m_adqTypePV;
     nds::PVDelegateIn<std::string> m_cardOptionPV;
 
-
+    nds::PVDelegateIn<std::int32_t> m_templocalPV;
+    nds::PVDelegateIn<std::int32_t> m_tempadcoPV;
+    nds::PVDelegateIn<std::int32_t> m_tempadctPV;
+    nds::PVDelegateIn<std::int32_t> m_tempfpgaPV;
+    nds::PVDelegateIn<std::int32_t> m_tempddPV;
 };
 
 #endif /* ADQCOMMON_H */

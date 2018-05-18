@@ -50,6 +50,46 @@ record(waveform, "$(PREFIX):$(INFO):IOPT") {
     field(PINI, "YES")
 }
 
+record(longin, "$(PREFIX):$(INFO):TEMP-0") {
+    field(DESC, "Temperature")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TemperatureLocal")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "$(PREFIX):$(INFO):TEMP-1") {
+    field(DESC, "Temperature")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TemperatureADC-1")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "$(PREFIX):$(INFO):TEMP-2") {
+    field(DESC, "Temperature")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TemperatureADC-2")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "$(PREFIX):$(INFO):TEMP-3") {
+    field(DESC, "Temperature")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TemperatureFPGA")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "$(PREFIX):$(INFO):TEMP-4") {
+    field(DESC, "Temperature")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TempratureDiode")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
 # # # # # # # # # # # # # # # # # # # # # #
 #                                         #
 #    Device settings for Channel Group    #
@@ -405,7 +445,7 @@ record(mbbo, "${PREFIX}:${CHGR}:TRIGCHAN") {
     field(FVVL, 5)
     field(FVST, "A+B")
     field(SXVL, 6)
-    field(SXST, "A+C")
+    field(SXST, "C+D")
     field(SVVL, 7)
     field(SVST, "A+B+C+D")
 }
@@ -429,9 +469,25 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGCHAN-RB") {
     field(FVVL, 5)
     field(FVST, "A+B")
     field(SXVL, 6)
-    field(SXST, "A+C")
+    field(SXST, "C+D")
     field(SVVL, 7)
     field(SVST, "A+B+C+D")
+}
+
+record(longin, "$(PREFIX):$(CHGR):COLREC-RB") {
+    field(DESC, "Records to collect")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) CollectRecords-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+    field(FLNK, "$(PREFIX):$(CHGR):MAXSAMP-RB")
+}
+
+record(longout, "$(PREFIX):$(CHGR):COLREC") {
+    field(DESC, "Records to collect")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) CollectRecords")
+    field(SCAN, "Passive")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #

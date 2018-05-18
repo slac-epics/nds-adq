@@ -93,7 +93,7 @@ void ADQAIChannel::readback(timespec* pTimestamp, std::vector<double>* pValue)  
 
 }
 
-void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t buffer_size, std::int32_t total_samples)
+void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -108,7 +108,7 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t buffer_size, std::i
         return;
     }
 
-    double* data_ch;
+    //double* data_ch;
     int i;
     m_data.clear();
     m_data.reserve(total_samples);
@@ -126,8 +126,9 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t buffer_size, std::i
     commitChanges(true);
 }
 
-void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
-{
+
+void ADQAIChannel::read_multirec(void* rawdata, std::int32_t total_samples)
+{/*
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
 
@@ -141,8 +142,10 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
         return;
     }
 
-    double* data_ch;
+    double data_ch;
     int i;
+
+    data_ch = *(double*)rawdata;
     m_data.clear();
     m_data.reserve(total_samples);
     std::vector<double>::iterator target = m_data.begin();
@@ -151,10 +154,15 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
 
     for (i = 0; i < total_samples; ++i, ++target)
     {
-        *target = ((double)rawdata[i]);
+        *target = data_ch[i];
     }
 
     m_dataPV.push(now, m_data);
 
-    commitChanges(true);
+    commitChanges(true); */
+}
+
+void ADQAIChannel::read_contstr(void* rawdata, std::int32_t total_samples)
+{
+
 }

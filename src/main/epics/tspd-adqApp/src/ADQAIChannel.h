@@ -13,6 +13,8 @@ public:
     void setState(nds::state_t newState);
 
     void read_trigstr(short* rawdata, std::int32_t total_samples);
+    void read_multirec(void* rawdata, std::int32_t total_samples);
+    void read_contstr(void* rawdata, std::int32_t total_samples);
     void readback(timespec* pTimestamp, std::vector<double>* pValue);
     void commitChanges(bool calledFromAcquisitionThread = false);
 

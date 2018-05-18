@@ -34,11 +34,31 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_cardOptionPV(nds::PVDelegateIn<std::string>("CardOption", std::bind(&ADQInfo::getCardOption,
                                                                         this,
                                                                         std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_templocalPV(nds::PVDelegateIn<std::int32_t>("TemperatureLocal", std::bind(&ADQInfo::getTempLocal,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_tempadcoPV(nds::PVDelegateIn<std::int32_t>("TemperatureADC-1", std::bind(&ADQInfo::getTempADCone,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_tempadctPV(nds::PVDelegateIn<std::int32_t>("TemperatureADC-2", std::bind(&ADQInfo::getTempADCtwo,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_tempfpgaPV(nds::PVDelegateIn<std::int32_t>("TemperatureFPGA", std::bind(&ADQInfo::getTempFPGA,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_tempddPV(nds::PVDelegateIn<std::int32_t>("TempratureDiode", std::bind(&ADQInfo::getTempDd,
+                                                                        this,
+                                                                        std::placeholders::_1,
                                                                         std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
 
-    // Set PVs for device info
+    // PVs for device info
     m_productNamePV.setScanType(nds::scanType_t::interrupt);
     m_productNamePV.setMaxElements(32);
     m_node.addChild(m_productNamePV);
@@ -57,35 +77,70 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_cardOptionPV.setMaxElements(32);
     m_node.addChild(m_cardOptionPV);
 
+    // PVs for temperatures
+    m_templocalPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_templocalPV);
+
+    m_tempadcoPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_tempadcoPV);
+
+    m_tempadctPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_tempadctPV);
+
+    m_tempfpgaPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_tempfpgaPV);
+
+    m_tempddPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_tempddPV);
+
 }
 
 void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)
 {
-    char* adq_pn = m_adq_dev->GetBoardProductName();
-    *pValue = adq_pn;
+    *pValue = m_adq_dev->GetBoardProductName();
 }
 
 void ADQInfo::getSerialNumber(timespec* pTimestamp, std::string* pValue)
 {
-    char* adq_sn = m_adq_dev->GetBoardSerialNumber();
-    *pValue = adq_sn;
+    *pValue = m_adq_dev->GetBoardSerialNumber();
 }
 
 void ADQInfo::getProductID(timespec* pTimestamp, std::int32_t* pValue)
 {
-    unsigned int adq_pid = m_adq_dev->GetProductID();
-    *pValue = adq_pid;
+    *pValue = m_adq_dev->GetProductID();
 }
 
 void ADQInfo::getADQType(timespec* pTimestamp, std::int32_t* pValue)
 {
-    int adq_type = m_adq_dev->GetADQType();
-    *pValue = adq_type;
+    *pValue = m_adq_dev->GetADQType();;
 }
 
 void ADQInfo::getCardOption(timespec* pTimestamp, std::string* pValue)
 {
-    const char* adq_opt = m_adq_dev->GetCardOption();
-    *pValue = adq_opt;
+    *pValue = m_adq_dev->GetCardOption();
 }
 
+void ADQInfo::getTempLocal(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_adq_dev->GetTemperature(0) / 256;
+}
+
+void ADQInfo::getTempADCone(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_adq_dev->GetTemperature(1) / 256;
+}
+
+void ADQInfo::getTempADCtwo(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_adq_dev->GetTemperature(2) / 256;
+}
+
+void ADQInfo::getTempFPGA(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_adq_dev->GetTemperature(3) / 256;
+}
+
+void ADQInfo::getTempDd(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_adq_dev->GetTemperature(4) / 256;
+}

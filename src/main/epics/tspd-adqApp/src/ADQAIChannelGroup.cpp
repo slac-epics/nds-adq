@@ -324,9 +324,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_nofrecordsPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_nofrecordsPV);
 
-    m_maxsamplesPV.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_maxsamplesPV);
-
     node = nds::PVDelegateOut<std::int32_t>("CollectRecords", std::bind(&ADQAIChannelGroup::setCollectRecords,
                                                                      this,
                                                                      std::placeholders::_1,
@@ -642,9 +639,10 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
         return;
     }
     
-    if (m_daqmodeChanged)
+    if (m_daqmodeChanged || m_channelsChanged)
     {
         m_daqmodeChanged = false;
+        m_channelsChanged = false;
         switch (m_daqmode)
         {
         case 0:   // Multi-Record
@@ -688,6 +686,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
         case 1:
             break;
         case 2:
+            /*
             success = m_adq_dev->SetLvlTrigLevel(m_triglvl);
             if (!success)
             {
@@ -709,6 +708,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
                     }
                 }
             }
+            */
             break;
         case 3:
             break;
@@ -723,6 +723,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             ndsInfoStream(m_node) << "SUCCESS: Trigger Mode is set to " << m_trigmode << std::endl;
             m_trigmodePV.push(now, m_trigmode);
         }
+        m_trigmodePV.push(now, m_trigmode);
     }
 
     if (m_pattmodeChanged)
@@ -978,11 +979,11 @@ void ADQAIChannelGroup::onStart()
     m_stop = false;
 
     if (m_daqmode == 0)
-        m_acquisitionThread = m_node.runInThread("Acquisition-TrigStream", std::bind(&ADQAIChannelGroup::acquisition_trigstream, this));
-    if (m_daqmode == 1)
         m_acquisitionThread = m_node.runInThread("Acquisition-MultiRec", std::bind(&ADQAIChannelGroup::acquisition_multirec, this));
-    if (m_daqmode == 2)
+    if (m_daqmode == 1)
         m_acquisitionThread = m_node.runInThread("Acquisition-ContStream", std::bind(&ADQAIChannelGroup::acquisition_contstream, this));
+    if (m_daqmode == 2)
+        m_acquisitionThread = m_node.runInThread("Acquisition-TrigStream", std::bind(&ADQAIChannelGroup::acquisition_trigstream, this));
 }
 
 void ADQAIChannelGroup::onStop()
@@ -1117,9 +1118,9 @@ void ADQAIChannelGroup::acquisition_trigstream()
                 }
                 else
                 {
-
-                    if (m_trigmode == 0) // SW trigger
+                    switch (m_trigmode)
                     {
+                    case 0: // SW trigger
                         ndsInfoStream(m_node) << "Issuing Software trigger... " << std::endl;
                         success = m_adq_dev->DisarmTrigger();
                         if (!success)
@@ -1309,6 +1310,7 @@ void ADQAIChannelGroup::acquisition_trigstream()
                                             }
 
                                             // Read buffers by each channel and send them to DATA PVs
+                                            //tr_buffers_ptr = (double*)tr_buffers[ch];
                                             m_AIChannels[ch]->read_trigstr(tr_buffers[ch], total_samples);
                                         }
 
@@ -1326,15 +1328,10 @@ void ADQAIChannelGroup::acquisition_trigstream()
                                 } while (!received_all_records);
                             }
                         }
-                    }
+                        break;
+                    case 1: // External trigger
 
-                    if (m_trigmode == 1) // External trigger
-                    {
-
-                    }
-
-                    if (m_trigmode == 2) // Level trigger
-                    {
+                    case 2: // Level trigger
                         ndsInfoStream(m_node) << "Issuing Level trigger... " << std::endl;
                         success = m_adq_dev->SetLvlTrigLevel(m_triglvl);
                         if (!success)
@@ -1364,10 +1361,8 @@ void ADQAIChannelGroup::acquisition_trigstream()
                                 }
                             }
                         }
-                    }
-
-                    if (m_trigmode == 3) // Internal trigger
-                    {
+                        break;
+                    case 3: // Internal trigger
                         ndsInfoStream(m_node) << "Issuing Internal trigger... " << std::endl;
                         success = m_adq_dev->SetInternalTriggerPeriod(m_triglvl);
                         if (!success)
@@ -1379,6 +1374,7 @@ void ADQAIChannelGroup::acquisition_trigstream()
                         {
 
                         }
+                        break;
                     }
                 }
             }
@@ -1438,12 +1434,14 @@ void ADQAIChannelGroup::adq14_triggered_streaming_process_record(short* record_d
 void ADQAIChannelGroup::acquisition_multirec()
 {
     int trigged;
-    unsigned int buffersize;
+    unsigned int total_samples;
     short* buf_a = NULL;
     short* buf_b = NULL;
     short* buf_c = NULL;
     short* buf_d = NULL;
     void* tr_buffers[8]; // GetData allows for a digitizer with max 8 channels, the unused pointers should be null pointers
+
+    short* tr_buffers_ptr;
 
     if (m_trigmode == 0) // SW trigger
     {
@@ -1515,7 +1513,7 @@ void ADQAIChannelGroup::acquisition_multirec()
             }
         }
     }
-    ndsInfoStream(m_node) << "All rcords are triggered." << std::endl;
+    ndsInfoStream(m_node) << "All records are triggered." << std::endl;
 
     success = m_adq_dev->GetStreamOverflow();
     if (success)
@@ -1524,12 +1522,12 @@ void ADQAIChannelGroup::acquisition_multirec()
         goto finish;
     }
 
-    buffersize = m_collect_records * m_nofsamples;
+    total_samples = m_collect_records * m_nofsamples;
 
-    buf_a = (short*)calloc(buffersize, sizeof(short));
-    buf_b = (short*)calloc(buffersize, sizeof(short));
-    buf_c = (short*)calloc(buffersize, sizeof(short));
-    buf_d = (short*)calloc(buffersize, sizeof(short));
+    buf_a = (short*)calloc(total_samples, sizeof(short));
+    buf_b = (short*)calloc(total_samples, sizeof(short));
+    buf_c = (short*)calloc(total_samples, sizeof(short));
+    buf_d = (short*)calloc(total_samples, sizeof(short));
 
     // Create a pointer array containing the data buffer pointers
     tr_buffers[0] = (void*)buf_a;
@@ -1543,7 +1541,7 @@ void ADQAIChannelGroup::acquisition_multirec()
         goto finish;
     }
 
-    success = m_adq_dev->GetData(tr_buffers, buffersize, sizeof(short), 0, m_collect_records, channelmask_char, 0, m_nofsamples, ADQ_TRANSFER_MODE_NORMAL);
+    success = m_adq_dev->GetData(tr_buffers, total_samples, sizeof(short), 0, m_collect_records, channelmask_char, 0, m_nofsamples, ADQ_TRANSFER_MODE_NORMAL);
     if (!success)
     {
         ndsErrorStream(m_node) << "ERROR: Failed at GetData." << std::endl;
@@ -1562,7 +1560,9 @@ void ADQAIChannelGroup::acquisition_multirec()
     for (ch = 0; ch < nofchan; ++ch)
     {
         // Read buffers by each channel and send them to DATA PVs
-        m_AIChannels[ch]->read_trigstr(tr_buffers[ch], buffersize);
+        tr_buffers_ptr = ((short*)tr_buffers[ch]);
+        //m_AIChannels[ch]->read_multirec(tr_buffers[ch], total_samples);
+        m_AIChannels[ch]->read_trigstr(tr_buffers_ptr, total_samples);
     }
 
 
