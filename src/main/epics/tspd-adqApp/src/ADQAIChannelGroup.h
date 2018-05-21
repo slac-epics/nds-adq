@@ -66,6 +66,7 @@ public:
 
     void setNofSamples(const timespec &pTimestamp, const std::int32_t &pValue);
     void getNofSamples(timespec* pTimestamp, std::int32_t* pValue);
+    void getTotalSamples(timespec* pTimestamp, std::int32_t* pValue);
 
     void setTriggerLvl(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTriggerLvl(timespec* pTimestamp, std::int32_t* pValue);
@@ -114,6 +115,7 @@ private:
     int32_t m_collect_records;
     int32_t m_maxsamples;
     int32_t m_nofsamples;
+    int32_t m_totalsamples;
     
     int32_t m_channels;
     int32_t m_channelbits; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
@@ -158,6 +160,7 @@ private:
     nds::PVDelegateIn<std::int32_t> m_collect_recordsPV;
     nds::PVDelegateIn<std::int32_t> m_maxsamplesPV;
     nds::PVDelegateIn<std::int32_t> m_nofsamplesPV;
+    nds::PVDelegateIn<std::int32_t> m_totalsamplesPV;
 
     nds::PVDelegateIn<std::int32_t> m_triglvlPV;
     nds::PVDelegateIn<std::int32_t> m_trigedgePV;

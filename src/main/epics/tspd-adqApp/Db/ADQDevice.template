@@ -346,7 +346,6 @@ record(longin, "$(PREFIX):$(CHGR):NOFREC-RB") {
     field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofRecords-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
-    field(FLNK, "$(PREFIX):$(CHGR):MAXSAMP-RB")
 }
 
 record(longout, "$(PREFIX):$(CHGR):NOFREC") {
@@ -369,6 +368,14 @@ record(longout, "$(PREFIX):$(CHGR):NOFSAMP") {
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) NofSamples")
     field(SCAN, "Passive")
+}
+
+record(longin, "$(PREFIX):$(CHGR):TOTSAMP-RB") {
+    field(DESC, "Number of records")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) TotalSamples-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #
@@ -411,16 +418,6 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGEDGE-RB") {
     field(ZRST, "Falling edge")
     field(ONVL, 1)
     field(ONST, "Rising edge")
-    field(TWVL, 2)
-    field(TWST, "C+D")
-    field(THVL, 3)
-    field(THST, "A")
-    field(FRVL, 4)
-    field(FRST, "B")
-    field(FVVL, 5)
-    field(FVST, "C")
-    field(SXVL, 6)
-    field(SXST, "D")
 }
 
 #On ADQ7 only a single bit in the mask can be set, only one channel is allowed to at once generate the
