@@ -4,8 +4,16 @@
 #include <nds3/nds.h>
 #include <time.h>
 
+
+//// urojec L3: goes for all the declarations that have anything to do with channels:
+//// decide weather you will use ch, chn or channel everywhere and then be consistent,
+//// exaples: unsigned char Channel; setChannels, setTriggerChan
+
+
 typedef struct
 {
+    //// urojec L3: camelCase, don't use Capital start for anything else than class names, struct names
+    //// struct fields or members should be lowerCase
     unsigned char RecordStatus;
     unsigned char UserID;
     unsigned char Channel;
@@ -30,6 +38,11 @@ public:
     uint32_t m_numChannels;
     std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannels;
 
+    //// urojec L2: Why dso you use pointers in one direction and references in the other?
+    ////            why are references not good enough for getters?
+    ////            Also, tell my what is the diffrerence between const ref and ref and
+    ////            why are const references being used with setters instead of having the values
+    ////            passed directly into the method
     void setDAQMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getDAQMode(timespec* pTimestamp, std::int32_t* pValue);
 
@@ -74,7 +87,7 @@ public:
     void getTriggerEdge(timespec* pTimestamp, std::int32_t* pValue);
     void setTriggerChan(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTriggerChan(timespec* pTimestamp, std::int32_t* pValue);
-    
+
     void commitChanges(bool calledFromAcquisitionThread = false);
 
     void onSwitchOn();
@@ -84,13 +97,15 @@ public:
     void recover();
     bool allowChange(const nds::state_t currentLocal, const nds::state_t currentGlobal, const nds::state_t nextLocal);
 
+    //// urojec L3: camelCase
     void acquisition_trigstream();
     void acquisition_multirec();
     void acquisition_contstream();
 
     void adq14_triggered_streaming_process_record(short* record_data, StreamingHeader_t* record_header);
-    
+
 private:
+    //// urojec L3: camelCase and consistent usage of m_ prefix for members, see ADQDevice.h
     ADQInterface * m_adq_dev;
 
     unsigned int success;
@@ -98,17 +113,17 @@ private:
     int ch;
 
     int32_t m_daqmode;
-    int32_t m_trigmode;    
+    int32_t m_trigmode;
     int32_t m_pattmode;
     int32_t m_adjustBias;
-    
+
     unsigned int dbs_n_of_inst;
     unsigned char dbs_inst;
     int32_t m_dbs_bypass;
     int32_t m_dbs_dctarget;
     int32_t m_dbs_lowsat;
     int32_t m_dbs_upsat;
- 
+
     unsigned int nofrecords_sum;
     unsigned int max_nofsamples;
     int32_t m_nofrecords;
@@ -116,7 +131,7 @@ private:
     int32_t m_maxsamples;
     int32_t m_nofsamples;
     int32_t m_totalsamples;
-    
+
     int32_t m_channels;
     int32_t m_channelbits; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
     std::string m_channelmask; // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
@@ -128,7 +143,9 @@ private:
     int32_t m_trigchan;
     int32_t m_trigfreq;
     int trigchan_int;
-    
+
+    //// urojec L3: m_trigModeChanged - camelCase - same for other
+    //// urojec L3: group all trig related defs together, dbs related together, etc...
     bool m_trigmodeChanged;
     bool m_biasChanged;
     bool m_dbsbypassChanged;
@@ -169,6 +186,8 @@ private:
     nds::Thread m_acquisitionThread;
 
     // void acquisitionLoop(int32_t repeat);
+
+    //// urojec L3: m_stopWhat
     bool m_stop;
 
 };

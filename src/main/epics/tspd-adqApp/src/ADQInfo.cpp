@@ -58,6 +58,9 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
 {
     parentNode.addChild(m_node);
 
+
+    //// urojec L3: where does the 32 come from and why is it hardcoded. Espetially if
+    ////            used at so many places define a macro or static const variable
     // PVs for device info
     m_productNamePV.setScanType(nds::scanType_t::interrupt);
     m_productNamePV.setMaxElements(32);
@@ -120,6 +123,9 @@ void ADQInfo::getCardOption(timespec* pTimestamp, std::string* pValue)
     *pValue = m_adq_dev->GetCardOption();
 }
 
+
+
+//// urojec L3: Hardocoding, please define macros or static const or enum for all this
 void ADQInfo::getTempLocal(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_adq_dev->GetTemperature(0) / 256;

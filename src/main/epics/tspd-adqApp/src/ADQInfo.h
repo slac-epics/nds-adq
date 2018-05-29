@@ -1,3 +1,4 @@
+//// urojec L3: Should be the same as header filename
 #ifndef ADQCOMMON_H
 #define ADQCOMMON_H
 
@@ -24,6 +25,9 @@ public:
 
 
 private:
+
+    //// urojec L3: you are mixing camelcase and underscore notation,
+    //// m_adqDev would be more appropriate
     ADQInterface * m_adq_dev;
 
     nds::PVDelegateIn<std::string> m_productNamePV;

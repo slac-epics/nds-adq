@@ -16,6 +16,9 @@
 #define sleep(interval) usleep(1000*interval) // usleep - microsecond interval
 #define PRINT_RECORD_INFO
 
+//// urojec L3: camelCase
+//// urojec L2:
+
 static struct timespec tsref;
 void timer_start(void)
 {
@@ -35,6 +38,8 @@ unsigned int timer_time_ms(void)
         (int)(ts.tv_nsec - tsref.tv_nsec) / 1000000);
 }
 
+
+//// urojec L2: hardcoading values is depreciated
 ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adq_dev) :
     m_node(nds::Port(name, nds::nodeType_t::generic)),
     m_adq_dev(adq_dev),
@@ -134,7 +139,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
-{ 
+{
     parentNode.addChild(m_node);
 
     nofchan = m_adq_dev->GetNofChannels();
@@ -147,6 +152,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     }
 
     // PVs for data acquisition modes
+    //// urojec L2: why all this push back, why not just fix the list. It is not something that dynamically changes
     nds::enumerationStrings_t daqModeList;
     daqModeList.push_back("Multi-Record");
     daqModeList.push_back("Continuous streaming");
@@ -172,6 +178,9 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     triggerModeList.push_back("External trigger");
     triggerModeList.push_back("Level trigger");
     triggerModeList.push_back("Internal trigger");
+
+    //// urojec L1: is this reusage of nodes safe? Are you sure that a copy is made in the addChild function,
+    //// or are there references?
     node = nds::PVDelegateOut<std::int32_t>("TriggerMode", std::bind(&ADQAIChannelGroup::setTriggerMode,
                                                                        this,
                                                                        std::placeholders::_1,
@@ -276,6 +285,8 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_pattmodePV.setEnumeration(patternModeList);
     m_node.addChild(m_pattmodePV);
 
+    //// urojec L1: as far as I can tell, the ADQ14 is a bit special with respect to what combinations are allowed.
+    ////            this is typically something that has to be moved to ADQ14 specifric class
     // PV for channel enabling
     nds::enumerationStrings_t channelMaskList;
     channelMaskList.push_back("A+B+C+D");
@@ -470,14 +481,14 @@ void ADQAIChannelGroup::getPatternMode(timespec* pTimestamp, std::int32_t* pValu
     *pValue = m_pattmode;
 }
 
-void ADQAIChannelGroup::setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue) 
+void ADQAIChannelGroup::setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_adjustBias = pValue;
     m_biasChanged = true;
     commitChanges();
 }
 
-void ADQAIChannelGroup::getAdjustBias(timespec* pTimestamp, std::int32_t* pValue)    
+void ADQAIChannelGroup::getAdjustBias(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_adjustBias;
 }
@@ -572,12 +583,12 @@ void ADQAIChannelGroup::setCollectRecords(const timespec &pTimestamp, const std:
     commitChanges();
 }
 
-void ADQAIChannelGroup::getCollectRecords(timespec* pTimestamp, std::int32_t* pValue) 
+void ADQAIChannelGroup::getCollectRecords(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_collect_records;
 }
 
-void ADQAIChannelGroup::getMaxSamples(timespec* pTimestamp, std::int32_t* pValue)        
+void ADQAIChannelGroup::getMaxSamples(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_maxsamples;
 }
@@ -650,7 +661,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
         m_stateMachine.getLocalState() != nds::state_t::initializing)) {
         return;
     }
-    
+
     if (m_daqmodeChanged)
     {
         m_daqmodeChanged = false;
@@ -773,11 +784,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
                 m_channelbits |= 1111;
                 m_channelmask = 0xF;
                 break;
-            case 1: // ch A+B  
+            case 1: // ch A+B
                 m_channelbits |= 1100;
                 m_channelmask = 0x3;
                 break;
-            case 2: // ch C+D  
+            case 2: // ch C+D
                 m_channelbits |= 0011;
                 m_channelmask = 0xC;
                 break;
@@ -817,7 +828,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
             {
                 ndsErrorStream(m_node) << "ERROR: Failed at ContinuousStreamingSetup." << std::endl;
             }
-                
+
         }
 
         m_channelmaskPV.push(now, m_channelmask);
@@ -869,8 +880,8 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
     if (m_collect_recordsChanged)
     {
         m_collect_recordsChanged = false;
-        
-        if (m_collect_records > m_nofrecords) 
+
+        if (m_collect_records > m_nofrecords)
             m_collect_records = m_nofrecords;
 
         m_collect_recordsPV.push(now, m_collect_records);
@@ -900,10 +911,10 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
         case 0: // None
             trigchan_int = 0;
             break;
-        case 1: // ch A  
+        case 1: // ch A
             trigchan_int = 1;
             break;
-        case 2: // ch B  
+        case 2: // ch B
             trigchan_int = 2;
             break;
         case 3: // ch C
@@ -954,7 +965,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromAcquisitionThread)
 void ADQAIChannelGroup::onSwitchOn()
 {
     // Enable all channels
-    for (auto const& channel : m_AIChannels) 
+    for (auto const& channel : m_AIChannels)
     {
         channel->setState(nds::state_t::on);
     }
@@ -963,8 +974,8 @@ void ADQAIChannelGroup::onSwitchOn()
 
 void ADQAIChannelGroup::onSwitchOff()
 {
-    // Disable all channels 
-    for (auto const& channel : m_AIChannels) 
+    // Disable all channels
+    for (auto const& channel : m_AIChannels)
     {
         channel->setState(nds::state_t::off);
     }
@@ -973,8 +984,8 @@ void ADQAIChannelGroup::onSwitchOff()
 
 void ADQAIChannelGroup::onStart()
 {
-    // Start all Channels 
-    for (auto const& channel : m_AIChannels) 
+    // Start all Channels
+    for (auto const& channel : m_AIChannels)
     {
         channel->setState(nds::state_t::running);
     }
@@ -992,13 +1003,13 @@ void ADQAIChannelGroup::onStart()
 
 void ADQAIChannelGroup::onStop()
 {
-    m_stop = true;  
+    m_stop = true;
     m_adq_dev->StopStreaming();
 
     m_acquisitionThread.join();
 
     // Stop channels
-    for (auto const& channel : m_AIChannels) 
+    for (auto const& channel : m_AIChannels)
     {
         channel->setState(nds::state_t::on);
     }
@@ -1378,7 +1389,7 @@ finish:
         /* We are probably already in "stopping", no need to panic... */
     }
 }
-   
+
 void ADQAIChannelGroup::adq14_triggered_streaming_process_record(short* record_data, StreamingHeader_t* record_header)  // Need to create PV for average samples, probably it is important, since they have this method
 {
     // You may process a full record here (will be called once with every completed record)
@@ -1465,7 +1476,7 @@ void ADQAIChannelGroup::acquisition_multirec()  // doesn't work yet, fails at Ge
                     } while (trigged == 0);
                 }
             }
-        }          
+        }
     }
 
     if (m_trigmode == 1 || m_trigmode == 2 || m_trigmode == 3) // External or Level or Internal trigger
