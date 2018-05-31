@@ -12,12 +12,11 @@
 #include "ADQAIChannel.h"
 
 
-//// urojec L3: most editors provide a visual line that you can set so that you
+//// urojec L3: most editors provide a visual line that you can set so that you                                              !!!!!!!!!!!!!!!!
 ////         go into newline and make the code more readable
-ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface *& adq_dev) :
+ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum) :
     m_channelNum(channelNum),
-    m_adq_dev(adq_dev),
-    m_dataPV(nds::PVDelegateIn<std::vector<double>>("Data", std::bind(&ADQAIChannel::readback,
+    m_dataPV(nds::PVDelegateIn<std::vector<double>>("Data", std::bind(&ADQAIChannel::getDataPV,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
@@ -26,9 +25,9 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
 
     // PV for data
     m_dataPV.setScanType(nds::scanType_t::interrupt);
-    //// urojec L2: no hardcoading of values, either use a macro or a static const variable
+    //// urojec L2: no hardcoading of values, either use a macro or a static const variable                                 ??????????????????
     ////            defined in the class
-    m_dataPV.setMaxElements(30000000);
+    m_dataPV.setMaxElements(DATA_MAX_ELEMENTS);
     m_node.addChild(m_dataPV);
 
     // PV for state machine
@@ -46,9 +45,6 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     m_node.addChild(m_stateMachine);
 
     commitChanges();
-
- //  int SetLvlTrigChannel(int channel);
-
 }
 
 void ADQAIChannel::commitChanges(bool calledFromAcquisitionThread)
@@ -93,19 +89,21 @@ bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds
     return true;
 }
 
-void ADQAIChannel::readback(timespec* pTimestamp, std::vector<double>* pValue)    // Dummy method for the DATA PVs; methods eith name "read_***" are actual methods that push received data to PVs
+void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<double>* pValue)
 {
-
+    /* Dummy method for the m_dataPV;
+     * methods starting with "read" are actual methods that push received data to PV
+     */
 }
 
-void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
+void ADQAIChannel::readTrigStream(short* rawdata, std::int32_t total_samples)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
 
     if (m_stateMachine.getLocalState() != nds::state_t::running)
     {
-        // Print the warning message the first time this function is inappropriately called
+        // Print the warning message the first time this function is inappropriately called                            !!!!!!!!!!!!!!!!!!!
         //// urojec L3: this comment is a little bit confusing. It can mean more things 
         if (m_firstReadout) {
             m_firstReadout = false;
@@ -115,7 +113,6 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
     }
 
     //double* data_ch;
-    int i; //// urojec L2: when using this just as a for loop iterator define it in the loop statement
     m_data.clear();
     m_data.reserve(total_samples);
     std::vector<double>::iterator target = m_data.begin();
@@ -124,7 +121,9 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
     m_data.resize(total_samples);
 
     //// urojec L2: it this ++ intentionally positioned before i? Do you know what is the difference with before and after?
-    for (i = 0; i < total_samples; ++i, ++target)
+    ////// ppipp: there is a difference between postfix and prefix, but it doesn't affect the process of for-loops; 
+    //////        also i've read it is safer to use prefix and in general it is a good tone
+    for (int i = 0; i < total_samples; ++i, ++target)
     {
         *target = ((double)rawdata[i]);
     }
@@ -136,7 +135,7 @@ void ADQAIChannel::read_trigstr(short* rawdata, std::int32_t total_samples)
 }
 
 
-void ADQAIChannel::read_multirec(void* rawdata, std::int32_t total_samples)
+void ADQAIChannel::readMultiRecord(void* rawdata, std::int32_t total_samples)
 {/*
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -171,7 +170,7 @@ void ADQAIChannel::read_multirec(void* rawdata, std::int32_t total_samples)
     commitChanges(true); */
 }
 
-void ADQAIChannel::read_contstr(void* rawdata, std::int32_t total_samples)
+void ADQAIChannel::readContinStream(void* rawdata, std::int32_t total_samples)
 {
 
 }

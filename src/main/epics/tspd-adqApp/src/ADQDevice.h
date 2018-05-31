@@ -7,6 +7,8 @@
 #include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
 
+#define CHANNEL_NUMBER_MAX 8
+#define CELSIUS_CONVERT 1/256
 
 class ADQDevice
 {
@@ -36,50 +38,25 @@ private:
     // pointer to certain ADQ device
     //// urojec L3: maybe gie Ptr at the end, since you mostly operate with regular
     ////            variables, this will avoid confusion (m_adqDevPtr)
-    ADQInterface * m_adq_dev;
+    ADQInterface * m_adqDevPtr;
 
-    // Success status
-    //// urojec L3: why is this a class variable. If it is just used in the methods
-    ////            for reading the return values of adq api function it is safer
-    ////            to define it within each unit, instead of having it as member
-    ////            -> also cleaner, this is not a member that has to be shared
-    unsigned int success;
     // Pointer to ADQ Control Unit
-    void* adq_cu;
-    // Pointer to ADQ info structure
-    struct ADQInfoListEntry* adq_info_list;
-    // Number of ADQ devices connected to the system from ListDevices function
-    unsigned int adq_list;
-    // Number of ADQ devices from NofADQ function
-    int n_of_adq;
-    // User input
+    void* m_adqCtrlUnitPtr;
+
     //// urojec L3: do not hardcode things, use macro or a static const variable
     //// urojec L3: why are these two members??? Form what I can tell it is only used at the begining to
     ////            parse the serial number. If so then just defined in that scope. Unless it is
     ////            used somewhere else and I missed it
     ////        Please check for other such cases, seems it is simmilar with adq_list and firends
-    char input_raw[100];
-    const char* input;
-    // ADQ device number from adq_list array; indexing starts from 0
-    // Please note that the device number when using GetADQ/NofADQ/etc will not have anything to do with the index number used in this function.
-    int adq_list_nr;
-    // ADQ device number used for getting a pointer m_adq_dev
-    int adq_nr;
-    // Readback ADQ serial number
-    char* adq_sn;
-    // Serial number of needed ADQ
-    char* specified_sn;
-    // Var for for loop
-    unsigned int adq_found;
 
 
     //// urojec L2: both of these are vectors of pointers, there is a difference.
     ////            The vectors themselves are std::vectors
     // Pointer to channel group of device
-    std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroup;
+    std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
 
     // Pointer to info part of device
-    std::vector<std::shared_ptr<ADQInfo> > m_Info;
+    std::vector<std::shared_ptr<ADQInfo> > m_infoPtr;
 
     nds::Node m_node;
 };

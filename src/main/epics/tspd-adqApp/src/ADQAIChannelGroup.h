@@ -14,81 +14,89 @@ typedef struct
 {
     //// urojec L3: camelCase, don't use Capital start for anything else than class names, struct names
     //// struct fields or members should be lowerCase
-    unsigned char RecordStatus;
-    unsigned char UserID;
-    unsigned char Channel;
-    unsigned char DataFormat;
-    unsigned int SerialNumber;
-    unsigned int RecordNumber;
-    unsigned int SamplePeriod;
-    unsigned long long Timestamp;
-    unsigned long long RecordStart;
-    unsigned int RecordLength;
-    unsigned int Reserved;
-} StreamingHeader_t;
+    unsigned char recordStatus;
+    unsigned char userID;
+    unsigned char channel;
+    unsigned char dataFormat;
+    unsigned int serialNumber;
+    unsigned int recordNumber;
+    unsigned int samplePeriod;
+    unsigned long long timestamp;
+    unsigned long long recordStart;
+    unsigned int recordLength;
+    unsigned int reserved;
+} streamingHeader_t;
 
 class ADQAIChannelGroup
 {
 public:
-    ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adq_dev);
+    ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
 
     nds::Port m_node;
     nds::StateMachine m_stateMachine;
 
     uint32_t m_numChannels;
-    std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannels;
+    std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannelsPtr;
 
     //// urojec L2: Why dso you use pointers in one direction and references in the other?
     ////            why are references not good enough for getters?
     ////            Also, tell my what is the diffrerence between const ref and ref and
     ////            why are const references being used with setters instead of having the values
     ////            passed directly into the method
-    void setDAQMode(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getDAQMode(timespec* pTimestamp, std::int32_t* pValue);
+    //// ppipp: I cannot tell exactly why it is made so in NDS, but setValue methods use const references and getValue methods use pointers
+    ////        setValue methods are used to set a PV to requested value and getValue methods are for readback PVs; 
+    ////        PVs for setters have Passive scan field and PVs for getters have I/O Interrupt scan field 
+    ////                                                        (that is why there is also push functions in commitChanges);
+    ////        just in case here is a link to NDS doxygen: goo.gl/tgjCG7 (search for setValue and getValue methods)
+    ////        but I must note I saw this usage in Niklas' example first and then checked NDS
+    ////            P.S. I got an idea to try to have only one getValue method for all Rdbk PVs to make the code cleaner, 
+    ////                 since most of getValue methods need an int32_t variable... Need to try
 
-    void setTriggerMode(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getTriggerMode(timespec* pTimestamp, std::int32_t* pValue);
+    void setDaqMode(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDaqMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setAdjustBias(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getAdjustBias(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigMode(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setDBSbypass(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getDBSbypass(timespec* pTimestamp, std::int32_t* pValue);
-    void setDBSdc(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getDBSdc(timespec* pTimestamp, std::int32_t* pValue);
-    void setDBSlowsat(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getDBSlowsat(timespec* pTimestamp, std::int32_t* pValue);
-    void setDBSupsat(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getDBSupsat(timespec* pTimestamp, std::int32_t* pValue);
+    void setDcBias(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDcBias(timespec* pTimestamp, std::int32_t* pValue);
+
+    void setDbsBypass(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDbsBypass(timespec* pTimestamp, std::int32_t* pValue);
+    void setDbsDc(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDbsDc(timespec* pTimestamp, std::int32_t* pValue);
+    void setDbsLowSat(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDbsLowSat(timespec* pTimestamp, std::int32_t* pValue);
+    void setDbsUpSat(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getDbsUpSat(timespec* pTimestamp, std::int32_t* pValue);
 
     void setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getPatternMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setChannels(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getChannels(timespec* pTimestamp, std::int32_t* pValue);
-    void setChannelMask(const timespec &pTimestamp, const std::string &pValue);
-    void getChannelMask(timespec* pTimestamp, std::string* pValue);
+    void setChanActive(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getChanActive(timespec* pTimestamp, std::int32_t* pValue);
+    void setChanMask(const timespec &pTimestamp, const std::string &pValue);
+    void getChanMask(timespec* pTimestamp, std::string* pValue);
 
-    void setNofRecords(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getNofRecords(timespec* pTimestamp, std::int32_t* pValue);
+    void setRecordCnt(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getRecordCnt(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setCollectRecords(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getCollectRecords(timespec* pTimestamp, std::int32_t* pValue);
+    void setRecordCntCollect(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getRecordCntCollect(timespec* pTimestamp, std::int32_t* pValue);
 
-    void getMaxSamples(timespec* pTimestamp, std::int32_t* pValue);
+    void setSampleCnt(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getSampleCnt(timespec* pTimestamp, std::int32_t* pValue);
+    void getSampleCntMax(timespec* pTimestamp, std::int32_t* pValue);
+    void getSamplesTotal(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setNofSamples(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getNofSamples(timespec* pTimestamp, std::int32_t* pValue);
-    void getTotalSamples(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigLvl(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigEdge(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigChan(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigChan(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setTriggerLvl(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getTriggerLvl(timespec* pTimestamp, std::int32_t* pValue);
-    void setTriggerEdge(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getTriggerEdge(timespec* pTimestamp, std::int32_t* pValue);
-    void setTriggerChan(const timespec &pTimestamp, const std::int32_t &pValue);
-    void getTriggerChan(timespec* pTimestamp, std::int32_t* pValue);
-
-    void commitChanges(bool calledFromAcquisitionThread = false);
+    void commitChanges(bool calledFromDaqThread = false);
 
     void onSwitchOn();
     void onSwitchOff();
@@ -97,99 +105,81 @@ public:
     void recover();
     bool allowChange(const nds::state_t currentLocal, const nds::state_t currentGlobal, const nds::state_t nextLocal);
 
-    //// urojec L3: camelCase
-    void acquisition_trigstream();
-    void acquisition_multirec();
-    void acquisition_contstream();
-
-    void adq14_triggered_streaming_process_record(short* record_data, StreamingHeader_t* record_header);
+    void daqTrigStream();
+    void daqTrigStreamProcessRecord(short* recordData, streamingHeader_t* recordHeader);
+    void daqMultiRecord();
+    void daqContinStream();
 
 private:
-    //// urojec L3: camelCase and consistent usage of m_ prefix for members, see ADQDevice.h
-    ADQInterface * m_adq_dev;
+    ADQInterface * m_adqDevPtr;
+    unsigned int m_chanCnt;
 
-    unsigned int success;
-    unsigned int nofchan;
-    int ch;
+    int32_t m_daqMode;
+    bool m_daqModeChanged;
+    
+    int32_t m_patternMode;
+    bool m_patternModeChanged;
 
-    int32_t m_daqmode;
-    int32_t m_trigmode;
-    int32_t m_pattmode;
-    int32_t m_adjustBias;
+    int32_t m_dcBias;
+    bool m_dcBiasChanged;
 
-    unsigned int dbs_n_of_inst;
-    unsigned char dbs_inst;
-    int32_t m_dbs_bypass;
-    int32_t m_dbs_dctarget;
-    int32_t m_dbs_lowsat;
-    int32_t m_dbs_upsat;
+    int32_t m_dbsBypass;
+    bool m_dbsBypassChanged;
+    int32_t m_dbsDc;
+    bool m_dbsDcChanged;
+    int32_t m_dbsLowSat;
+    bool m_dbsLowSatChanged;
+    int32_t m_dbsUpSat;
+    bool m_dbsUpSatChanged;
+    
+    int32_t m_recordCnt;
+    bool m_recordCntChanged;
+    int32_t m_recordCntCollect;
+    bool m_recordCntCollectChanged;
+    
+    int32_t m_sampleCnt;
+    bool m_sampleCntChanged;
+    int32_t m_sampleCntMax;
+    int32_t m_sampleCntTotal;
 
-    unsigned int nofrecords_sum;
-    unsigned int max_nofsamples;
-    int32_t m_nofrecords;
-    int32_t m_collect_records;
-    int32_t m_maxsamples;
-    int32_t m_nofsamples;
-    int32_t m_totalsamples;
+    int32_t m_chanActive;
+    bool m_chanActiveChanged;
+    int32_t m_chanBits; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
+    std::string m_chanMask; // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
+    bool m_chanMaskChanged;
+    
+    int32_t m_trigMode;
+    bool m_trigModeChanged;
+    int32_t m_trigLvl;
+    bool m_trigLvlChanged;
+    int32_t m_trigEdge;
+    bool m_trigEdgeChanged;
+    int32_t m_trigChan;
+    bool m_trigChanChanged;
+    int32_t m_trigFreq; // not used yet
+    
 
-    int32_t m_channels;
-    int32_t m_channelbits; // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
-    std::string m_channelmask; // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
-    std::string m_channels_str;
-    unsigned char channelmask_char;
+    nds::PVDelegateIn<std::int32_t> m_daqModePV;   
+    nds::PVDelegateIn<std::int32_t> m_dcBiasPV;
+    nds::PVDelegateIn<std::int32_t> m_dbsBypassPV;
+    nds::PVDelegateIn<std::int32_t> m_dbsDcPV;
+    nds::PVDelegateIn<std::int32_t> m_dbsLowSatPV;
+    nds::PVDelegateIn<std::int32_t> m_dbsUpSatPV;
+    nds::PVDelegateIn<std::int32_t> m_patternModePV;
+    nds::PVDelegateIn<std::int32_t> m_chanActivePV;
+    nds::PVDelegateIn<std::string> m_chanMaskPV;
+    nds::PVDelegateIn<std::int32_t> m_recordCntPV;
+    nds::PVDelegateIn<std::int32_t> m_recordCntCollectPV;
+    nds::PVDelegateIn<std::int32_t> m_sampleCntMaxPV;
+    nds::PVDelegateIn<std::int32_t> m_sampleCntPV;
+    nds::PVDelegateIn<std::int32_t> m_sampleCntTotalPV;
+    nds::PVDelegateIn<std::int32_t> m_trigModePV;
+    nds::PVDelegateIn<std::int32_t> m_trigLvlPV;
+    nds::PVDelegateIn<std::int32_t> m_trigEdgePV;
+    nds::PVDelegateIn<std::int32_t> m_trigChanPV;
 
-    int32_t m_triglvl;
-    int32_t m_trigedge;
-    int32_t m_trigchan;
-    int32_t m_trigfreq;
-    int trigchan_int;
-
-    //// urojec L3: m_trigModeChanged - camelCase - same for other
-    //// urojec L3: group all trig related defs together, dbs related together, etc...
-    bool m_trigmodeChanged;
-    bool m_biasChanged;
-    bool m_dbsbypassChanged;
-    bool m_dbsdcChanged;
-    bool m_dbslowsatChanged;
-    bool m_dbsupsatChanged;
-    bool m_pattmodeChanged;
-    bool m_nofrecordsChanged;
-    bool m_collect_recordsChanged;
-    bool m_nofsamplesChanged;
-    bool m_daqmodeChanged;
-    bool m_channelsChanged;
-    bool m_channelmaskChanged;
-    bool m_triglvlChanged;
-    bool m_trigedgeChanged;
-    bool m_trigchanChanged;
-
-    nds::PVDelegateIn<std::int32_t> m_daqmodePV;
-    nds::PVDelegateIn<std::int32_t> m_trigmodePV;
-    nds::PVDelegateIn<std::int32_t> m_adjustBiasPV;
-    nds::PVDelegateIn<std::int32_t> m_dbs_bypassPV;
-    nds::PVDelegateIn<std::int32_t> m_dbs_dctargetPV;
-    nds::PVDelegateIn<std::int32_t> m_dbs_lowsatPV;
-    nds::PVDelegateIn<std::int32_t> m_dbs_upsatPV;
-    nds::PVDelegateIn<std::int32_t> m_pattmodePV;
-    nds::PVDelegateIn<std::int32_t> m_channelsPV;
-    nds::PVDelegateIn<std::string> m_channelmaskPV;
-    nds::PVDelegateIn<std::int32_t> m_nofrecordsPV;
-    nds::PVDelegateIn<std::int32_t> m_collect_recordsPV;
-    nds::PVDelegateIn<std::int32_t> m_maxsamplesPV;
-    nds::PVDelegateIn<std::int32_t> m_nofsamplesPV;
-    nds::PVDelegateIn<std::int32_t> m_totalsamplesPV;
-
-    nds::PVDelegateIn<std::int32_t> m_triglvlPV;
-    nds::PVDelegateIn<std::int32_t> m_trigedgePV;
-    nds::PVDelegateIn<std::int32_t> m_trigchanPV;
-
-    nds::Thread m_acquisitionThread;
-
-    // void acquisitionLoop(int32_t repeat);
-
-    //// urojec L3: m_stopWhat
-    bool m_stop;
-
+    nds::Thread m_daqThread;
+    bool m_stopDaq;
 };
 
 #endif /* ADQAICHANNELGROUP_H */

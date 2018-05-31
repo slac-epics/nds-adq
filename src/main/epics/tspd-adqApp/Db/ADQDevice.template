@@ -85,7 +85,7 @@ record(longin, "$(PREFIX):$(INFO):TEMP-3") {
 record(longin, "$(PREFIX):$(INFO):TEMP-4") {
     field(DESC, "Temperature")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TempratureDiode")
+    field(INP,  "@asyn($(PREFIX)-$(INFO), 0) TemperatureDiode")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
