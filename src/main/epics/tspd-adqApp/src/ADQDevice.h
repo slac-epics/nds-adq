@@ -10,6 +10,7 @@
 
 #define CHANNEL_NUMBER_MAX 8
 #define STRING_ENUM 32
+#define COMMON_DEVICE "AI"
 
 class ADQDevice
 {

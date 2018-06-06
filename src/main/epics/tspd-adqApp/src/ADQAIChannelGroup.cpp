@@ -95,6 +95,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                         std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
+    //m_node = parentNode.addChild(nds::Node(name));
 
     m_chanCnt = m_adqDevPtr->GetNofChannels();
 

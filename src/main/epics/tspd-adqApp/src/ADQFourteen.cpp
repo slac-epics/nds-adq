@@ -12,10 +12,9 @@
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
 #include "ADQAIChannelGroup.h"
-#include "ADQAIChannel.h"
+#include "ADQAIChannel.h" // ADQAIChannelGroup(COMMON_DEVICE, parentNode, adqDev),
 
 ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) : 
-    ADQAIChannelGroup(name, parentNode, adqDev),
     m_node(nds::Port(name, nds::nodeType_t::generic)),
     m_adqDevPtr(adqDev),
     m_chanActivePV(nds::PVDelegateIn<std::int32_t>("ChanActive-RB", std::bind(&ADQFourteen::getChanActive,
@@ -41,8 +40,13 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
 {
     parentNode.addChild(m_node);
 
+    std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>("COM", m_node, m_adqDevPtr);
+    m_AIChannelGroupPtr.push_back(aiChanGrp);
+
+    m_chanCnt = aiChanGrp->m_chanCnt;
+
     // PVs for setting active channels
-    nds::enumerationStrings_t chanMaskList = { "A+B+C+D", "A+B", "C+D", "A", "B", "C", "D" };
+    nds::enumerationStrings_t chanMaskList = { "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
     nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("ChanActive", std::bind(&ADQFourteen::setChanActive,
                                                                                                     this,
                                                                                                     std::placeholders::_1,
@@ -74,7 +78,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
     m_node.addChild(m_chanMaskPV);
 
     //PVs for trigger level
-    node = nds::PVDelegateOut<std::int32_t>("TriggerLevel", std::bind(&ADQFourteen::setTrigLvl,
+    node = nds::PVDelegateOut<std::int32_t>("TrigLevel", std::bind(&ADQFourteen::setTrigLvl,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2),
@@ -90,7 +94,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
 
     // PVs for trigger edge
     nds::enumerationStrings_t triggerEdgeList = { "Falling edge", "Rising edge" };
-    node = nds::PVDelegateOut<std::int32_t>("TriggerEdge", std::bind(&ADQFourteen::setTrigEdge,
+    node = nds::PVDelegateOut<std::int32_t>("TrigEdge", std::bind(&ADQFourteen::setTrigEdge,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2),
@@ -108,7 +112,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
 
     // PVs for trigger channel  
     nds::enumerationStrings_t trigChanList = { "None", "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
-    node = nds::PVDelegateOut<std::int32_t>("TriggerChannel", std::bind(&ADQFourteen::setTrigChan,
+    node = nds::PVDelegateOut<std::int32_t>("TrigChan", std::bind(&ADQFourteen::setTrigChan,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2),
@@ -206,12 +210,16 @@ void ADQFourteen::commitChanges(bool calledFromDaqThread)
     clock_gettime(CLOCK_REALTIME, &now);
     unsigned int success;
 
-    if (!calledFromDaqThread && (
-        aiChanGrp.m_stateMachine.getLocalState() != nds::state_t::on &&
-        aiChanGrp.m_stateMachine.getLocalState() != nds::state_t::stopping  &&
-        aiChanGrp.m_stateMachine.getLocalState() != nds::state_t::initializing)) {
-        return;
+    for (auto const& aiChanGrp : m_AIChannelGroupPtr)
+    {
+        if (!calledFromDaqThread && (
+            aiChanGrp->m_stateMachine.getLocalState() != nds::state_t::on &&
+            aiChanGrp->m_stateMachine.getLocalState() != nds::state_t::stopping  &&
+            aiChanGrp->m_stateMachine.getLocalState() != nds::state_t::initializing)) {
+            return;
+        }
     }
+    
 
     if (m_chanActiveChanged)     // Needs to be moved to ADQ classes (7 and 14 have different options)
     {

@@ -2,14 +2,17 @@
 #define ADQFOURTEEN_H
 
 #include <nds3/nds.h>
-#include "ADQAIChannelGroup.h"
+#include "ADQAIChannelGroup.h" // : public ADQAIChannelGroup
 
-class ADQFourteen : public ADQAIChannelGroup
+class ADQFourteen
 {
 public:
     ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
 
     nds::StateMachine m_stateMachine;
+
+    // Pointer to channel group class
+    std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
 
     unsigned int m_chanCnt;
 
@@ -31,7 +34,7 @@ private:
     ADQInterface * m_adqDevPtr;
     nds::Port m_node;
 
-    ADQAIChannelGroup* aiChanGrp;
+    //ADQAIChannelGroup* aiChanGrp;
 
     int32_t m_chanActive;
     bool m_chanActiveChanged;

@@ -157,12 +157,12 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                             //m_AIChannelGroupPtr.push_back(aiChanGrp);
 
                             // Get a pointer to device specific class
-                            //int adqType = m_adqDevPtr->GetADQType();
-                            //if (adqType == 714 || adqType == 14)
-                            //{
-                                std::shared_ptr<ADQFourteen> adqDevSpecific = std::make_shared<ADQFourteen>("AI", m_node, m_adqDevPtr);
+                            int adqType = m_adqDevPtr->GetADQType();
+                            if (adqType == 714 || adqType == 14)
+                            {
+                                std::shared_ptr<ADQFourteen> adqDevSpecific = std::make_shared<ADQFourteen>("DAQ", m_node, m_adqDevPtr);
                                 m_adqFrtnPtr.push_back(adqDevSpecific);
-                            //}
+                            }
 
                             // Get a pointer to device information class
                             std::shared_ptr<ADQInfo> infoAdq = std::make_shared<ADQInfo>("INFO", m_node, m_adqDevPtr);
@@ -198,7 +198,7 @@ ADQDevice::~ADQDevice()
     //// urojec L3: (check) everything is ok with this, such as are there any buffers that that
     //// thing holds pointers to that need to be freed etc. 
     DeleteADQControlUnit(m_adqCtrlUnitPtr);
-    ndsInfoStream(m_node) << "ADQ Control Unit was deleted." << std::endl;
+    ndsInfoStream(m_node) << "ADQ Control Unit was destructed." << std::endl;
 }
 
 // The following MACRO defines the function to be exported in order

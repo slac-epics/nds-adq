@@ -37,6 +37,7 @@ public:
     nds::StateMachine m_stateMachine;
 
     uint32_t m_numChannels;
+    unsigned int m_chanCnt; // Device specific
     std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannelsPtr;
     //std::vector<std::shared_ptr<ADQFourteen> > m_adqFrtnPtr;
 
@@ -118,7 +119,6 @@ public:
 private:
     ADQInterface * m_adqDevPtr;
     nds::Port m_node;
-    unsigned int m_chanCnt; // Device specific
 
     int32_t m_daqMode;
     bool m_daqModeChanged;
