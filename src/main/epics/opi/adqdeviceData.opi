@@ -161,20 +161,20 @@ $(pv_value)</tooltip>
       <color red="255" green="255" blue="255" />
     </plot_area_background_color>
     <plt_data_source>true</plt_data_source>
-    <pv_name>ADQ${ADQSerialNumber}:AI:${ADQChannel}:DATA</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:${ADQChannel}:DATA</pv_name>
     <pv_value />
     <rules>
       <rule name="axisXmax" prop_id="axis_0_maximum" out_exp="true">
         <exp bool_exp="true">
           <value>pv0</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:TOTSAMP-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNTTOTAL-RB</pv>
       </rule>
       <rule name="Buffersize" prop_id="trace_0_buffer_size" out_exp="true">
         <exp bool_exp="true">
           <value>pv0</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:TOTSAMP-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNTTOTAL-RB</pv>
       </rule>
     </rules>
     <scale_options>

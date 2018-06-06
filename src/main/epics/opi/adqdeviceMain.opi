@@ -354,7 +354,7 @@ $(pv_value)</tooltip>
     <image></image>
     <name>Action Button</name>
     <push_action_index>0</push_action_index>
-    <pv_name>ADQ${ADQSerialNumber}:AI:STAT</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:STAT</pv_name>
     <pv_value />
     <rules>
       <rule name="Enable on states OFF/RUNNING" prop_id="enabled" out_exp="false">
@@ -364,7 +364,7 @@ $(pv_value)</tooltip>
         <exp bool_exp="pv0!=1 || pv0!=7">
           <value>false</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:STAT-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:STAT-RB</pv>
       </rule>
     </rules>
     <scale_options>
@@ -418,7 +418,7 @@ $(pv_value)</tooltip>
     <image></image>
     <name>Action Button_1</name>
     <push_action_index>0</push_action_index>
-    <pv_name>ADQ${ADQSerialNumber}:AI:STAT</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:STAT</pv_name>
     <pv_value />
     <release_action_index>0</release_action_index>
     <rules>
@@ -429,7 +429,7 @@ $(pv_value)</tooltip>
         <exp bool_exp="pv0!=4">
           <value>false</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:STAT-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:STAT-RB</pv>
       </rule>
     </rules>
     <scale_options>
@@ -483,7 +483,7 @@ $(pv_value)</tooltip>
     <image></image>
     <name>Action Button_2</name>
     <push_action_index>0</push_action_index>
-    <pv_name>ADQ${ADQSerialNumber}:AI:STAT</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:STAT</pv_name>
     <pv_value />
     <rules>
       <rule name="Enable on state ON" prop_id="enabled" out_exp="false">
@@ -493,7 +493,7 @@ $(pv_value)</tooltip>
         <exp bool_exp="pv0!=4">
           <value>false</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:STAT-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:STAT-RB</pv>
       </rule>
     </rules>
     <scale_options>
@@ -831,7 +831,7 @@ $(pv_value)</tooltip>
     <name>Text Update_10</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:INFO:IPN</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:INFO:PRODNAME</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -883,7 +883,7 @@ $(pv_value)</tooltip>
     <name>Text Update_11</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:INFO:IPID</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:INFO:PRODID</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -935,7 +935,7 @@ $(pv_value)</tooltip>
     <name>Text Update_12</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:INFO:IOPT</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:INFO:PRODOPT</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -987,7 +987,7 @@ $(pv_value)</tooltip>
     <name>Text Update_13</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:INFO:ITYPE</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:INFO:PRODTYPE</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1079,7 +1079,7 @@ $(pv_value)</tooltip>
     <name>Text Update_14</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:STAT-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:STAT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2209,7 +2209,7 @@ $(pv_value)</tooltip>
         <exp bool_exp="true">
           <value></value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:DAQMODE-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:DAQMODE-RB</pv>
       </rule>
       <rule name="Set Settings" prop_id="opi_file" out_exp="false">
         <exp bool_exp="pv0 == 2">
@@ -2218,7 +2218,7 @@ $(pv_value)</tooltip>
         <exp bool_exp="pv0 == 0">
           <value>adqdeviceDAQ2.opi</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:DAQMODE-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:DAQMODE-RB</pv>
       </rule>
     </rules>
     <scale_options>
@@ -2303,7 +2303,7 @@ $(pv_value)</tooltip>
     <name>Text Update_2</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DAQMODE-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DAQMODE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2356,7 +2356,7 @@ $(pv_value)</tooltip>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>daq_mode</name>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DAQMODE</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DAQMODE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -2371,7 +2371,7 @@ $(pv_value)</tooltip>
     <widget_type>Combo Box</widget_type>
     <width>160</width>
     <wuid>-7c6ac6a0:163723e06aa:-4d88</wuid>
-    <x>269</x>
+    <x>272</x>
     <y>62</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.linkingContainer" version="1.0.0">
@@ -2407,7 +2407,7 @@ $(pv_value)</tooltip>
         <exp bool_exp="pv0 != 2">
           <value></value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:AI:TRIGMODE-RB</pv>
+        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:TRIGMODE-RB</pv>
       </rule>
     </rules>
     <scale_options>

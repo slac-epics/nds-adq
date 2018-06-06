@@ -215,7 +215,7 @@ $(pv_value)</tooltip>
     <name>Text Update_19</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGLVL-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:TRIGLVL-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -288,7 +288,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGLVL</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:TRIGLVL</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -424,7 +424,7 @@ $(pv_value)</tooltip>
     <name>Text Update_21</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGCHAN-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:TRIGCHAN-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -509,20 +509,10 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>41</height>
-    <items>
-      <s>None</s>
-      <s>A</s>
-      <s>B</s>
-      <s>C</s>
-      <s>D</s>
-      <s>A+B</s>
-      <s>C+D</s>
-      <s>A+B+C+D</s>
-    </items>
-    <items_from_pv>false</items_from_pv>
+    <height>36</height>
+    <items_from_pv>true</items_from_pv>
     <name>patt_mode_1</name>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGCHAN</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:TRIGCHAN</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -561,15 +551,10 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>40</height>
-    <items>
-      <s>Falling edge</s>
-      <s>Rising edge</s>
-      <s></s>
-    </items>
-    <items_from_pv>false</items_from_pv>
+    <height>36</height>
+    <items_from_pv>true</items_from_pv>
     <name>patt_mode_2</name>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGEDGE</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:TRIGEDGE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -615,7 +600,7 @@ $(pv_value)</tooltip>
     <name>Text Update_22</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGEDGE-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:TRIGEDGE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />

@@ -118,7 +118,7 @@ $(pv_value)</tooltip>
     <name>Text Update_1</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGMODE-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:TRIGMODE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -170,7 +170,7 @@ $(pv_value)</tooltip>
       <keep_wh_ratio>true</keep_wh_ratio>
     </scale_options>
     <scripts />
-    <text>Offset / Adjusting Bias</text>
+    <text>DC bias</text>
     <tooltip></tooltip>
     <transparent>true</transparent>
     <vertical_alignment>1</vertical_alignment>
@@ -490,7 +490,7 @@ $(pv_value)</tooltip>
     <name>Text Update_3</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:PATTMODE-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:PATTERNMODE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -542,7 +542,7 @@ $(pv_value)</tooltip>
     <name>Text Update_4</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:CHANNELMASK-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:CHANMASK-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -615,7 +615,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:NOFREC</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:RECORDCNT</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -671,7 +671,7 @@ $(pv_value)</tooltip>
     <name>Text Update_6</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:MAXSAMP-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNTMAX-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -744,7 +744,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:NOFSAMP</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNT</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -800,7 +800,7 @@ $(pv_value)</tooltip>
     <name>Text Update_8</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:ADJUSTBIAS-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DCBIAS-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -873,7 +873,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:ADJUSTBIAS</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DCBIAS</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -929,7 +929,7 @@ $(pv_value)</tooltip>
     <name>Text Update_9</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-BYPASS-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSBYPASS-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1002,7 +1002,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-BYPASS</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSBYPASS</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -1060,7 +1060,7 @@ $(pv_value)</tooltip>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>trig_mode</name>
-    <pv_name>ADQ${ADQSerialNumber}:AI:TRIGMODE</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:TRIGMODE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -1109,7 +1109,7 @@ $(pv_value)</tooltip>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>patt_mode</name>
-    <pv_name>ADQ${ADQSerialNumber}:AI:PATTMODE</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:PATTERNMODE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -1149,18 +1149,9 @@ $(pv_value)</tooltip>
       <color red="0" green="0" blue="0" />
     </foreground_color>
     <height>36</height>
-    <items>
-      <s>A+B+C+D</s>
-      <s>A+B</s>
-      <s>C+D</s>
-      <s>A</s>
-      <s>B</s>
-      <s>C</s>
-      <s>D</s>
-    </items>
-    <items_from_pv>false</items_from_pv>
+    <items_from_pv>true</items_from_pv>
     <name>chan_mask</name>
-    <pv_name>ADQ${ADQSerialNumber}:AI:CHANNELS</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:CHANACTIVE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -1417,7 +1408,7 @@ $(pv_value)</tooltip>
     <name>Text Update_15</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-DC-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSDC-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1490,7 +1481,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-DC</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSDC</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -1586,7 +1577,7 @@ $(pv_value)</tooltip>
     <name>Text Update_16</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-UPSAT-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSUPSAT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1659,7 +1650,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-UPSAT</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSUPSAT</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -1755,7 +1746,7 @@ $(pv_value)</tooltip>
     <name>Text Update_17</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-LOWSAT-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSLOWSAT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1828,7 +1819,7 @@ $(pv_value)</tooltip>
     <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:DBS-LOWSAT</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSLOWSAT</pv_name>
     <pv_value />
     <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
@@ -2038,7 +2029,7 @@ $(pv_value)</tooltip>
     <name>Text Update_5</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:NOFREC-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:RECORDCNT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2090,7 +2081,7 @@ $(pv_value)</tooltip>
     <name>Text Update_7</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:AI:NOFSAMP-RB</pv_name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />

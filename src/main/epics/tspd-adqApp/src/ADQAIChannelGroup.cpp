@@ -12,7 +12,7 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
-#include "ADQAIChannelGroup.h"
+#include "ADQAIChannelGroup.h" // m_node(nds::Port(name, nds::nodeType_t::generic)),
 #include "ADQAIChannel.h"
 
 //// urojec L3: camelCase
@@ -234,14 +234,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_patternModePV.setEnumeration(patternModeList);
     m_node.addChild(m_patternModePV);
 
-    // PVs for channel masks, readback
-    //m_chanActivePV.setScanType(nds::scanType_t::interrupt);
-    //m_node.addChild(m_chanActivePV);
-
-    //m_chanMaskPV.setScanType(nds::scanType_t::interrupt);
-    //m_chanMaskPV.setMaxElements(STRING_ENUM);
-    //m_node.addChild(m_chanMaskPV);
-
     // PVs for records
     node = nds::PVDelegateOut<std::int32_t>("RecordCnt", std::bind(&ADQAIChannelGroup::setRecordCnt,
                                                                      this,
@@ -285,18 +277,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(node);
     m_sampleCntPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_sampleCntPV);
-
-    //PVs for trigger level
-    //m_trigLvlPV.setScanType(nds::scanType_t::interrupt);
-    //m_node.addChild(m_trigLvlPV);
-
-    // PVs for trigger edge
-    //m_trigEdgePV.setScanType(nds::scanType_t::interrupt);
-    //m_node.addChild(m_trigEdgePV);
-
-    // PVs for trigger channel  
-    //m_trigChanPV.setScanType(nds::scanType_t::interrupt);
-    //m_node.addChild(m_trigChanPV);
 
     // PV for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
@@ -455,33 +435,6 @@ void ADQAIChannelGroup::getSamplesTotal(timespec* pTimestamp, std::int32_t* pVal
     *pValue = m_sampleCntTotal;
 }
 
-/*
-void ADQAIChannelGroup::getChanActive(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_chanActive;
-}
-
-void ADQAIChannelGroup::getChanMask(timespec* pTimestamp, std::string* pValue)
-{
-    *pValue = m_chanMask;
-}
-
-void ADQAIChannelGroup::getTrigLvl(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_trigLvl;
-}
-
-void ADQAIChannelGroup::getTrigEdge(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_trigEdge;
-}
-
-void ADQAIChannelGroup::getTrigChan(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_trigChan;
-}
-*/
-
 void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 {
     struct timespec now = { 0, 0 };
@@ -550,7 +503,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 success = m_adqDevPtr->SetAdjustableBias(chan + 1, m_dcBias);
                 if (!success)
                 {
-                    ndsWarningStream(m_node) << "FAILURE: " << "Failed setting DC bias for channel " << chan_char[chan] << std::endl;
+                    ndsWarningStream(m_node) << "FAILURE: Failed setting DC bias for channel " << chan_char[chan] << std::endl;
                 }
                 else
                 {
@@ -561,7 +514,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             if (i == m_chanCnt)
             {
-                ndsInfoStream(m_node) << "SUCCESS:" << "DC Bias is set for all channels." << std::endl;
+                ndsInfoStream(m_node) << "SUCCESS: DC Bias is set for all channels." << std::endl;
                 m_dcBiasPV.push(now, m_dcBias);
             }
         }
