@@ -4,10 +4,17 @@
 
 #include <nds3/nds.h>
 
+#define CELSIUS_CONVERT 1/256
+#define TEMP_LOCAL 0
+#define TEMPADC_ONE 1
+#define TEMPADC_TWO 2
+#define TEMP_FPGA 3
+#define TEMP_DIOD 4
+
 class ADQInfo
 {
 public:
-    ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *& adq_dev);
+    ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
 
     nds::Port m_node;
 
@@ -17,20 +24,14 @@ public:
     void getADQType(timespec* pTimestamp, std::int32_t* pValue);
     void getCardOption(timespec* pTimestamp, std::string* pValue);
 
-    void getTempPV(timespec* pTimestamp, std::int32_t* pValue);
-    void getTemp();
-
     void getTempLocal(timespec* pTimestamp, std::int32_t* pValue);
     void getTempADCone(timespec* pTimestamp, std::int32_t* pValue);
     void getTempADCtwo(timespec* pTimestamp, std::int32_t* pValue);
     void getTempFPGA(timespec* pTimestamp, std::int32_t* pValue);
     void getTempDd(timespec* pTimestamp, std::int32_t* pValue);
 
-
 private:
 
-    //// urojec L3: you are mixing camelcase and underscore notation,
-    //// m_adqDev would be more appropriate
     ADQInterface * m_adqDevPtr;
 
     nds::PVDelegateIn<std::string> m_productNamePV;

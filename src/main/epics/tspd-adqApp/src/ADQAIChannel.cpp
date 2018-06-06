@@ -8,6 +8,7 @@
 
 #include "ADQDevice.h"
 #include "ADQInfo.h"
+#include "ADQFourteen.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
@@ -47,9 +48,9 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     commitChanges();
 }
 
-void ADQAIChannel::commitChanges(bool calledFromAcquisitionThread)
+void ADQAIChannel::commitChanges(bool calledFromDaqThread)
 {
-    if (!calledFromAcquisitionThread && (
+    if (!calledFromDaqThread && (
         m_stateMachine.getLocalState() != nds::state_t::on &&
         m_stateMachine.getLocalState() != nds::state_t::stopping  &&
         m_stateMachine.getLocalState() != nds::state_t::initializing)) {
@@ -70,10 +71,12 @@ void ADQAIChannel::switchOn()
 void ADQAIChannel::switchOff()
 {
 }
+
 void ADQAIChannel::start()
 {
     m_firstReadout = true;
 }
+
 void ADQAIChannel::stop()
 {
     commitChanges();
@@ -96,7 +99,7 @@ void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<double>* pValue)
      */
 }
 
-void ADQAIChannel::readTrigStream(short* rawdata, std::int32_t total_samples)
+void ADQAIChannel::readTrigStream(short* rawData, std::int32_t sampleCntTotal)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -114,18 +117,18 @@ void ADQAIChannel::readTrigStream(short* rawdata, std::int32_t total_samples)
 
     //double* data_ch;
     m_data.clear();
-    m_data.reserve(total_samples);
+    m_data.reserve(sampleCntTotal);
     std::vector<double>::iterator target = m_data.begin();
 
     //// urojec L1: why is both reserve and resize needed here
-    m_data.resize(total_samples);
+    m_data.resize(sampleCntTotal);
 
     //// urojec L2: it this ++ intentionally positioned before i? Do you know what is the difference with before and after?
     ////// ppipp: there is a difference between postfix and prefix, but it doesn't affect the process of for-loops; 
     //////        also i've read it is safer to use prefix and in general it is a good tone
-    for (int i = 0; i < total_samples; ++i, ++target)
+    for (int i = 0; i < sampleCntTotal; ++i, ++target)
     {
-        *target = ((double)rawdata[i]);
+        *target = ((double)rawData[i]);
     }
 
     ////
@@ -135,7 +138,7 @@ void ADQAIChannel::readTrigStream(short* rawdata, std::int32_t total_samples)
 }
 
 
-void ADQAIChannel::readMultiRecord(void* rawdata, std::int32_t total_samples)
+void ADQAIChannel::readMultiRecord(void* rawData, std::int32_t sampleCntTotal)
 {/*
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -153,14 +156,14 @@ void ADQAIChannel::readMultiRecord(void* rawdata, std::int32_t total_samples)
     double data_ch;
     int i;
 
-    data_ch = *(double*)rawdata;
+    data_ch = *(double*)rawData;
     m_data.clear();
-    m_data.reserve(total_samples);
+    m_data.reserve(sampleCntTotal);
     std::vector<double>::iterator target = m_data.begin();
 
-    m_data.resize(total_samples);
+    m_data.resize(sampleCntTotal);
 
-    for (i = 0; i < total_samples; ++i, ++target)
+    for (i = 0; i < sampleCntTotal; ++i, ++target)
     {
         *target = data_ch[i];
     }
@@ -170,7 +173,7 @@ void ADQAIChannel::readMultiRecord(void* rawdata, std::int32_t total_samples)
     commitChanges(true); */
 }
 
-void ADQAIChannel::readContinStream(void* rawdata, std::int32_t total_samples)
+void ADQAIChannel::readContinStream(void* rawData, std::int32_t sampleCntTotal)
 {
 
 }

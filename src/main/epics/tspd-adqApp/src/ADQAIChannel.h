@@ -17,11 +17,12 @@ public:
     //// urojec L3: maybe make these methods a bit more descriptive. It is
     ////            a little bit hard to know what they do just from looking at
     ////            the name
-    void readTrigStream(short* rawdata, std::int32_t total_samples);
-    void readMultiRecord(void* rawdata, std::int32_t total_samples);
-    void readContinStream(void* rawdata, std::int32_t total_samples);
+    void readTrigStream(short* rawData, std::int32_t sampleCntTotal);
+    void readMultiRecord(void* rawData, std::int32_t sampleCntTotal);
+    void readContinStream(void* rawData, std::int32_t sampleCntTotal);
     void getDataPV(timespec* pTimestamp, std::vector<double>* pValue);
-    void commitChanges(bool calledFromAcquisitionThread = false);
+
+    void commitChanges(bool calledFromDaqThread = false);
 
 private:
     nds::Node m_node;

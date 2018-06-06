@@ -3,12 +3,13 @@
 
 #include <ADQAPI.h>
 #include "ADQInfo.h"
+#include "ADQFourteen.h"
 #include "ADQAIChannel.h"
 #include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
 
 #define CHANNEL_NUMBER_MAX 8
-#define CELSIUS_CONVERT 1/256
+#define STRING_ENUM 32
 
 class ADQDevice
 {
@@ -52,11 +53,15 @@ private:
 
     //// urojec L2: both of these are vectors of pointers, there is a difference.
     ////            The vectors themselves are std::vectors
-    // Pointer to channel group of device
-    std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
+    // Pointer to channel group class
+    //std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
 
-    // Pointer to info part of device
+    // Pointer to device information class
     std::vector<std::shared_ptr<ADQInfo> > m_infoPtr;
+
+    // Pointers to device specific class
+    std::vector<std::shared_ptr<ADQFourteen> > m_adqFrtnPtr;
+    //std::vector<std::shared_ptr<ADQSeven> > m_adqSvnPtr;
 
     nds::Node m_node;
 };

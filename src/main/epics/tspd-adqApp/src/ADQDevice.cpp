@@ -9,6 +9,7 @@
 
 #include "ADQDevice.h"
 #include "ADQInfo.h"
+#include "ADQFourteen.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
@@ -29,7 +30,7 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
     int adqTotalDevCnt;
     // ADQ device number from adqDevList array; indexing starts from 0
     // Please note that the device number when using GetADQ/NofADQ/etc will not have anything to do with the index number used in this function.
-    int adqDevListNum;
+    unsigned int adqDevListNum;
     // ADQ device number used for getting a pointer m_adqDevPtr
     int adqDevNum;
     // Var for for-loop
@@ -107,7 +108,7 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         {
                             adqTotalDevCnt = ADQControlUnit_NofADQ(m_adqCtrlUnitPtr);
                             std::cout << "DEBUG: " << "Readback NofADQ: " << adqTotalDevCnt << std::endl;
-                            if (adqTotalDevCnt == 1)
+                            if (adqTotalDevCnt != 1)
                             {
                                 throw nds::NdsError("ERROR: More than one device is added to CU lists.");
                             }
@@ -151,14 +152,25 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         }
                         else
                         {
-                            // Get a pointer to channel group of device
-                            std::shared_ptr<ADQAIChannelGroup> ai_chgrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adqDevPtr);
-                            m_AIChannelGroupPtr.push_back(ai_chgrp);
+                            // Get a pointer to channel group class
+                            //std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adqDevPtr);
+                            //m_AIChannelGroupPtr.push_back(aiChanGrp);
 
-                            // Get a pointer to common part of device
-                            std::shared_ptr<ADQInfo> info_adq = std::make_shared<ADQInfo>("INFO", m_node, m_adqDevPtr);
-                            m_infoPtr.push_back(info_adq);
+                            // Get a pointer to device specific class
+                            //int adqType = m_adqDevPtr->GetADQType();
+                            //if (adqType == 714 || adqType == 14)
+                            //{
+                                std::shared_ptr<ADQFourteen> adqDevSpecific = std::make_shared<ADQFourteen>("AI", m_node, m_adqDevPtr);
+                                m_adqFrtnPtr.push_back(adqDevSpecific);
+                            //}
 
+                            // Get a pointer to device information class
+                            std::shared_ptr<ADQInfo> infoAdq = std::make_shared<ADQInfo>("INFO", m_node, m_adqDevPtr);
+                            m_infoPtr.push_back(infoAdq);
+
+                            
+
+                            // Set information log level
                             m_node.setLogLevel(nds::logLevel_t::info);
 
                             // Initialize certain device after declaration of all its PVs
@@ -176,7 +188,7 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
     }
     catch (nds::NdsError)
     {
-        ADQDevice::~ADQDevice();
+        DeleteADQControlUnit(m_adqCtrlUnitPtr);
         std::cout << "DELETED: ADQ Control Unit was deleted due to error." << std::endl;
     }
 }

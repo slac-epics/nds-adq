@@ -4,7 +4,7 @@
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
-record(waveform, "$(PREFIX):$(INFO):IPN") {
+record(waveform, "$(PREFIX):$(INFO):PRODNAME") {
     field(DESC, "Product name of the device")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
@@ -14,7 +14,7 @@ record(waveform, "$(PREFIX):$(INFO):IPN") {
     field(PINI, "YES")
 }
 
-record(waveform, "$(PREFIX):$(INFO):ISN") {
+record(waveform, "$(PREFIX):$(INFO):PRODSERNUM") {
     field(DESC, "Serial number of the device")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
@@ -24,7 +24,7 @@ record(waveform, "$(PREFIX):$(INFO):ISN") {
     field(PINI, "YES")
 }
 
-record(longin, "$(PREFIX):$(INFO):IPID") {
+record(longin, "$(PREFIX):$(INFO):PRODID") {
     field(DESC, "Product ID of the device")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ProductID")
@@ -32,7 +32,7 @@ record(longin, "$(PREFIX):$(INFO):IPID") {
     field(PINI, "YES")
 }
 
-record(longin, "$(PREFIX):$(INFO):ITYPE") {
+record(longin, "$(PREFIX):$(INFO):PRODTYPE") {
     field(DESC, "Type of the device")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn($(PREFIX)-$(INFO), 0) ADQType")
@@ -40,7 +40,7 @@ record(longin, "$(PREFIX):$(INFO):ITYPE") {
     field(PINI, "YES")
 }
     
-record(waveform, "$(PREFIX):$(INFO):IOPT") {
+record(waveform, "$(PREFIX):$(INFO):PRODOPT") {
     field(DESC, "Option of the device")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
@@ -131,7 +131,7 @@ record(mbbo, "${PREFIX}:${CHGR}:TRIGMODE") {
     field(DESC, "Set trigger mode")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TriggerMode")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TrigMode")
     field(ZRVL, 0)
     field(ZRST, "SW trigger")
     field(ONVL, 1)
@@ -146,7 +146,7 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(DESC, "Trigger mode readback")
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
-    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TriggerMode-RB")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TrigMode-RB")
     field(PINI, "YES")
     field(ZRVL, 0)
     field(ZRST, "SW trigger")
@@ -158,84 +158,84 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGMODE-RB") {
     field(THST, "Internal trigger")
 }
 
-record(longout, "$(PREFIX):$(CHGR):ADJUSTBIAS") {
+record(longout, "$(PREFIX):$(CHGR):DCBIAS") {
     field(DESC, "Adjusted BIAS")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) AdjustBias")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DCBias")
     field(SCAN, "Passive")
 }
 
-record(longin, "$(PREFIX):$(CHGR):ADJUSTBIAS-RB") {
+record(longin, "$(PREFIX):$(CHGR):DCBIAS-RB") {
     field(DESC, "Adjusted BIAS")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) AdjustBias-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DCBias-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longout, "$(PREFIX):$(CHGR):DBS-BYPASS") {
+record(longout, "$(PREFIX):$(CHGR):DBSBYPASS") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-Bypass")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBSBypass")
     field(SCAN, "Passive")
     field(DRVH, "1")
     field(DRVL, "0")
 }
 
-record(longin, "$(PREFIX):$(CHGR):DBS-BYPASS-RB") {
+record(longin, "$(PREFIX):$(CHGR):DBSBYPASS-RB") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-Bypass-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBSBypass-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longout, "$(PREFIX):$(CHGR):DBS-DC") {
+record(longout, "$(PREFIX):$(CHGR):DBSDC") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-DC")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBSDC")
     field(SCAN, "Passive")
 }
 
-record(longin, "$(PREFIX):$(CHGR):DBS-DC-RB") {
+record(longin, "$(PREFIX):$(CHGR):DBSDC-RB") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-DC-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBSDC-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longout, "$(PREFIX):$(CHGR):DBS-LOWSAT") {
+record(longout, "$(PREFIX):$(CHGR):DBSLOWSAT") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-LowSat")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBSLowSat")
     field(SCAN, "Passive")
 }
 
-record(longin, "$(PREFIX):$(CHGR):DBS-LOWSAT-RB") {
+record(longin, "$(PREFIX):$(CHGR):DBSLOWSAT-RB") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-LowSat-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBSLowSat-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longout, "$(PREFIX):$(CHGR):DBS-UPSAT") {
+record(longout, "$(PREFIX):$(CHGR):DBSUPSAT") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-UpSat")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) DBSUpSat")
     field(SCAN, "Passive")
 }
 
-record(longin, "$(PREFIX):$(CHGR):DBS-UPSAT-RB") {
+record(longin, "$(PREFIX):$(CHGR):DBSUPSAT-RB") {
     field(DESC, "DBS settings")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBS-UpSat-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) DBSUpSat-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(mbbo, "${PREFIX}:${CHGR}:PATTMODE") {
+record(mbbo, "${PREFIX}:${CHGR}:PATTERNMODE") {
     field(DESC, "Set trigger mode")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
@@ -252,7 +252,7 @@ record(mbbo, "${PREFIX}:${CHGR}:PATTMODE") {
     field(FRST, "Alternating ups and downs")
 }
 
-record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
+record(mbbi, "${PREFIX}:${CHGR}:PATTERNMODE-RB") {
     field(DESC, "Trigger mode readback")
     field(DTYP, "asynInt32")
     field(SCAN, "I/O Intr")
@@ -270,138 +270,154 @@ record(mbbi, "${PREFIX}:${CHGR}:PATTMODE-RB") {
     field(FRST, "Alternating ups and downs")
 }
 
-record(mbbo, "${PREFIX}:${CHGR}:CHANNELS") {
-    field(DESC, "Enable channels for DAQ")
+record(longin, "$(PREFIX):$(CHGR):SAMPCNTMAX-RB") {
+    field(DESC, "Max number of samples")
     field(DTYP, "asynInt32")
-    field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) Channels")
-    field(ZRVL, 0)
-    field(ZRST, "A+B+C+D")
-    field(ONVL, 1)
-    field(ONST, "A+B")
-    field(TWVL, 2)
-    field(TWST, "C+D")
-    field(THVL, 3)
-    field(THST, "A")
-    field(FRVL, 4)
-    field(FRST, "B")
-    field(FVVL, 5)
-    field(FVST, "C")
-    field(SXVL, 6)
-    field(SXST, "D")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) SampleCntMax-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
 }
 
-record(mbbi, "${PREFIX}:${CHGR}:CHANNELS-RB") {
+record(longin, "$(PREFIX):$(CHGR):RECORDCNT-RB") {
+    field(DESC, "Number of records")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) RecordCnt-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longout, "$(PREFIX):$(CHGR):RECORDCNT") {
+    field(DESC, "Number of records")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) RecordCnt")
+    field(SCAN, "Passive")
+}
+
+record(longin, "$(PREFIX):$(CHGR):SAMPCNT-RB") {
+    field(DESC, "Number of samples")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) SampleCnt-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longout, "$(PREFIX):$(CHGR):SAMPCNT") {
+    field(DESC, "Number of samples")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) SampleCnt")
+    field(SCAN, "Passive")
+}
+
+record(longin, "$(PREFIX):$(CHGR):SAMPCNTTOTAL-RB") {
+    field(DESC, "Number of records")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) SampleCntTotal-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "$(PREFIX):$(CHGR):RECORDCNTCOLLECT-RB") {
+    field(DESC, "Records to collect")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) RecordCntCollect-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+    field(FLNK, "$(PREFIX):$(CHGR):SAMPCNTMAX-RB")
+}
+
+record(longout, "$(PREFIX):$(CHGR):RECORDCNTCOLLECT") {
+    field(DESC, "Records to collect")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) RecordCntCollect")
+    field(SCAN, "Passive")
+}
+
+# # # # # # # # # # # # # # # # # # # # # #
+#        ADQ device specific PVs          #
+# # # # # # # # # # # # # # # # # # # # # #
+
+record(mbbo, "${PREFIX}:${CHGR}:CHANACTIVE") {
     field(DESC, "Enable channels for DAQ")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) Channels-RB")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) ChanActive")
+    field(ZRVL, 0)
+    field(THST, "A")
+    field(ONVL, 1)
+    field(FRST, "B")
+    field(TWVL, 2)
+    field(FVST, "C")
+    field(THVL, 3)
+    field(SXST, "D")
+    field(FRVL, 4)
+    field(ONST, "A+B")
+    field(FVVL, 5)
+    field(TWST, "C+D")
+    field(SXVL, 6)
+    field(ZRST, "A+B+C+D")
+}
+
+record(mbbi, "${PREFIX}:${CHGR}:CHANACTIVE-RB") {
+    field(DESC, "Enable channels for DAQ")
+    field(DTYP, "asynInt32")
+    field(SCAN, "Passive")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) ChanActive-RB")
     field(PINI, "YES")
     field(ZRVL, 0)
-    field(ZRST, "A+B+C+D")
-    field(ONVL, 1)
-    field(ONST, "A+B")
-    field(TWVL, 2)
-    field(TWST, "C+D")
-    field(THVL, 3)
     field(THST, "A")
-    field(FRVL, 4)
+    field(ONVL, 1)
     field(FRST, "B")
-    field(FVVL, 5)
+    field(TWVL, 2)
     field(FVST, "C")
-    field(SXVL, 6)
+    field(THVL, 3)
     field(SXST, "D")
+    field(FRVL, 4)
+    field(ONST, "A+B")
+    field(FVVL, 5)
+    field(TWST, "C+D")
+    field(SXVL, 6)
+    field(ZRST, "A+B+C+D")
 }
 
-record(waveform, "$(PREFIX):$(CHGR):CHANNELMASK") {
+record(waveform, "$(PREFIX):$(CHGR):CHANMASK") {
     field(DESC, "Channel mask")
     field(DTYP, "asynInt8ArrayOut")
     field(FTVL, "CHAR")
     field(NELM, 4)
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChanMask")
     field(SCAN, "Passive")
 }
 
-record(waveform, "$(PREFIX):$(CHGR):CHANNELMASK-RB") {
+record(waveform, "$(PREFIX):$(CHGR):CHANMASK-RB") {
     field(DESC, "Channel mask")
     field(DTYP, "asynInt8ArrayIn")
     field(FTVL, "CHAR")
     field(NELM, 4)
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChannelMask-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) ChanMask-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
-
-record(longin, "$(PREFIX):$(CHGR):MAXSAMP-RB") {
-    field(DESC, "Max number of samples")
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) MaxSamples-RB")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-}
-
-record(longin, "$(PREFIX):$(CHGR):NOFREC-RB") {
-    field(DESC, "Number of records")
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofRecords-RB")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-}
-
-record(longout, "$(PREFIX):$(CHGR):NOFREC") {
-    field(DESC, "Number of records")
-    field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) NofRecords")
-    field(SCAN, "Passive")
-}
-
-record(longin, "$(PREFIX):$(CHGR):NOFSAMP-RB") {
-    field(DESC, "Number of samples")
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) NofSamples-RB")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-}
-
-record(longout, "$(PREFIX):$(CHGR):NOFSAMP") {
-    field(DESC, "Number of samples")
-    field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) NofSamples")
-    field(SCAN, "Passive")
-}
-
-record(longin, "$(PREFIX):$(CHGR):TOTSAMP-RB") {
-    field(DESC, "Number of records")
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) TotalSamples-RB")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-}
-
-# # # # # # # # # # # # # # # # # # # # # #
-#              Level trigger              #
-# # # # # # # # # # # # # # # # # # # # # #
 
 record(longout, "$(PREFIX):$(CHGR):TRIGLVL") {
     field(DESC, "Trigger level")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) TriggerLevel")
+    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) TrigLevel")
     field(SCAN, "Passive")
 }
 
-record(longin, "$(PREFIX):$(CHGR):TRIGLVL-RB") {
+record(longin, "$(PREFIX):$(CHGR):X:TRIGLVL-RB") {
     field(DESC, "Trigger level readback")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) TriggerLevel-RB")
+    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) TrigLevel-RB")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(mbbo, "${PREFIX}:${CHGR}:TRIGEDGE") {
+record(mbbo, "${PREFIX}:${CHGR}:X:TRIGEDGE") {
     field(DESC, "Trigger level")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TriggerEdge")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TrigEdge")
     field(ZRVL, 0)
     field(ZRST, "Falling edge")
     field(ONVL, 1)
@@ -412,7 +428,7 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGEDGE-RB") {
     field(DESC, "Trigger level readback")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TriggerEdge-RB")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TrigEdge-RB")
     field(PINI, "YES")
     field(ZRVL, 0)
     field(ZRST, "Falling edge")
@@ -428,7 +444,7 @@ record(mbbo, "${PREFIX}:${CHGR}:TRIGCHAN") {
     field(DESC, "Trigger level")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TriggerChannel")
+    field(OUT, "@asyn(${PREFIX}-${CHGR}, 0) TrigChan")
     field(ZRVL, 0)
     field(ZRST, "None")
     field(ONVL, 1)
@@ -451,7 +467,7 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGCHAN-RB") {
     field(DESC, "Trigger level readback")
     field(DTYP, "asynInt32")
     field(SCAN, "Passive")
-    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TriggerChannel-RB")
+    field(INP, "@asyn(${PREFIX}-${CHGR}, 0) TrigChan-RB")
     field(PINI, "YES")
     field(ZRVL, 0)
     field(ZRST, "None")
@@ -469,22 +485,6 @@ record(mbbi, "${PREFIX}:${CHGR}:TRIGCHAN-RB") {
     field(SXST, "C+D")
     field(SVVL, 7)
     field(SVST, "A+B+C+D")
-}
-
-record(longin, "$(PREFIX):$(CHGR):COLREC-RB") {
-    field(DESC, "Records to collect")
-    field(DTYP, "asynInt32")
-    field(INP,  "@asyn($(PREFIX)-$(CHGR), 0) CollectRecords-RB")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-    field(FLNK, "$(PREFIX):$(CHGR):MAXSAMP-RB")
-}
-
-record(longout, "$(PREFIX):$(CHGR):COLREC") {
-    field(DESC, "Records to collect")
-    field(DTYP, "asynInt32")
-    field(OUT,  "@asyn($(PREFIX)-$(CHGR), 0) CollectRecords")
-    field(SCAN, "Passive")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #
@@ -621,3 +621,9 @@ record(mbbi, "${PREFIX}:${CHGR}:${CH}:STAT-RB") {
     field(EIST, "FAULT")
     field(EISV, "MAJOR")
 }
+
+# # # # # # # # # # # # # # # # # # # # # #
+#                                         #
+#       ADQ Specific StateMachine         #
+#                                         #
+# # # # # # # # # # # # # # # # # # # # # #
