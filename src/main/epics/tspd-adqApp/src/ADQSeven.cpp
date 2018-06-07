@@ -15,7 +15,7 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h" // ADQAIChannelGroup(COMMON_DEVICE, parentNode, adqDev),
 
-ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) : 
+ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) :
     m_node(nds::Port(name, nds::nodeType_t::generic)),
     m_adqDevPtr(adqDev),
     m_chanActivePV(nds::PVDelegateIn<std::int32_t>("ChanActive-RB", std::bind(&ADQFourteen::getChanActive,
@@ -46,7 +46,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
     //m_AIChannelGroupPtr.push_back(aiChanGrp);
 
     // PVs for setting active channels
-    nds::enumerationStrings_t chanMaskList = { "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
+    nds::enumerationStrings_t chanMaskList = { "A", "B", "A+B" };
     nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("ChanActive", std::bind(&ADQFourteen::setChanActive,
                                                                                                     this,
                                                                                                     std::placeholders::_1,
@@ -111,7 +111,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
     m_node.addChild(m_trigEdgePV);
 
     // PVs for trigger channel  
-    nds::enumerationStrings_t trigChanList = { "None", "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
+    nds::enumerationStrings_t trigChanList = { "None", "A", "B" };
     node = nds::PVDelegateOut<std::int32_t>("TrigChan", std::bind(&ADQFourteen::setTrigChan,
                                                                           this,
                                                                           std::placeholders::_1,
@@ -131,66 +131,66 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
     commitChangesSpec();
 }
 
-void ADQFourteen::setChanActive(const timespec &pTimestamp, const std::int32_t &pValue)
+void ADQSeven::setChanActive(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_chanActive = pValue;
     m_chanActiveChanged = true;
     commitChangesSpec();
 }
 
-void ADQFourteen::getChanActive(timespec* pTimestamp, std::int32_t* pValue)
+void ADQSeven::getChanActive(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_chanActive;
 }
 
-void ADQFourteen::setChanMask(const timespec &pTimestamp, const std::string &pValue)
+void ADQSeven::setChanMask(const timespec &pTimestamp, const std::string &pValue)
 {
     m_chanMask = pValue;
     commitChangesSpec();
 }
 
-void ADQFourteen::getChanMask(timespec* pTimestamp, std::string* pValue)
+void ADQSeven::getChanMask(timespec* pTimestamp, std::string* pValue)
 {
     *pValue = m_chanMask;
 }
 
-void ADQFourteen::setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue)
+void ADQSeven::setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_trigLvl = pValue;
     m_trigLvlChanged = true;
     commitChangesSpec();
 }
 
-void ADQFourteen::getTrigLvl(timespec* pTimestamp, std::int32_t* pValue)
+void ADQSeven::getTrigLvl(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_trigLvl;
 }
 
-void ADQFourteen::setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue)
+void ADQSeven::setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_trigEdge = pValue;
     m_trigEdgeChanged = true;
     commitChangesSpec();
 }
 
-void ADQFourteen::getTrigEdge(timespec* pTimestamp, std::int32_t* pValue)
+void ADQSeven::getTrigEdge(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_trigEdge;
 }
 
-void ADQFourteen::setTrigChan(const timespec &pTimestamp, const std::int32_t &pValue)
+void ADQSeven::setTrigChan(const timespec &pTimestamp, const std::int32_t &pValue)
 {
     m_trigChan = pValue;
     m_trigChanChanged = true;
     commitChangesSpec();
 }
 
-void ADQFourteen::getTrigChan(timespec* pTimestamp, std::int32_t* pValue)
+void ADQSeven::getTrigChan(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_trigChan;
 }
 
-void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
+void ADQSeven::commitChangesSpec(bool calledFromDaqThread)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
@@ -221,25 +221,9 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
                 m_chanBits = 0100;
                 m_chanMask = 0x2;
                 break;
-            case 2: // ch C
-                m_chanBits = 0010;
-                m_chanMask = 0x4;
-                break;
-            case 3: // ch D
-                m_chanBits = 0001;
-                m_chanMask = 0x8;
-                break;
-            case 4: // ch A+B
+            case 2: // ch A+B
                 m_chanBits = 1100;
                 m_chanMask = 0x3;
-                break;
-            case 5: // ch C+D
-                m_chanBits = 0011;
-                m_chanMask = 0xC;
-                break;
-            case 6: // ch A+B+C+D
-                m_chanBits = 1111;
-                m_chanMask = 0xF;
                 break;
             }
         }
@@ -274,21 +258,6 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
             break;
         case 2: // ch B
             m_trigChanInt = 2;
-            break;
-        case 3: // ch C
-            m_trigChanInt = 4;
-            break;
-        case 4: // ch D
-            m_trigChanInt = 8;
-            break;
-        case 5: // ch A+B
-            m_trigChanInt = 3;
-            break;
-        case 6: // ch C+D
-            m_trigChanInt = 12;
-            break;
-        case 7: // ch A+B+C+D
-            m_trigChanInt = 15;
             break;
         }
 

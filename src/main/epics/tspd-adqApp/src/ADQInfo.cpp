@@ -10,6 +10,7 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
+#include "ADQSeven.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
@@ -55,6 +56,10 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_tempDiodPV(nds::PVDelegateIn<std::int32_t>("TemperatureDiode", std::bind(&ADQInfo::getTempDd,
                                                                         this,
                                                                         std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_sampRatePV(nds::PVDelegateIn<std::int32_t>("SampRate", std::bind(&ADQInfo::getTempDd,
+                                                                        this,
+                                                                        std::placeholders::_1,
                                                                         std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
@@ -93,6 +98,10 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
 
     m_tempDiodPV.setScanType(nds::scanType_t::periodic, 1);
     m_node.addChild(m_tempDiodPV);
+
+    // PV for sample rate 
+    m_sampRatePV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_sampRatePV);
 }
 
 void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)
@@ -143,4 +152,11 @@ void ADQInfo::getTempFPGA(timespec* pTimestamp, std::int32_t* pValue)
 void ADQInfo::getTempDd(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_adqDevPtr->GetTemperature(TEMP_DIOD)*CELSIUS_CONVERT;
+}
+
+void ADQInfo::getSampRate(timespec* pTimestamp, std::int32_t* pValue)
+{
+    double* sampRate;
+    m_adqDevPtr->GetSampleRate(0, sampRate);
+    *pValue = (int32_t)sampRate;
 }

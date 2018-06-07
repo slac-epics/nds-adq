@@ -10,6 +10,7 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
+#include "ADQSeven.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 
@@ -153,7 +154,7 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         else
                         {
                             // Get a pointer to channel group class
-                            //std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>("AI", m_node, m_adqDevPtr);
+                            //std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>(COMMON_DEVICE, m_node, m_adqDevPtr);
                             //m_AIChannelGroupPtr.push_back(aiChanGrp);
 
                             // Get a pointer to device specific class
@@ -162,6 +163,11 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                             {
                                 std::shared_ptr<ADQFourteen> adqDevSpecific = std::make_shared<ADQFourteen>("DAQ", m_node, m_adqDevPtr);
                                 m_adqFrtnPtr.push_back(adqDevSpecific);
+                            }
+                            if (adqType == 7)
+                            {
+                                std::shared_ptr<ADQSeven> adqDevSpecific = std::make_shared<ADQSeven>("DAQ", m_node, m_adqDevPtr);
+                                m_adqSvnPtr.push_back(adqDevSpecific);
                             }
 
                             // Get a pointer to device information class

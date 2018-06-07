@@ -33,6 +33,7 @@ class ADQAIChannelGroup
 {
 public:
     ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
+    virtual ~ADQAIChannelGroup();
 
     nds::StateMachine m_stateMachine;
 
@@ -116,10 +117,7 @@ public:
     void daqMultiRecord();
     void daqContinStream();
 
-private:
-    ADQInterface * m_adqDevPtr;
-    nds::Port m_node;
-
+protected:
     int32_t m_daqMode;
     bool m_daqModeChanged;
     
@@ -161,9 +159,13 @@ private:
     int32_t m_trigEdge;
     bool m_trigEdgeChanged;
     int32_t m_trigChan;
+    int32_t m_trigChanInt;
     bool m_trigChanChanged;
     int32_t m_trigFreq; // not used yet
     
+private:
+    ADQInterface * m_adqDevPtr;
+    nds::Port m_node;
 
     nds::PVDelegateIn<std::int32_t> m_daqModePV; 
     nds::PVDelegateIn<std::int32_t> m_patternModePV;

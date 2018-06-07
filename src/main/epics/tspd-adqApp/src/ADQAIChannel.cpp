@@ -9,6 +9,7 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
+#include "ADQSeven.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
 

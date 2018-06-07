@@ -1,13 +1,15 @@
-#ifndef ADQFOURTEEN_H
-#define ADQFOURTEEN_H
+#ifndef ADQSEVEN_H
+#define ADQSEVEN_H
 
 #include <nds3/nds.h>
-#include "ADQAIChannelGroup.h"
+#include "ADQAIChannelGroup.h" // : public ADQAIChannelGroup
 
-class ADQFourteen : public ADQAIChannelGroup
+class ADQSeven : public ADQAIChannelGroup
 {
 public:
-    ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
+    ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
+
+    //nds::StateMachine m_stateMachine;
 
     // Pointer to channel group class
     std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
@@ -37,4 +39,4 @@ private:
     nds::PVDelegateIn<std::int32_t> m_trigChanPV;
 };
 
-#endif /* ADQFOURTEEN_H */
+#endif /* ADQSEVEN_H */

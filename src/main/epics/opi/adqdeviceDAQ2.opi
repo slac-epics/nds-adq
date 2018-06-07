@@ -725,7 +725,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color name="IO Grid" red="215" green="215" blue="215" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color name="IO Border" red="0" green="0" blue="0" />
     </border_color>
@@ -739,14 +739,8 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>36</height>
-    <items>
-      <s>SW trigger</s>
-      <s>External trigger</s>
-      <s>Level trigger</s>
-      <s>Internal trigger</s>
-    </items>
-    <items_from_pv>false</items_from_pv>
+    <height>32</height>
+    <items_from_pv>true</items_from_pv>
     <name>trig_mode_1</name>
     <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:TRIGMODE</pv_name>
     <pv_value />
@@ -761,10 +755,10 @@ $(pv_value)</tooltip>
 $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo Box</widget_type>
-    <width>160</width>
+    <width>200</width>
     <wuid>-5db0c403:163817ede27:-7370</wuid>
-    <x>237</x>
-    <y>15</y>
+    <x>196</x>
+    <y>18</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -773,7 +767,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color name="IO Grid" red="215" green="215" blue="215" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color name="IO Border" red="0" green="0" blue="0" />
     </border_color>
@@ -787,7 +781,7 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>36</height>
+    <height>32</height>
     <items>
       <s>Normal</s>
       <s>Test (x)</s>
@@ -810,52 +804,10 @@ $(pv_value)</tooltip>
 $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo Box</widget_type>
-    <width>160</width>
+    <width>200</width>
     <wuid>-5db0c403:163817ede27:-736f</wuid>
-    <x>237</x>
-    <y>63</y>
-  </widget>
-  <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
-    <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
-    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-    <background_color>
-      <color name="IO Grid" red="215" green="215" blue="215" />
-    </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
-    <border_color>
-      <color name="IO Border" red="0" green="0" blue="0" />
-    </border_color>
-    <border_style>0</border_style>
-    <border_width>0</border_width>
-    <enabled>true</enabled>
-    <font>
-      <fontdata fontName="Sans" height="12" style="0" pixels="false" />
-    </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-    <foreground_color>
-      <color red="0" green="0" blue="0" />
-    </foreground_color>
-    <height>36</height>
-    <items_from_pv>true</items_from_pv>
-    <name>chan_mask_1</name>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:CHANACTIVE</pv_name>
-    <pv_value />
-    <rules />
-    <scale_options>
-      <width_scalable>true</width_scalable>
-      <height_scalable>false</height_scalable>
-      <keep_wh_ratio>false</keep_wh_ratio>
-    </scale_options>
-    <scripts />
-    <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-    <visible>true</visible>
-    <widget_type>Combo Box</widget_type>
-    <width>160</width>
-    <wuid>-5db0c403:163817ede27:-736e</wuid>
-    <x>237</x>
-    <y>123</y>
+    <x>196</x>
+    <y>66</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.polyline" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -2273,5 +2225,47 @@ $(pv_value)</tooltip>
     <wuid>-5db0c403:163817ede27:-735d</wuid>
     <x>400</x>
     <y>224</y>
+  </widget>
+  <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
+    <actions hook="false" hook_all="false" />
+    <alarm_pulsing>false</alarm_pulsing>
+    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+    <background_color>
+      <color red="215" green="215" blue="215" />
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_color>
+      <color red="0" green="0" blue="0" />
+    </border_color>
+    <border_style>0</border_style>
+    <border_width>1</border_width>
+    <enabled>true</enabled>
+    <font>
+      <fontdata fontName="Sans" height="12" style="0" pixels="false" />
+    </font>
+    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <foreground_color>
+      <color red="0" green="0" blue="0" />
+    </foreground_color>
+    <height>32</height>
+    <items_from_pv>true</items_from_pv>
+    <name>Combo</name>
+    <pv_name>ADQ${ADQSerialNumber}:DAQ:CHANACTIVE</pv_name>
+    <pv_value />
+    <rules />
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>false</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <scripts />
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+    <visible>true</visible>
+    <widget_type>Combo</widget_type>
+    <width>200</width>
+    <wuid>270d2813:163daa67d62:-7e23</wuid>
+    <x>196</x>
+    <y>126</y>
   </widget>
 </display>
