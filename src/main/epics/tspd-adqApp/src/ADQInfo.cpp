@@ -57,7 +57,7 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_sampRatePV(nds::PVDelegateIn<std::int32_t>("SampRate", std::bind(&ADQInfo::getTempDd,
+    m_sampRatePV(nds::PVDelegateIn<double>("SampRate", std::bind(&ADQInfo::getSampRate,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
@@ -154,9 +154,9 @@ void ADQInfo::getTempDd(timespec* pTimestamp, std::int32_t* pValue)
     *pValue = m_adqDevPtr->GetTemperature(TEMP_DIOD)*CELSIUS_CONVERT;
 }
 
-void ADQInfo::getSampRate(timespec* pTimestamp, std::int32_t* pValue)
+void ADQInfo::getSampRate(timespec* pTimestamp, double* pValue)
 {
     double* sampRate;
     m_adqDevPtr->GetSampleRate(0, sampRate);
-    *pValue = (int32_t)sampRate;
+    *pValue = *sampRate;
 }

@@ -30,7 +30,7 @@ public:
     void getTempFPGA(timespec* pTimestamp, std::int32_t* pValue);
     void getTempDd(timespec* pTimestamp, std::int32_t* pValue);
 
-    void getSampRate(timespec* pTimestamp, std::int32_t* pValue);
+    void getSampRate(timespec* pTimestamp, double* pValue);
 
 private:
 
@@ -48,7 +48,7 @@ private:
     nds::PVDelegateIn<std::int32_t> m_tempFpgaPV;
     nds::PVDelegateIn<std::int32_t> m_tempDiodPV;
 
-    nds::PVDelegateIn<std::int32_t> m_sampRatePV;
+    nds::PVDelegateIn<double> m_sampRatePV;
 };
 
 #endif /* ADQINFO_H */

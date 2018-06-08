@@ -47,7 +47,7 @@ LIBS = -lnds3 -ladq -lrt
 ###DBD += tspd-adq.dbd
 
 # tspd-adq_registerRecordDeviceDriver.cpp derives from tspd-adq.dbd
-tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQDevice.cpp ADQInfo.cpp ADQFourteen.cpp
+tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQDevice.cpp ADQInfo.cpp ADQFourteen.cpp ADQSeven.cpp
 #tspd-adq_INCLUDES += -I/opt/e ADQAIChannel.h  ADQAIChannelGroup.h  ADQDevice.h ADQInfo.h ADQFourteen.h
 #OP_SYS_CFLAGS += -std=c++11
 

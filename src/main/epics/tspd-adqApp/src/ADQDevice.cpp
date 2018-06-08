@@ -3,6 +3,7 @@
 #include <sstream>
 #include <iostream>
 #include <string.h>
+#include <unistd.h>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -69,7 +70,7 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
             //// Let's discuss, could be as simple as leaving the parameter holding the serial number as QUERY or something
             ////
             // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it!
-            std::cout << "Enter device Serial Number (e.g. 06215):" << std::endl;
+            std::cout << "Enter device Serial Number (e.g. 06215, 06302):" << std::endl;
             std::cin >> input_raw;
             std::string prefix = "SPD-";
             prefix.insert(4, input_raw);
@@ -104,59 +105,47 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         if (!success)
                         {
                             throw nds::NdsError("ERROR: Device failure during interface opening.");
+                            std::cout << "ERROR: " << "Device failure during interface opening" << std::endl;
                         }
                         else
                         {
-                            adqTotalDevCnt = ADQControlUnit_NofADQ(m_adqCtrlUnitPtr);
-                            std::cout << "DEBUG: " << "Readback NofADQ: " << adqTotalDevCnt << std::endl;
-                            if (adqTotalDevCnt != 1)
+                            // Make this device ready to use
+                            success = ADQControlUnit_SetupDevice(m_adqCtrlUnitPtr, adqDevListNum);
+                            if (!success)
                             {
-                                throw nds::NdsError("ERROR: More than one device is added to CU lists.");
+                                throw nds::NdsError("ERROR: Device failure during setup.");
                             }
                             else
                             {
-                                // Make this device ready to use
-                                success = ADQControlUnit_SetupDevice(m_adqCtrlUnitPtr, adqDevListNum);
-                                if (!success)
+                                // Get pointer to interface of certain device
+                                m_adqDevPtr = ADQControlUnit_GetADQ(m_adqCtrlUnitPtr, adqDevListNum + 1);
+                                // Check if this ADQ serial number is the one specified
+                                adqSnRdbk = m_adqDevPtr->GetBoardSerialNumber();
+                                if (!strcmp(adqSnReq, adqSnRdbk))
                                 {
-                                    throw nds::NdsError("ERROR: Device failure during setup.");
+                                    adqReqFound = true;
+                                    std::cout << "DEBUG: " << "Requested ADQ device is found; Serial Number: " << adqSnRdbk << std::endl;
+                                    break;
                                 }
-                                else
-                                {
-                                    adqDevNum = 1;
-                                    // Get pointer to interface of certain device
-                                    m_adqDevPtr = ADQControlUnit_GetADQ(m_adqCtrlUnitPtr, adqDevNum);
-                                    // Check if this ADQ serial number is the one specified
-                                    adqSnRdbk = m_adqDevPtr->GetBoardSerialNumber();
-                                    std::cout << "DEBUG: " << "Readback board serial num ADQ: " << adqSnRdbk << std::endl;
-                                    if (!strcmp(adqSnReq, adqSnRdbk))
-                                    {
-                                        adqReqFound = true;
-                                        std::cout << "DEBUG: " << "Requested ADQ device is found." << std::endl;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        throw nds::NdsError("ERROR: Device was not found.");
-                                    }  
-                                } // ADQControlUnit_SetupDevice
-                            } // ADQControlUnit_NofADQ
+                            } // ADQControlUnit_SetupDevice
                         } // ADQControlUnit_OpenDeviceInterface
-                    } // Requested device search for-loop  
-                    if (adqReqFound)
+                    } // Requested device search for-loop 
+                    if (!adqReqFound)
+                    {
+                        throw nds::NdsError("ERROR: Device was not found.");
+                        std::cout << "ERROR: " << "Device was not found" << std::endl;
+                    }
+                    else
                     {
                         // Check if ADQ started normally
                         success = m_adqDevPtr->IsStartedOK();
                         if (!success)
                         {
                             throw nds::NdsError("ERROR: Device didn't start normally.");
+                            std::cout << "ERROR: " << "Device didn't start normally" << adqSnRdbk << std::endl;
                         }
                         else
                         {
-                            // Get a pointer to channel group class
-                            //std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>(COMMON_DEVICE, m_node, m_adqDevPtr);
-                            //m_AIChannelGroupPtr.push_back(aiChanGrp);
-
                             // Get a pointer to device specific class
                             int adqType = m_adqDevPtr->GetADQType();
                             if (adqType == 714 || adqType == 14)
@@ -174,8 +163,6 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                             std::shared_ptr<ADQInfo> infoAdq = std::make_shared<ADQInfo>("INFO", m_node, m_adqDevPtr);
                             m_infoPtr.push_back(infoAdq);
 
-                            
-
                             // Set information log level
                             m_node.setLogLevel(nds::logLevel_t::info);
 
@@ -186,6 +173,10 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                             ndsInfoStream(m_node) << "test INFO" << std::endl;
                             ndsWarningStream(m_node) << "test WARNING" << std::endl;
                             ndsErrorStream(m_node) << "test ERROR" << std::endl;
+
+                            unsigned int m_chanCnt = m_adqDevPtr->GetNofChannels();
+                            ndsInfoStream(m_node) << "DEBUG: Device has " << m_chanCnt << " channels." << std::endl;
+
                         } // IsStartedOK
                     }
                 } // adqDevList > 0

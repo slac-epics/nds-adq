@@ -13,6 +13,8 @@
 #define STRING_ENUM 32
 #define COMMON_DEVICE "DAQ-COM"
 
+#define sleep(interval) usleep(1000*interval) // usleep - microsecond interval
+
 class ADQDevice
 {
 public:

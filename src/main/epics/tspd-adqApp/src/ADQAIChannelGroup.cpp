@@ -871,6 +871,48 @@ void ADQAIChannelGroup::daqTrigStream()
         nofrecords_sum += m_recordCnt;
     }
 
+    switch (m_trigMode)
+    {
+    case 0: // SW trigger
+        ndsInfoStream(m_node) << "Issuing Software trigger... " << std::endl;
+        break;
+    case 1: // External trigger  ----- need to investigate the API doc to develop this method
+        break;
+    case 2: // Level trigger ----- need to investigate the API doc to develop this method
+        ndsInfoStream(m_node) << "Issuing Level trigger... " << std::endl;
+       
+        success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigEdge." << std::endl;
+            goto finish;
+        }
+        
+        success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigLevel." << std::endl;
+            goto finish;
+        }
+
+        success = m_adqDevPtr->SetLvlTrigChannel(m_trigChan);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigChannel." << std::endl;
+            goto finish;
+        }
+        break;
+    case 3: // Internal trigger ----- need to investigate the API doc to develop this method
+        ndsInfoStream(m_node) << "Issuing Internal trigger... " << std::endl;
+        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigLvl); // it uses FREQ/Period variable, not lvl
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at SetInternalTriggerPeriod." << std::endl;
+            goto finish;
+        }
+        break;
+    }
+
     success = m_adqDevPtr->TriggeredStreamingSetup(m_recordCnt, m_sampleCnt, pretrig_samples, holdoff_samples, chanMaskChar);
     if (!success)
     {
@@ -878,7 +920,7 @@ void ADQAIChannelGroup::daqTrigStream()
         goto finish;
     }
 
-    if (adqType == 7)
+    if (adqType == 7) // Probably not needed, it is an Internal function (as mentioned in ADQAPI document)
     {
         success = m_adqDevPtr->ResetWriteCountMax();
         if (!success)
@@ -916,10 +958,8 @@ void ADQAIChannelGroup::daqTrigStream()
         goto finish;
     }
 
-    switch (m_trigMode)
+    if (m_trigMode == 0)
     {
-    case 0: // SW trigger
-        ndsInfoStream(m_node) << "Issuing Software trigger... " << std::endl;
         success = m_adqDevPtr->DisarmTrigger();
         if (!success)
         {
@@ -943,230 +983,205 @@ void ADQAIChannelGroup::daqTrigStream()
                 goto finish;
             }
         }
+    }
+   
+    do
+    {
+        buffers_filled = 0;
 
-        do
+        success = m_adqDevPtr->GetStreamOverflow();
+        if (success)
         {
-            buffers_filled = 0;
+            ndsErrorStream(m_node) << "ERROR: Streaming overflow detected." << std::endl;
+            goto finish;
+        }
 
-            success = m_adqDevPtr->GetStreamOverflow();
-            if (success)
+        success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at GetTransferBufferStatus." << std::endl;
+            goto finish;
+        }
+
+        // Poll for the transfer buffer status as long as the timeout has not been
+        // reached and no buffers have been filled.
+        while (!buffers_filled)
+        {
+            // Mark the loop start
+            timerStart();
+            while (!buffers_filled && (timerTimeMs() < timeout_ms))
             {
-                ndsErrorStream(m_node) << "ERROR: Streaming overflow detected." << std::endl;
-                goto finish;
-            }
-
-            success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at GetTransferBufferStatus." << std::endl;
-                goto finish;
-            }
-
-            // Poll for the transfer buffer status as long as the timeout has not been
-            // reached and no buffers have been filled.
-            while (!buffers_filled)
-            {
-                // Mark the loop start
-                timerStart();
-                while (!buffers_filled && (timerTimeMs() < timeout_ms))
-                {
-                    success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
-                    if (!success)
-                    {
-                        ndsErrorStream(m_node) << "ERROR: Failed at GetTransferBufferStatus." << std::endl;
-                        goto finish;
-                    }
-                    // Sleep to avoid loading the processor too much
-                    sleep(10);
-                }
-
-                // Timeout reached, flush the transfer buffer to receive data
-                if (!buffers_filled)
-                {
-                    ndsInfoStream(m_node) << "Timeout, flushing DMA..." << std::endl;
-                    success = m_adqDevPtr->FlushDMA();
-                    if (!success)
-                    {
-                        ndsErrorStream(m_node) << "ERROR: Failed at FlushDMA." << std::endl;
-                        goto finish;
-                    }
-                }
-            }
-
-            ndsInfoStream(m_node) << "Receiving data..." << std::endl;
-            success = m_adqDevPtr->GetDataStreaming((void**)tr_buffers, (void**)tr_headers, chanMaskChar, samples_added, headers_added, header_status);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at GetDataStreaming." << std::endl;
-                goto finish;
-            }
-
-            // Parse data
-            for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-            {
-                if (!((1 << chan) & chanMaskChar))
-                    continue;
-
-                if (headers_added[chan] > 0)
-                {
-                    if (header_status[chan])
-                    {
-                        headers_done = headers_added[chan];
-                    }
-                    else
-                    {
-                        // One incomplete record in the buffer (header is copied to the front
-                        // of the buffer later)
-                        headers_done = headers_added[chan] - 1;
-                    }
-
-                    // If there is at least one complete header
-                    records_completed[chan] += headers_done;
-                }
-
-                // Parse  added samples
-                if (samples_added[chan] > 0)
-                {
-                    samples_remaining = samples_added[chan];
-
-                    // Handle incomplete record at the start of the buffer
-                    if (samples_extradata[chan] > 0)
-                    {
-                        if (headers_done == 0)
-                        {
-                            // There is not enough data in the transfer buffer to complete
-                            // the record. Add all the samples to the extradata buffer.
-                            std::memcpy(&tr_extra[chan][samples_extradata[chan]], tr_buffers[chan], sizeof(short)*samples_added[chan]);
-                            samples_remaining -= samples_added[chan];
-                            samples_extradata[chan] += samples_added[chan];
-                        }
-                        else
-                        {
-                            // Move data to record_data
-                            std::memcpy((void*)record_data, tr_extra[chan], sizeof(short)*samples_extradata[chan]);
-                            std::memcpy((void*)(record_data + samples_extradata[chan]), tr_buffers[chan], sizeof(short)*(tr_headers[chan][0].recordLength - samples_extradata[chan]));
-
-                            samples_remaining -= tr_headers[chan][0].recordLength - samples_extradata[chan];
-                            samples_extradata[chan] = 0;
-
-                            daqTrigStreamProcessRecord(record_data, &tr_headers[chan][0]);
-                            ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][0].recordNumber <<
-                                " on channel " << chan << ", " << tr_headers[chan][0].recordLength << " samples." << std::endl;
-                        }
-                    }
-                    else
-                    {
-                        if (headers_done == 0)
-                        {
-                            // The samples in the transfer buffer begin a new record, this
-                            // record is incomplete.
-                            std::memcpy(tr_extra[chan], tr_buffers[chan], sizeof(short)*samples_added[chan]);
-                            samples_remaining -= samples_added[chan];
-                            samples_extradata[chan] = samples_added[chan];
-                        }
-                        else
-                        {
-
-                            // Copy data to record buffer
-                            std::memcpy((void*)record_data, tr_buffers[chan], sizeof(short)*tr_headers[chan][0].recordLength);
-                            samples_remaining -= tr_headers[chan][0].recordLength;
-
-                            daqTrigStreamProcessRecord(record_data, &tr_headers[chan][0]);
-                            ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][0].recordNumber <<
-                                " on channel " << chan << ", " << tr_headers[chan][0].recordLength << " samples." << std::endl;
-                        }
-                    }
-                    // At this point: the first record in the transfer buffer or the entire
-                    // transfer buffer has been parsed.
-
-                    // Loop through complete records fully inside the buffer
-                    for (unsigned int i = 1; i < headers_done; ++i)
-                    {
-                        // Copy data to record buffer
-                        std::memcpy((void*)record_data, (&tr_buffers[chan][samples_added[chan] - samples_remaining]), sizeof(short)*tr_headers[chan][i].recordLength);
-
-                        samples_remaining -= tr_headers[chan][i].recordLength;
-
-                        daqTrigStreamProcessRecord(record_data, &tr_headers[chan][i]);
-                        ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][i].recordNumber <<
-                            " on channel " << chan << ", " << tr_headers[chan][i].recordLength << " samples." << std::endl;
-                    }
-
-                    if (samples_remaining > 0)
-                    {
-                        // There is an incomplete record at the end of the transfer buffer
-                        // Copy the incomplete header to the start of the target_headers buffer
-                        std::memcpy(tr_headers[chan], &tr_headers[chan][headers_done], sizeof(streamingHeader_t));
-
-                        // Copy any remaining samples to the target_buffers_extradata buffer,
-                        // they belong to the incomplete record
-                        std::memcpy(tr_extra[chan], &tr_buffers[chan][samples_added[chan] - samples_remaining], sizeof(short)*samples_remaining);
-                        // printf("Incomplete at end of transfer buffer. %u samples.\n", samples_remaining);
-                        // printf("Copying %u samples to the extradata buffer\n", samples_remaining);
-                        samples_extradata[chan] = samples_remaining;
-                        samples_remaining = 0;
-                    }
-                }
-
-                // Read buffers by each channel and send them to DATA PVs
-                //tr_buffers_ptr = (double*)tr_buffers[ch];
-                m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCntTotal);
-            }
-
-            // Update received_all_records
-            nof_received_records_sum = 0;
-            for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-            {
-                nof_received_records_sum += records_completed[chan];
-            }
-
-            // Determine if collection is completed
-            received_all_records = (nof_received_records_sum >= nof_records_sum);
-
-            if (adqType == 7)
-            {
-                unsigned int* writeCntMax;
-                success = m_adqDevPtr->GetWriteCountMax(writeCntMax);
+                success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
                 if (!success)
                 {
-                    ndsErrorStream(m_node) << "ERROR: Failed at GetWriteCountMax." << std::endl;
+                    ndsErrorStream(m_node) << "ERROR: Failed at GetTransferBufferStatus." << std::endl;
                     goto finish;
+                }
+                // Sleep to avoid loading the processor too much
+                sleep(10);
+            }
+
+            // Timeout reached, flush the transfer buffer to receive data
+            if (!buffers_filled)
+            {
+                ndsInfoStream(m_node) << "Timeout, flushing DMA..." << std::endl;
+                success = m_adqDevPtr->FlushDMA();
+                if (!success)
+                {
+                    ndsErrorStream(m_node) << "ERROR: Failed at FlushDMA." << std::endl;
+                    goto finish;
+                }
+            }
+        }
+
+        ndsInfoStream(m_node) << "Receiving data..." << std::endl;
+        success = m_adqDevPtr->GetDataStreaming((void**)tr_buffers, (void**)tr_headers, chanMaskChar, samples_added, headers_added, header_status);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at GetDataStreaming." << std::endl;
+            goto finish;
+        }
+
+        // Parse data
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+        {
+            if (!((1 << chan) & chanMaskChar))
+                continue;
+
+            if (headers_added[chan] > 0)
+            {
+                if (header_status[chan])
+                {
+                    headers_done = headers_added[chan];
                 }
                 else
                 {
-                    double writeCntMax_tmp = (double)((unsigned int)writeCntMax * 128) / (double)(1024 * 1024);
-                    ndsInfoStream(m_node) << "Peak: " << writeCntMax_tmp << " MiB/n " << std::endl;
+                    // One incomplete record in the buffer (header is copied to the front
+                    // of the buffer later)
+                    headers_done = headers_added[chan] - 1;
+                }
+
+                // If there is at least one complete header
+                records_completed[chan] += headers_done;
+            }
+
+            // Parse  added samples
+            if (samples_added[chan] > 0)
+            {
+                samples_remaining = samples_added[chan];
+
+                // Handle incomplete record at the start of the buffer
+                if (samples_extradata[chan] > 0)
+                {
+                    if (headers_done == 0)
+                    {
+                        // There is not enough data in the transfer buffer to complete
+                        // the record. Add all the samples to the extradata buffer.
+                        std::memcpy(&tr_extra[chan][samples_extradata[chan]], tr_buffers[chan], sizeof(short)*samples_added[chan]);
+                        samples_remaining -= samples_added[chan];
+                        samples_extradata[chan] += samples_added[chan];
+                    }
+                    else
+                    {
+                        // Move data to record_data
+                        std::memcpy((void*)record_data, tr_extra[chan], sizeof(short)*samples_extradata[chan]);
+                        std::memcpy((void*)(record_data + samples_extradata[chan]), tr_buffers[chan], sizeof(short)*(tr_headers[chan][0].recordLength - samples_extradata[chan]));
+
+                        samples_remaining -= tr_headers[chan][0].recordLength - samples_extradata[chan];
+                        samples_extradata[chan] = 0;
+
+                        daqTrigStreamProcessRecord(record_data, &tr_headers[chan][0]);
+                        ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][0].recordNumber <<
+                            " on channel " << chan << ", " << tr_headers[chan][0].recordLength << " samples." << std::endl;
+                    }
+                }
+                else
+                {
+                    if (headers_done == 0)
+                    {
+                        // The samples in the transfer buffer begin a new record, this
+                        // record is incomplete.
+                        std::memcpy(tr_extra[chan], tr_buffers[chan], sizeof(short)*samples_added[chan]);
+                        samples_remaining -= samples_added[chan];
+                        samples_extradata[chan] = samples_added[chan];
+                    }
+                    else
+                    {
+
+                        // Copy data to record buffer
+                        std::memcpy((void*)record_data, tr_buffers[chan], sizeof(short)*tr_headers[chan][0].recordLength);
+                        samples_remaining -= tr_headers[chan][0].recordLength;
+
+                        daqTrigStreamProcessRecord(record_data, &tr_headers[chan][0]);
+                        ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][0].recordNumber <<
+                            " on channel " << chan << ", " << tr_headers[chan][0].recordLength << " samples." << std::endl;
+                    }
+                }
+                // At this point: the first record in the transfer buffer or the entire
+                // transfer buffer has been parsed.
+
+                // Loop through complete records fully inside the buffer
+                for (unsigned int i = 1; i < headers_done; ++i)
+                {
+                    // Copy data to record buffer
+                    std::memcpy((void*)record_data, (&tr_buffers[chan][samples_added[chan] - samples_remaining]), sizeof(short)*tr_headers[chan][i].recordLength);
+
+                    samples_remaining -= tr_headers[chan][i].recordLength;
+
+                    daqTrigStreamProcessRecord(record_data, &tr_headers[chan][i]);
+                    ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][i].recordNumber <<
+                        " on channel " << chan << ", " << tr_headers[chan][i].recordLength << " samples." << std::endl;
+                }
+
+                if (samples_remaining > 0)
+                {
+                    // There is an incomplete record at the end of the transfer buffer
+                    // Copy the incomplete header to the start of the target_headers buffer
+                    std::memcpy(tr_headers[chan], &tr_headers[chan][headers_done], sizeof(streamingHeader_t));
+
+                    // Copy any remaining samples to the target_buffers_extradata buffer,
+                    // they belong to the incomplete record
+                    std::memcpy(tr_extra[chan], &tr_buffers[chan][samples_added[chan] - samples_remaining], sizeof(short)*samples_remaining);
+                    // printf("Incomplete at end of transfer buffer. %u samples.\n", samples_remaining);
+                    // printf("Copying %u samples to the extradata buffer\n", samples_remaining);
+                    samples_extradata[chan] = samples_remaining;
+                    samples_remaining = 0;
                 }
             }
-        } while (!received_all_records);
-        break;
-    case 1: // External trigger  ----- need to investigate the API doc to develop this method
-        break;
-    case 2: // Level trigger ----- need to investigate the API doc to develop this method
-        ndsInfoStream(m_node) << "Issuing Level trigger... " << std::endl;
-        success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigEdge." << std::endl;
-            goto finish;
+
+            // Read buffers by each channel and send them to DATA PVs
+            //tr_buffers_ptr = (double*)tr_buffers[ch];
+            m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCntTotal);
         }
-        success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
-        if (!success)
+
+        // Update received_all_records
+        nof_received_records_sum = 0;
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
         {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigLevel." << std::endl;
+            nof_received_records_sum += records_completed[chan];
         }
-        goto finish;
-        break;
-    case 3: // Internal trigger ----- need to investigate the API doc to develop this method
-        ndsInfoStream(m_node) << "Issuing Internal trigger... " << std::endl;
-        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigLvl); // it uses FREQ/Period variable, not lvl
-        if (!success)
+
+        // Determine if collection is completed
+        received_all_records = (nof_received_records_sum >= nof_records_sum);
+
+        if (adqType == 7) // Probably not needed, it is an Internal function (as mentioned in ADQAPI document)
         {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetInternalTriggerPeriod." << std::endl;
-            goto finish;
+            unsigned int* writeCntMax;
+            success = m_adqDevPtr->GetWriteCountMax(writeCntMax);
+            if (!success)
+            {
+                ndsErrorStream(m_node) << "ERROR: Failed at GetWriteCountMax." << std::endl;
+                goto finish;
+            }
+            else
+            {
+                unsigned int* varTmp;
+                *varTmp = 1024 * 1024;
+                double writeCntMaxTmp = *writeCntMax * 128 / *varTmp;
+                ndsInfoStream(m_node) << "Peak: " << writeCntMaxTmp << " MiB/n " << std::endl;
+            }
         }
-        break;
-    }
+    } while (!received_all_records);
 
 finish:
     ndsInfoStream(m_node) << "Acquisition finished." << std::endl;
@@ -1239,50 +1254,37 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
         goto finish;
     }
 
-    if (m_trigMode == 0) // SW trigger
+    switch (m_trigMode)
     {
+    case 0: // SW trigger
         ndsInfoStream(m_node) << "Issuing Software trigger... " << std::endl;
-        success = m_adqDevPtr->DisarmTrigger();
+        break;
+    case 1: // External trigger
+    case 2: // Level trigger
+        ndsInfoStream(m_node) << "Issuing Level trigger... " << std::endl;
+
+        success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
         if (!success)
         {
-            ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
+            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigEdge." << std::endl;
             goto finish;
         }
-        else
-        {
-            success = m_adqDevPtr->ArmTrigger();
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
-                goto finish;
-            }
-            else
-            {
-                success = m_adqDevPtr->SWTrig();
-                if (!success)
-                {
-                    ndsErrorStream(m_node) << "ERROR: Failed at SWTrig." << std::endl;
-                    goto finish;
-                }
-                else
-                {
-                    do
-                    {
-                        trigged = m_adqDevPtr->GetAcquiredAll();
-                        success = m_adqDevPtr->SWTrig();
-                        if (!success)
-                        {
-                            ndsErrorStream(m_node) << "ERROR: Failed at SWTrig." << std::endl;
-                            goto finish;
-                        }
-                    } while (trigged == 0);
-                }
-            }
-        }
-    }
 
-    if (m_trigMode == 1 || m_trigMode == 2 || m_trigMode == 3) // External or Level or Internal trigger
-    {
+        success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigLevel." << std::endl;
+            goto finish;
+        }
+
+        success = m_adqDevPtr->SetLvlTrigChannel(m_trigChan);
+        if (!success)
+        {
+            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigChannel." << std::endl;
+            goto finish;
+        }
+        break;
+    case 3: // Internal trigger
         ndsWarningStream(m_node) << "Trigger the device to collect data." << std::endl;
         sleep(10);
 
@@ -1292,24 +1294,59 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
             ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
             goto finish;
         }
-        else
+        
+        success = m_adqDevPtr->ArmTrigger();
+        if (!success)
         {
-            success = m_adqDevPtr->ArmTrigger();
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
-                goto finish;
-            }
-            else
-            {
-                do
-                {
-                    trigged = m_adqDevPtr->GetAcquiredAll();
-                } while (trigged == 0);
-            }
+            ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
+            goto finish;
         }
+        
+        do
+        {
+            trigged = m_adqDevPtr->GetAcquiredAll();
+        } while (trigged == 0);
+        
+        break;
     }
-    ndsInfoStream(m_node) << "All records are triggered." << std::endl;
+
+    success = m_adqDevPtr->DisarmTrigger();
+    if (!success)
+    {
+        ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
+        goto finish;
+    }
+
+    success = m_adqDevPtr->ArmTrigger();
+    if (!success)
+    {
+        ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
+        goto finish;
+    }
+
+    if (m_trigMode == 0)
+    {
+        do
+        {
+            trigged = m_adqDevPtr->GetAcquiredAll();
+            for (int i = 0; i < m_recordCnt; ++i)
+            {
+                success = m_adqDevPtr->SWTrig();
+                if (!success)
+                {
+                    ndsErrorStream(m_node) << "ERROR: Failed at SWTrig." << std::endl;
+                    goto finish;
+                }
+            }
+        } while (trigged == 0);
+    }
+    else
+    {
+        do
+        {
+            trigged = m_adqDevPtr->GetAcquiredAll();
+        } while (trigged == 0);
+    }
 
     success = m_adqDevPtr->GetStreamOverflow();
     if (success)
@@ -1350,14 +1387,11 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
         goto finish;
     }
 
-    // Read buffers by each channel and send them to DATA PVs
-
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
         // Read buffers by each channel and send them to DATA PVs
         tr_buffers_ptr = ((short*)tr_buffers[chan]);
-        //m_AIChannelsPtr[ch]->read_multirec(tr_buffers[ch], total_samples);
-        m_AIChannelsPtr[chan]->readTrigStream(tr_buffers_ptr, m_sampleCntTotal);
+        m_AIChannelsPtr[chan]->readMultiRecord(tr_buffers[chan], m_sampleCntTotal);
     }
 
 

@@ -18,23 +18,23 @@
 ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) :
     m_node(nds::Port(name, nds::nodeType_t::generic)),
     m_adqDevPtr(adqDev),
-    m_chanActivePV(nds::PVDelegateIn<std::int32_t>("ChanActive-RB", std::bind(&ADQFourteen::getChanActive,
+    m_chanActivePV(nds::PVDelegateIn<std::int32_t>("ChanActive-RB", std::bind(&ADQSeven::getChanActive,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_chanMaskPV(nds::PVDelegateIn<std::string>("ChanMask-RB", std::bind(&ADQFourteen::getChanMask,
+    m_chanMaskPV(nds::PVDelegateIn<std::string>("ChanMask-RB", std::bind(&ADQSeven::getChanMask,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_trigLvlPV(nds::PVDelegateIn<std::int32_t>("TrigLevel-RB", std::bind(&ADQFourteen::getTrigLvl,
+    m_trigLvlPV(nds::PVDelegateIn<std::int32_t>("TrigLevel-RB", std::bind(&ADQSeven::getTrigLvl,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_trigEdgePV(nds::PVDelegateIn<std::int32_t>("TrigEdge-RB", std::bind(&ADQFourteen::getTrigEdge,
+    m_trigEdgePV(nds::PVDelegateIn<std::int32_t>("TrigEdge-RB", std::bind(&ADQSeven::getTrigEdge,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_trigChanPV(nds::PVDelegateIn<std::int32_t>("TrigChan-RB", std::bind(&ADQFourteen::getTrigChan,
+    m_trigChanPV(nds::PVDelegateIn<std::int32_t>("TrigChan-RB", std::bind(&ADQSeven::getTrigChan,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
@@ -42,16 +42,13 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
 {
     parentNode.addChild(m_node);
 
-    //std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>("DAQ-COM", m_node, m_adqDevPtr);
-    //m_AIChannelGroupPtr.push_back(aiChanGrp);
-
     // PVs for setting active channels
     nds::enumerationStrings_t chanMaskList = { "A", "B", "A+B" };
-    nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("ChanActive", std::bind(&ADQFourteen::setChanActive,
+    nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("ChanActive", std::bind(&ADQSeven::setChanActive,
                                                                                                     this,
                                                                                                     std::placeholders::_1,
                                                                                                     std::placeholders::_2),
-                                                                                         std::bind(&ADQFourteen::getChanActive,
+                                                                                         std::bind(&ADQSeven::getChanActive,
                                                                                                     this,
                                                                                                     std::placeholders::_1,
                                                                                                     std::placeholders::_2)));
@@ -62,11 +59,11 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
     m_chanActivePV.setEnumeration(chanMaskList);
     m_node.addChild(m_chanActivePV);
 
-    nds::PVDelegateOut<std::string> nodeStr("ChanMask", std::bind(&ADQFourteen::setChanMask,
+    nds::PVDelegateOut<std::string> nodeStr("ChanMask", std::bind(&ADQSeven::setChanMask,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2),
-                                                        std::bind(&ADQFourteen::getChanMask,
+                                                        std::bind(&ADQSeven::getChanMask,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2));
@@ -78,11 +75,11 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
     m_node.addChild(m_chanMaskPV);
 
     //PVs for trigger level
-    node = nds::PVDelegateOut<std::int32_t>("TrigLevel", std::bind(&ADQFourteen::setTrigLvl,
+    node = nds::PVDelegateOut<std::int32_t>("TrigLevel", std::bind(&ADQSeven::setTrigLvl,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2),
-                                                            std::bind(&ADQFourteen::getTrigLvl,
+                                                         std::bind(&ADQSeven::getTrigLvl,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2));
@@ -94,11 +91,11 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
 
     // PVs for trigger edge
     nds::enumerationStrings_t triggerEdgeList = { "Falling edge", "Rising edge" };
-    node = nds::PVDelegateOut<std::int32_t>("TrigEdge", std::bind(&ADQFourteen::setTrigEdge,
+    node = nds::PVDelegateOut<std::int32_t>("TrigEdge", std::bind(&ADQSeven::setTrigEdge,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2),
-                                                           std::bind(&ADQFourteen::getTrigEdge,
+                                                        std::bind(&ADQSeven::getTrigEdge,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2));
@@ -112,11 +109,11 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
 
     // PVs for trigger channel  
     nds::enumerationStrings_t trigChanList = { "None", "A", "B" };
-    node = nds::PVDelegateOut<std::int32_t>("TrigChan", std::bind(&ADQFourteen::setTrigChan,
+    node = nds::PVDelegateOut<std::int32_t>("TrigChan", std::bind(&ADQSeven::setTrigChan,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2),
-                                                              std::bind(&ADQFourteen::getTrigChan,
+                                                        std::bind(&ADQSeven::getTrigChan,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2));
