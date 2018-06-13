@@ -22,19 +22,20 @@
 # the CONFIG_SITE file.
 
 # Variables and paths to dependent modules:
-MODULES = /opt/codac-6.0/epics/src
-ASYN=$(MODULES)/asyn-4.32.ccs1
+MODULES = /opt/epics/modules
+ASYN=$(MODULES)/asyn
 NDS3=/usr/local/lib
-NDS3EPICS=/opt/nds3_epics
+NDS3EPICS=${MODULES}/nds3_epics
 
 # Module ADQ 
-ADQ=$(TOP)/lib/linux-x86_64
+ADQ_LIB=$(TOP)/lib/linux-x86_64
+ADQ_SRC=$(TOP)/tspd-adqApp/src
 
 # If using the sequencer, point SNCSEQ at its top directory:
 #SNCSEQ = $(MODULES)/seq-ver
 
 # EPICS_BASE should appear last so earlier modules can override stuff:
-EPICS_BASE = /opt/codac-6.0/epics
+EPICS_BASE = /opt/epics/base
 
 # Set RULES here if you want to use build rules from somewhere
 # other than EPICS_BASE:

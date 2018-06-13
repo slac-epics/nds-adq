@@ -11,14 +11,15 @@ cd "${TOP}"
 dbLoadDatabase "dbd/adq-test.dbd"
 adq_test_registerRecordDeviceDriver pdbbase
 
-drvAsynIPPortConfigure("ADQ06215","localhost:8007")
+drvAsynIPPortConfigure("ADQ","localhost:8007")
 
 ## Load record instances
-dbLoadTemplate("db/ADQDevice.substitutions")
+##dbLoadTemplate("db/ADQDevice.substitutions")
 
 # Load library of ADQ module
-ndsLoadDriver("lib/linux-x86_64/libtspd-adq.so")
-ndsCreateDevice(adq, "ADQ06215")
+ndsLoadDriver("${ADQ_LIB}/libtspd-adq.so")
+ndsLoadNamingRules ("${ADQ_SRC}/ADQDeviceNamingRules.ini")
+ndsCreateDevice(adq, "ADQ")
 
 cd "${TOP}/iocBoot/${IOC}"
 iocInit
