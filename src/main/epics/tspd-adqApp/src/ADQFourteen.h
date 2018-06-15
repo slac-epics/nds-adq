@@ -2,6 +2,7 @@
 #define ADQFOURTEEN_H
 
 #include <nds3/nds.h>
+#include "ADQInfo.h"
 #include "ADQAIChannelGroup.h"
 
 class ADQFourteen : public ADQAIChannelGroup
@@ -16,13 +17,14 @@ public:
     void getChanActive(timespec* pTimestamp, std::int32_t* pValue);
     void setChanMask(const timespec &pTimestamp, const std::string &pValue);
     void getChanMask(timespec* pTimestamp, std::string* pValue);
-
     void setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTrigLvl(timespec* pTimestamp, std::int32_t* pValue);
     void setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTrigEdge(timespec* pTimestamp, std::int32_t* pValue);
     void setTrigChan(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTrigChan(timespec* pTimestamp, std::int32_t* pValue);
+    void setOverVoltProtect(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getOverVoltProtect(timespec* pTimestamp, std::int32_t* pValue);
 
     void commitChangesSpec(bool calledFromDaqThread = false);
 
@@ -30,11 +32,15 @@ private:
     ADQInterface * m_adqDevPtr;
     nds::Port m_node;
 
+    int32_t m_overVoltProtect;
+    bool m_overVoltProtectChanged;
+
     nds::PVDelegateIn<std::int32_t> m_chanActivePV;
     nds::PVDelegateIn<std::string> m_chanMaskPV;
     nds::PVDelegateIn<std::int32_t> m_trigLvlPV;
     nds::PVDelegateIn<std::int32_t> m_trigEdgePV;
     nds::PVDelegateIn<std::int32_t> m_trigChanPV;
+    nds::PVDelegateIn<std::int32_t> m_overVoltProtectPV;
 };
 
 #endif /* ADQFOURTEEN_H */

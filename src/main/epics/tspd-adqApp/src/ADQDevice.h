@@ -2,18 +2,13 @@
 #define ADQDEVICE_H
 
 #include <ADQAPI.h>
+#include "ADQDefinition.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
 #include "ADQSeven.h"
 #include "ADQAIChannel.h"
 #include "ADQAIChannelGroup.h"
 #include <nds3/nds.h>
-
-#define CHANNEL_NUMBER_MAX 8
-#define STRING_ENUM 32
-#define COMMON_DEVICE "DAQ-COM"
-
-#define sleep(interval) usleep(1000*interval) // usleep - microsecond interval
 
 class ADQDevice
 {
@@ -58,10 +53,10 @@ private:
     //// urojec L2: both of these are vectors of pointers, there is a difference.
     ////            The vectors themselves are std::vectors
     // Pointer to channel group class
-    std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
+    //std::vector<std::shared_ptr<ADQAIChannelGroup> > m_AIChannelGroupPtr;
 
     // Pointer to device information class
-    std::vector<std::shared_ptr<ADQInfo> > m_infoPtr;
+    std::vector<std::shared_ptr<ADQInfo> > m_adqInfoPtr;
 
     // Pointers to device specific class
     std::vector<std::shared_ptr<ADQFourteen> > m_adqFrtnPtr;

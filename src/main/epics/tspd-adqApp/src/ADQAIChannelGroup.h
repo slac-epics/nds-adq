@@ -4,9 +4,6 @@
 #include <nds3/nds.h>
 #include "ADQAIChannel.h"
 
-#define sleep(interval) usleep(1000*interval) // usleep - microsecond interval
-#define PRINT_RECORD_INFO
-
 //// urojec L3: goes for all the declarations that have anything to do with channels:
 //// decide weather you will use ch, chn or channel everywhere and then be consistent,
 //// exaples: unsigned char Channel; setChannels, setTriggerChan
@@ -37,10 +34,8 @@ public:
 
     nds::StateMachine m_stateMachine;
 
-    uint32_t m_numChannels;
-    unsigned int m_chanCnt; // Device specific
+    unsigned int m_chanCnt;
     std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannelsPtr;
-    //std::vector<std::shared_ptr<ADQFourteen> > m_adqFrtnPtr;
 
     //// urojec L2: Why dso you use pointers in one direction and references in the other?
     ////            why are references not good enough for getters?
@@ -61,6 +56,8 @@ public:
 
     void setTrigMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getTrigMode(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigFreq(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigFreq(timespec* pTimestamp, std::int32_t* pValue);
 
     void setDcBias(const timespec &pTimestamp, const std::int32_t &pValue);
     void getDcBias(timespec* pTimestamp, std::int32_t* pValue);
@@ -77,11 +74,6 @@ public:
     void setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue);
     void getPatternMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    //void setChanActive(const timespec &pTimestamp, const std::int32_t &pValue); // Device specific
-    //void getChanActive(timespec* pTimestamp, std::int32_t* pValue);             //
-    //void setChanMask(const timespec &pTimestamp, const std::string &pValue);    //
-    //void getChanMask(timespec* pTimestamp, std::string* pValue);                //
-
     void setRecordCnt(const timespec &pTimestamp, const std::int32_t &pValue);
     void getRecordCnt(timespec* pTimestamp, std::int32_t* pValue);
 
@@ -93,15 +85,7 @@ public:
     void getSampleCntMax(timespec* pTimestamp, std::int32_t* pValue);
     void getSamplesTotal(timespec* pTimestamp, std::int32_t* pValue);
 
-    //void setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue);
-    //void getTrigLvl(timespec* pTimestamp, std::int32_t* pValue);
-    //void setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue);
-    //void getTrigEdge(timespec* pTimestamp, std::int32_t* pValue);
-    //void setTrigChan(const timespec &pTimestamp, const std::int32_t &pValue);
-    //void getTrigChan(timespec* pTimestamp, std::int32_t* pValue);
-
-    //void getAdqDevVal(timespec* pTimestamp, std::int32_t* pValue);
-    //void getAdqDevStrVal(timespec* pTimestamp, std::string* pValue);
+    void getLogMsg(timespec* pTimestamp, std::string* pValue);
 
     void commitChanges(bool calledFromDaqThread = false);
 
@@ -148,8 +132,8 @@ protected:
 
     int32_t m_chanActive;     // Device specific
     bool m_chanActiveChanged; //
-    int32_t m_chanBits;       // Four bits: 0 - channel A; 1 - A and B; 2 - A, B and C; 3 - all channels (ABCD) -- make dropdown in GUI!
-    std::string m_chanMask;   // Four variations: 0x01 (ch A), 0x02 (ch AB), 0x04 (ch ABC), 0x08 (all ch)
+    int32_t m_chanBits;       // Four bits: 0 - channel A; 1 - ch B; 2 - ch C; 3 - ch D 
+    std::string m_chanMask;   // Variations: 0x1 (A), 0x2 (B), 0x4 (C), 0x8 (D), 0x3 (AB), 0xC (CD), 0xF (ABCD)
     bool m_chanMaskChanged;   //
     
     int32_t m_trigMode;
@@ -161,7 +145,11 @@ protected:
     int32_t m_trigChan;
     int32_t m_trigChanInt;
     bool m_trigChanChanged;
-    int32_t m_trigFreq; // not used yet
+    int32_t m_trigFreq; 
+    bool m_trigFreqChanged;
+    int32_t m_trigPeriod;
+
+    nds::PVDelegateIn<std::string> m_logMsgPV;
     
 private:
     ADQInterface * m_adqDevPtr;
@@ -179,12 +167,8 @@ private:
     nds::PVDelegateIn<std::int32_t> m_sampleCntMaxPV;
     nds::PVDelegateIn<std::int32_t> m_sampleCntPV;
     nds::PVDelegateIn<std::int32_t> m_sampleCntTotalPV;
-    //nds::PVDelegateIn<std::int32_t> m_chanActivePV; // Device specific
-    //nds::PVDelegateIn<std::string> m_chanMaskPV;    //
     nds::PVDelegateIn<std::int32_t> m_trigModePV;
-    //nds::PVDelegateIn<std::int32_t> m_trigLvlPV;
-    //nds::PVDelegateIn<std::int32_t> m_trigEdgePV;
-    //nds::PVDelegateIn<std::int32_t> m_trigChanPV;
+    nds::PVDelegateIn<std::int32_t> m_trigFreqPV;
 
     nds::Thread m_daqThread;
     bool m_stopDaq;

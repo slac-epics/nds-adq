@@ -8,12 +8,12 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
+#include "ADQSeven.h"
+#include "ADQDefinition.h"
 #include "ADQDevice.h"
 #include "ADQInfo.h"
-#include "ADQFourteen.h"
-#include "ADQSeven.h"
 #include "ADQAIChannelGroup.h"
-#include "ADQAIChannel.h" // ADQAIChannelGroup(COMMON_DEVICE, parentNode, adqDev),
+#include "ADQAIChannel.h" 
 
 ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) :
     m_node(nds::Port(name, nds::nodeType_t::generic)),
@@ -38,7 +38,7 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    ADQAIChannelGroup(COMMON_DEVICE, parentNode, adqDev)
+    ADQAIChannelGroup(name + GROUP_CHAN_DEVICE, parentNode, adqDev)
 {
     parentNode.addChild(m_node);
 
@@ -231,20 +231,16 @@ void ADQSeven::commitChangesSpec(bool calledFromDaqThread)
 
     if (m_trigEdgeChanged)
     {
-        m_trigEdgeChanged = false;
         m_trigEdgePV.push(now, m_trigEdge);
     }
 
     if (m_trigLvlChanged)
     {
-        m_trigLvlChanged = false;
         m_trigLvlPV.push(now, m_trigLvl);
     }
 
     if (m_trigChanChanged)
     {
-        m_trigChanChanged = false;
-
         switch (m_trigChan)
         {
         case 0: // None

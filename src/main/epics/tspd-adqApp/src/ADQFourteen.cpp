@@ -8,12 +8,12 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
-#include "ADQDevice.h"
-#include "ADQInfo.h"
 #include "ADQFourteen.h"
-#include "ADQSeven.h"
+#include "ADQDevice.h"
+#include "ADQDefinition.h"
+#include "ADQInfo.h"
 #include "ADQAIChannelGroup.h"
-#include "ADQAIChannel.h" // ADQAIChannelGroup(COMMON_DEVICE, parentNode, adqDev),
+#include "ADQAIChannel.h"
 
 ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) : 
     m_node(nds::Port(name, nds::nodeType_t::generic)),
@@ -38,12 +38,13 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    ADQAIChannelGroup(COMMON_DEVICE, parentNode, adqDev)
+    m_overVoltProtectPV(nds::PVDelegateIn<std::int32_t>("OverVoltProtect-RB", std::bind(&ADQFourteen::getOverVoltProtect,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    ADQAIChannelGroup(name + GROUP_CHAN_DEVICE, parentNode, adqDev)
 {
     parentNode.addChild(m_node);
-
-    //std::shared_ptr<ADQAIChannelGroup> aiChanGrp = std::make_shared<ADQAIChannelGroup>("DAQ-COM", m_node, m_adqDevPtr);
-    //m_AIChannelGroupPtr.push_back(aiChanGrp);
 
     // PVs for setting active channels
     nds::enumerationStrings_t chanMaskList = { "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
@@ -82,7 +83,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2),
-                                                            std::bind(&ADQFourteen::getTrigLvl,
+                                                         std::bind(&ADQFourteen::getTrigLvl,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2));
@@ -98,7 +99,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2),
-                                                           std::bind(&ADQFourteen::getTrigEdge,
+                                                        std::bind(&ADQFourteen::getTrigEdge,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2));
@@ -116,7 +117,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2),
-                                                              std::bind(&ADQFourteen::getTrigChan,
+                                                        std::bind(&ADQFourteen::getTrigChan,
                                                                           this,
                                                                           std::placeholders::_1,
                                                                           std::placeholders::_2));
@@ -127,6 +128,20 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
     m_trigChanPV.setScanType(nds::scanType_t::interrupt);
     m_trigChanPV.setEnumeration(trigChanList);
     m_node.addChild(m_trigChanPV);
+
+    // PVs for input range for channels (ADQ14-VG only)
+    node = nds::PVDelegateOut<std::int32_t>("OverVoltProtect", std::bind(&ADQFourteen::setOverVoltProtect,
+                                                                          this,
+                                                                          std::placeholders::_1,
+                                                                          std::placeholders::_2),
+                                                        std::bind(&ADQFourteen::getOverVoltProtect,
+                                                                          this,
+                                                                          std::placeholders::_1,
+                                                                          std::placeholders::_2));
+    m_node.addChild(node);
+
+    m_overVoltProtectPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_overVoltProtectPV);
 
     commitChangesSpec();
 }
@@ -188,6 +203,18 @@ void ADQFourteen::setTrigChan(const timespec &pTimestamp, const std::int32_t &pV
 void ADQFourteen::getTrigChan(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_trigChan;
+}
+
+void ADQFourteen::setOverVoltProtect(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_overVoltProtect = pValue;
+    m_overVoltProtectChanged = true;
+    commitChangesSpec();
+}
+
+void ADQFourteen::getOverVoltProtect(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_overVoltProtect;
 }
 
 void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
@@ -263,7 +290,6 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
     if (m_trigChanChanged)
     {
         m_trigChanChanged = false;
-
         switch (m_trigChan)
         {
         case 0: // None
@@ -293,6 +319,12 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
         }
 
         m_trigChanPV.push(now, m_trigChan);
+    }
+
+    if (m_overVoltProtectChanged)
+    {
+        m_overVoltProtectChanged = false;
+        m_overVoltProtectPV.push(now, m_overVoltProtect);
     }
 
     commitChanges();

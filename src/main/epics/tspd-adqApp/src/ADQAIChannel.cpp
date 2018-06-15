@@ -6,12 +6,13 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
+#include "ADQAIChannel.h"
+#include "ADQDefinition.h"
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
 #include "ADQSeven.h"
 #include "ADQAIChannelGroup.h"
-#include "ADQAIChannel.h"
 
 
 //// urojec L3: most editors provide a visual line that you can set so that you                                              !!!!!!!!!!!!!!!!
@@ -100,7 +101,7 @@ void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<double>* pValue)
      */
 }
 
-void ADQAIChannel::readTrigStream(short* rawData, std::int32_t sampleCntTotal)
+void ADQAIChannel::readTrigStream(short* rawData, std::int32_t sampleCnt)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -118,16 +119,16 @@ void ADQAIChannel::readTrigStream(short* rawData, std::int32_t sampleCntTotal)
 
     //double* data_ch;
     m_data.clear();
-    m_data.reserve(sampleCntTotal);
+    m_data.reserve(sampleCnt);
     std::vector<double>::iterator target = m_data.begin();
 
     //// urojec L1: why is both reserve and resize needed here
-    m_data.resize(sampleCntTotal);
+    m_data.resize(sampleCnt);
 
     //// urojec L2: it this ++ intentionally positioned before i? Do you know what is the difference with before and after?
     ////// ppipp: there is a difference between postfix and prefix, but it doesn't affect the process of for-loops; 
     //////        also i've read it is safer to use prefix and in general it is a good tone
-    for (int i = 0; i < sampleCntTotal; ++i, ++target)
+    for (int i = 0; i < sampleCnt; ++i, ++target)
     {
         *target = ((double)rawData[i]);
     }

@@ -9,12 +9,13 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
+#include "ADQAIChannelGroup.h"
+#include "ADQAIChannel.h"
+#include "ADQDefinition.h"
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
 #include "ADQSeven.h"
-#include "ADQAIChannelGroup.h" // m_node(nds::Port(name, nds::nodeType_t::generic)),
-#include "ADQAIChannel.h"
 
 //// urojec L3: camelCase
 //// urojec L2:
@@ -78,19 +79,27 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_sampleCntMaxPV(nds::PVDelegateIn<std::int32_t>("SampleCntMax-RB", std::bind(&ADQAIChannelGroup::getSampleCntMax,
+    m_sampleCntMaxPV(nds::PVDelegateIn<std::int32_t>("SampCntMax-RB", std::bind(&ADQAIChannelGroup::getSampleCntMax,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_sampleCntPV(nds::PVDelegateIn<std::int32_t>("SampleCnt-RB", std::bind(&ADQAIChannelGroup::getSampleCnt,
+    m_sampleCntPV(nds::PVDelegateIn<std::int32_t>("SampCnt-RB", std::bind(&ADQAIChannelGroup::getSampleCnt,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
-    m_sampleCntTotalPV(nds::PVDelegateIn<std::int32_t>("SampleCntTotal-RB", std::bind(&ADQAIChannelGroup::getSamplesTotal,
+    m_sampleCntTotalPV(nds::PVDelegateIn<std::int32_t>("SampCntTotal-RB", std::bind(&ADQAIChannelGroup::getSamplesTotal,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2))),
     m_trigModePV(nds::PVDelegateIn<std::int32_t>("TrigMode-RB", std::bind(&ADQAIChannelGroup::getTrigMode,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_trigFreqPV(nds::PVDelegateIn<std::int32_t>("TrigFreq-RB", std::bind(&ADQAIChannelGroup::getTrigFreq,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_logMsgPV(nds::PVDelegateIn<std::string>("LogMsg", std::bind(&ADQAIChannelGroup::getLogMsg,
                                                                         this,
                                                                         std::placeholders::_1,
                                                                         std::placeholders::_2)))
@@ -109,9 +118,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     }
 
     // PVs for data acquisition modes
-    //// urojec L2: why all this push back, why not just fix the list. It is not something that dynamically changes
-    //// ppipp: I honestly didn't try with fixed list; saw in Niklas' example and it worked
-    ////        will try with fixed list; there are no official examples with enumlists in NDS doxygen
     nds::enumerationStrings_t daqModeList = { "Multi-Record", "Continuous streaming", "Triggered streaming" };
     nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("DAQMode", std::bind(&ADQAIChannelGroup::setDaqMode,
                                                                                                   this,
@@ -152,7 +158,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(m_trigModePV);
 
     // PVs for Adjustable Bias
-    m_node.addChild(nds::PVDelegateOut<std::int32_t>("DCBias",
+    node = nds::PVDelegateOut<std::int32_t>("DCBias",
                                                    std::bind(&ADQAIChannelGroup::setDcBias,
                                                              this,
                                                              std::placeholders::_1,
@@ -160,13 +166,13 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                    std::bind(&ADQAIChannelGroup::getDcBias,
                                                              this,
                                                              std::placeholders::_1,
-                                                             std::placeholders::_2)));
-
+                                                             std::placeholders::_2));
+    m_node.addChild(node);
     m_dcBiasPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_dcBiasPV);
 
     // PV for DBS setup
-    m_node.addChild(nds::PVDelegateOut<std::int32_t>("DBSBypass",
+    node = nds::PVDelegateOut<std::int32_t>("DBSBypass",
                                                    std::bind(&ADQAIChannelGroup::setDbsBypass,
                                                              this,
                                                              std::placeholders::_1,
@@ -174,12 +180,12 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                    std::bind(&ADQAIChannelGroup::getDbsBypass,
                                                              this,
                                                              std::placeholders::_1,
-                                                             std::placeholders::_2)));
-
+                                                             std::placeholders::_2));
+    m_node.addChild(node);
     m_dbsBypassPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_dbsBypassPV);
 
-    m_node.addChild(nds::PVDelegateOut<std::int32_t>("DBSDC",
+    node = nds::PVDelegateOut<std::int32_t>("DBSDC",
                                                    std::bind(&ADQAIChannelGroup::setDbsDc,
                                                              this,
                                                              std::placeholders::_1,
@@ -187,12 +193,12 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                    std::bind(&ADQAIChannelGroup::getDbsDc,
                                                              this,
                                                              std::placeholders::_1,
-                                                             std::placeholders::_2)));
-
+                                                             std::placeholders::_2));
+    m_node.addChild(node);
     m_dbsDcPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_dbsDcPV);
 
-    m_node.addChild(nds::PVDelegateOut<std::int32_t>("DBSLowSat",
+    node = nds::PVDelegateOut<std::int32_t>("DBSLowSat",
                                                    std::bind(&ADQAIChannelGroup::setDbsLowSat,
                                                              this,
                                                              std::placeholders::_1,
@@ -200,12 +206,12 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                    std::bind(&ADQAIChannelGroup::getDbsLowSat,
                                                              this,
                                                              std::placeholders::_1,
-                                                             std::placeholders::_2)));
-
+                                                             std::placeholders::_2));
+    m_node.addChild(node);
     m_dbsLowSatPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_dbsLowSatPV);
 
-    m_node.addChild(nds::PVDelegateOut<std::int32_t>("DBSUpSat",
+    node = nds::PVDelegateOut<std::int32_t>("DBSUpSat",
                                                    std::bind(&ADQAIChannelGroup::setDbsUpSat,
                                                              this,
                                                              std::placeholders::_1,
@@ -213,8 +219,8 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                    std::bind(&ADQAIChannelGroup::getDbsUpSat,
                                                              this,
                                                              std::placeholders::_1,
-                                                             std::placeholders::_2)));
-
+                                                             std::placeholders::_2));
+    m_node.addChild(node);
     m_dbsUpSatPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_dbsUpSatPV);
 
@@ -263,11 +269,8 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_recordCntCollectPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_recordCntCollectPV);
 
-    //PVs for samples
-    m_sampleCntMaxPV.setScanType(nds::scanType_t::interrupt);
-    m_node.addChild(m_sampleCntMaxPV);
-
-    node = nds::PVDelegateOut<std::int32_t>("SampleCnt", std::bind(&ADQAIChannelGroup::setSampleCnt,
+    // PVs for samples
+    node = nds::PVDelegateOut<std::int32_t>("SampCnt", std::bind(&ADQAIChannelGroup::setSampleCnt,
                                                                      this,
                                                                      std::placeholders::_1,
                                                                      std::placeholders::_2),
@@ -278,6 +281,27 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(node);
     m_sampleCntPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_sampleCntPV);
+
+    m_sampleCntMaxPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_sampleCntMaxPV);
+
+    // PV for trigger frequence
+    node = nds::PVDelegateOut<std::int32_t>("TrigFreq", std::bind(&ADQAIChannelGroup::setTrigFreq,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2),
+                                                          std::bind(&ADQAIChannelGroup::getTrigFreq,
+                                                                     this,
+                                                                     std::placeholders::_1,
+                                                                     std::placeholders::_2));
+    m_node.addChild(node);
+    m_trigFreqPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_trigFreqPV);
+
+    // PV for error/warning/info messages
+    m_logMsgPV.setScanType(nds::scanType_t::interrupt);
+    m_logMsgPV.setMaxElements(512);
+    m_node.addChild(m_logMsgPV);
 
     // PV for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
@@ -292,6 +316,12 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
                                                                      std::placeholders::_3)));
 
     commitChanges();
+}
+
+void ADQAIChannelGroup::getLogMsg(timespec* pTimestamp, std::string* pValue)
+{
+    std::string text;
+    *pValue = text;
 }
 
 void ADQAIChannelGroup::setDaqMode(const timespec &pTimestamp, const std::int32_t &pValue)
@@ -316,6 +346,18 @@ void ADQAIChannelGroup::setTrigMode(const timespec &pTimestamp, const std::int32
 void ADQAIChannelGroup::getTrigMode(timespec* pTimestamp, std::int32_t* pValue)
 {
     *pValue = m_trigMode;
+}
+
+void ADQAIChannelGroup::setTrigFreq(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_trigFreq = pValue;
+    m_trigFreqChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getTrigFreq(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_trigFreq;
 }
 
 void ADQAIChannelGroup::setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue)
@@ -463,15 +505,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_trigModeChanged = false;
 
         success = m_adqDevPtr->SetTriggerMode(m_trigMode + 1);
-
-        if (!success)
+        ADQNDS_MSG_WARNLOG(success, "WARNING: SetTriggerMode failed.");
+        if (success)
         {
-            ndsWarningStream(m_node) << "FAILURE: Trigger Mode was not set." << std::endl;
-        }
-        else
-        {
-            ndsInfoStream(m_node) << "SUCCESS: Trigger Mode is set to " << m_trigMode << std::endl;
             m_trigModePV.push(now, m_trigMode);
+            ADQNDS_MSG_INFOLOG("SUCCESS: SetTriggerMode");
         }
     }
 
@@ -479,14 +517,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
     {
         m_patternModeChanged = false;
         success = m_adqDevPtr->SetTestPatternMode(m_patternMode);
-        if (!success)
+        ADQNDS_MSG_WARNLOG(success, "WARNING: SetTestPatternMode failed.");
+        if (success)
         {
-            ndsWarningStream(m_node) << "FAILURE: Failed setting up pattern mode." << std::endl;
-        }
-        else
-        {
-            ndsInfoStream(m_node) << "SUCCESS: Pattern Mode is set to " << m_patternMode << std::endl;
             m_patternModePV.push(now, m_patternMode);
+            ADQNDS_MSG_INFOLOG("SUCCESS: SetTestPatternMode");
         }
     }
 
@@ -502,11 +537,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
             {
                 success = m_adqDevPtr->SetAdjustableBias(chan + 1, m_dcBias);
-                if (!success)
-                {
-                    ndsWarningStream(m_node) << "FAILURE: Failed setting DC bias for channel " << chan_char[chan] << std::endl;
-                }
-                else
+                if (success)
                 {
                     ++i;
                 }
@@ -515,8 +546,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             if (i == m_chanCnt)
             {
-                ndsInfoStream(m_node) << "SUCCESS: DC Bias is set for all channels." << std::endl;
+                ADQNDS_MSG_INFOLOG("SUCCESS: SetAdjustableBias is set for all channels.");
                 m_dcBiasPV.push(now, m_dcBias);
+            }
+            else
+            {
+                success = 0;
+                ADQNDS_MSG_WARNLOG(success, "WARNING: SetAdjustableBias failed on one or more channels.");
             }
         }
     }
@@ -533,16 +569,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         success = m_adqDevPtr->GetNofDBSInstances(&dbsInstCnt);
         if (success)
         {
-            ndsInfoStream(m_node) << "Number of DBS instances: " << dbsInstCnt << std::endl;
             unsigned int i = 0;
             for (unsigned char dbsInst = 0; dbsInst < dbsInstCnt; ++dbsInst)
             {
                 success = m_adqDevPtr->SetupDBS(dbsInst, m_dbsBypass, m_dbsDc, m_dbsLowSat, m_dbsUpSat);
-                if (!success)
-                {
-                    ndsWarningStream(m_node) << "FAILURE: Failed setting up DBS instance " << dbsInst << std::endl;
-                }
-                else
+                if (success)
                 {
                     ++i;
                 }
@@ -551,11 +582,16 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             if (i == dbsInstCnt)
             {
-                ndsInfoStream(m_node) << "SUCCESS: All " << dbsInstCnt << " DBS instances are set up." << std::endl;
+                ADQNDS_MSG_INFOLOG("SUCCESS: SetupDBS is set for all channels.");
                 m_dbsBypassPV.push(now, m_dbsBypass);
                 m_dbsDcPV.push(now, m_dbsDc);
                 m_dbsLowSatPV.push(now, m_dbsLowSat);
                 m_dbsUpSatPV.push(now, m_dbsUpSat);
+            }
+            else
+            {
+                success = 0;
+                ADQNDS_MSG_WARNLOG(success, "WARNING: SetupDBS failed on one or more channels.");
             }
         }
     }
@@ -571,27 +607,23 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         {
             m_recordCntPV.push(now, m_recordCnt);
             success = m_adqDevPtr->GetMaxNofSamplesFromNofRecords(m_recordCnt, &sampleCntMax);
-            if (!success)
-            {
-                ndsWarningStream(m_node) << "FAILURE: Couldn't get the MAX number of samples (set number of records)." << std::endl;
-            }
-            else
+            ADQNDS_MSG_WARNLOG(success, "Couldn't get the MAX number of samples (set number of records).");
+            if (success)
             {
                 m_sampleCntMax = sampleCntMax;
                 m_sampleCntMaxPV.push(now, m_sampleCntMax);
-                ndsInfoStream(m_node) << "SUCCESS: Maximum number of samples is " << m_sampleCntMax << std::endl;
 
                 if (m_sampleCnt > m_sampleCntMax)
                 {
-                    ndsErrorStream(m_node) << "ERROR: Chosen number of samples is higher than the MAX: " << m_sampleCnt << ">" << m_sampleCntMax << std::endl;
+                    success = 0;
+                    ADQNDS_MSG_WARNLOG(success, "WARNING: Chosen number of samples was higher than the maximum number of samples.");
+                    m_sampleCnt = m_sampleCntMax;
                 }
-                else
-                {
-                    m_sampleCntPV.push(now, m_sampleCnt);
+                
+                m_sampleCntPV.push(now, m_sampleCnt);
 
-                    m_sampleCntTotal = m_sampleCnt * m_recordCnt;
-                    m_sampleCntTotalPV.push(now, m_sampleCntTotal);
-                }
+                m_sampleCntTotal = m_sampleCnt * m_recordCnt;
+                m_sampleCntTotalPV.push(now, m_sampleCntTotal);
             }
         }
         else
@@ -609,12 +641,21 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_recordCntCollectChanged = false;
 
         if (m_recordCntCollect > m_recordCnt)
+        {
             m_recordCntCollect = m_recordCnt;
-
+        }
+          
         m_recordCntCollectPV.push(now, m_recordCntCollect);
 
         m_sampleCntTotal = m_sampleCnt * m_recordCntCollect;
         m_sampleCntTotalPV.push(now, m_sampleCntTotal);
+    }
+
+    if (m_trigFreqChanged)
+    {
+        m_trigFreqChanged = false;
+        m_trigFreqPV.push(now, m_trigFreq);
+        m_trigPeriod = 1000000000 / m_trigFreq;
     }
 
     /* This block processes changes applied to ADQ specific PVs
@@ -626,94 +667,14 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
         if (m_daqMode == 0) // Multi-Record
         {
-            success = m_adqDevPtr->MultiRecordSetChannelMask(m_chanBits);
-            if (!success)
+            if ((m_adqDevPtr->GetADQType()) == 714 || (m_adqDevPtr->GetADQType()) == 14)
             {
-                ndsErrorStream(m_node) << "ERROR: Failed at MultiRecordSetChannelMask." << std::endl;
-            }
-        }
-        if (m_daqMode == 1) // Continuous Streaming
-        {
-            success = m_adqDevPtr->ContinuousStreamingSetup(m_chanBits);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at ContinuousStreamingSetup." << std::endl;
-            }
-
-        }
-    }
-
-    if (m_trigEdgeChanged)
-    {
-        m_trigEdgeChanged = false;
-
-        if (m_trigMode == 2)
-        {
-            success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigEdge." << std::endl;
+                success = m_adqDevPtr->MultiRecordSetChannelMask(m_chanBits);
+                ADQNDS_MSG_WARNLOG(success, "WARNING: MultiRecordSetChannelMask failed.");
             }
         }
     }
-
-    if (m_trigChanChanged)
-    {
-        int trigchan_int;
-        m_trigChanChanged = false;
-
-        switch (m_trigChan)
-        {
-        case 0: // None
-            trigchan_int = 0;
-            break;
-        case 1: // ch A
-            trigchan_int = 1;
-            break;
-        case 2: // ch B
-            trigchan_int = 2;
-            break;
-        case 3: // ch C
-            trigchan_int = 4;
-            break;
-        case 4: // ch D
-            trigchan_int = 8;
-            break;
-        case 5: // ch A+B
-            trigchan_int = 3;
-            break;
-        case 6: // ch C+D
-            trigchan_int = 12;
-            break;
-        case 7: // ch A+B+C+D
-            trigchan_int = 15;
-            break;
-        }
-
-        if (m_trigMode == 2)
-        {
-            success = m_adqDevPtr->SetLvlTrigChannel(trigchan_int);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigChannel." << std::endl;
-            }
-        }
-    }
-
-    if (m_trigLvlChanged)
-    {
-        m_trigLvlChanged = false;
-        if (m_trigMode == 2)
-        {
-            success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigLevel." << std::endl;
-            }
-        }
-    } 
 }
-
 
 void ADQAIChannelGroup::onSwitchOn()
 {
@@ -874,114 +835,63 @@ void ADQAIChannelGroup::daqTrigStream()
     switch (m_trigMode)
     {
     case 0: // SW trigger
-        ndsInfoStream(m_node) << "Issuing Software trigger... " << std::endl;
+        ADQNDS_MSG_INFOLOG("Issuing Software trigger... ");
         break;
     case 1: // External trigger  ----- need to investigate the API doc to develop this method
+        ADQNDS_MSG_INFOLOG("Issuing External trigger... ");
         break;
     case 2: // Level trigger ----- need to investigate the API doc to develop this method
-        ndsInfoStream(m_node) << "Issuing Level trigger... " << std::endl;
+        ADQNDS_MSG_INFOLOG("Issuing Level trigger... ");
        
         success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigEdge." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigEdge failed.");
         
         success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigLevel." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigLevel failed.");
 
         success = m_adqDevPtr->SetLvlTrigChannel(m_trigChan);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigChannel." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigChannel failed.");
         break;
     case 3: // Internal trigger ----- need to investigate the API doc to develop this method
-        ndsInfoStream(m_node) << "Issuing Internal trigger... " << std::endl;
-        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigLvl); // it uses FREQ/Period variable, not lvl
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetInternalTriggerPeriod." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_INFOLOG("Issuing Internal trigger... ");
+        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigFreq); 
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetInternalTriggerPeriod failed.");
         break;
     }
 
     success = m_adqDevPtr->TriggeredStreamingSetup(m_recordCnt, m_sampleCnt, pretrig_samples, holdoff_samples, chanMaskChar);
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at TriggeredStreamingSetup." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: TriggeredStreamingSetup failed.");
 
     if (adqType == 7) // Probably not needed, it is an Internal function (as mentioned in ADQAPI document)
     {
         success = m_adqDevPtr->ResetWriteCountMax();
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at ResetWriteCountMax." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_WARNLOG(success, "WARNING: ResetWriteCountMax failed.");
     }
 
     success = m_adqDevPtr->SetStreamStatus(1);
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at SetStreamStatus." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetStreamStatus failed.");
 
     success = m_adqDevPtr->SetTransferBuffers(m_tr_nofbuf, m_tr_bufsize);
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at SetTransferBuffers." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetTransferBuffers failed.");
 
     success = m_adqDevPtr->StopStreaming();
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at StopStreaming." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StopStreaming failed.");
 
     success = m_adqDevPtr->StartStreaming();
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at StartStreaming." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StartStreaming failed.");
 
     if (m_trigMode == 0)
     {
         success = m_adqDevPtr->DisarmTrigger();
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: DisarmTrigger failed.");
 
         success = m_adqDevPtr->ArmTrigger();
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: ArmTrigger failed.");
 
         for (int i = 0; i < m_recordCnt; ++i)
         {
             success = m_adqDevPtr->SWTrig();
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at SWTrig." << std::endl;
-                goto finish;
-            }
+            ADQNDS_MSG_ERRLOG(success, "ERROR: SWTrig failed.");
         }
     }
    
@@ -997,11 +907,7 @@ void ADQAIChannelGroup::daqTrigStream()
         }
 
         success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at GetTransferBufferStatus." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: GetTransferBufferStatus failed.");
 
         // Poll for the transfer buffer status as long as the timeout has not been
         // reached and no buffers have been filled.
@@ -1012,11 +918,7 @@ void ADQAIChannelGroup::daqTrigStream()
             while (!buffers_filled && (timerTimeMs() < timeout_ms))
             {
                 success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
-                if (!success)
-                {
-                    ndsErrorStream(m_node) << "ERROR: Failed at GetTransferBufferStatus." << std::endl;
-                    goto finish;
-                }
+                ADQNDS_MSG_ERRLOG(success, "ERROR: GetTransferBufferStatus failed.");
                 // Sleep to avoid loading the processor too much
                 sleep(10);
             }
@@ -1024,23 +926,15 @@ void ADQAIChannelGroup::daqTrigStream()
             // Timeout reached, flush the transfer buffer to receive data
             if (!buffers_filled)
             {
-                ndsInfoStream(m_node) << "Timeout, flushing DMA..." << std::endl;
+                ADQNDS_MSG_INFOLOG("Timeout, flushing DMA...");
                 success = m_adqDevPtr->FlushDMA();
-                if (!success)
-                {
-                    ndsErrorStream(m_node) << "ERROR: Failed at FlushDMA." << std::endl;
-                    goto finish;
-                }
+                ADQNDS_MSG_ERRLOG(success, "ERROR: FlushDMA failed.");
             }
         }
 
-        ndsInfoStream(m_node) << "Receiving data..." << std::endl;
+        ADQNDS_MSG_INFOLOG("Receiving data...");
         success = m_adqDevPtr->GetDataStreaming((void**)tr_buffers, (void**)tr_headers, chanMaskChar, samples_added, headers_added, header_status);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at GetDataStreaming." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: GetDataStreaming failed.");
 
         // Parse data
         for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
@@ -1094,6 +988,8 @@ void ADQAIChannelGroup::daqTrigStream()
                         ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][0].recordNumber <<
                             " on channel " << chan << ", " << tr_headers[chan][0].recordLength << " samples." << std::endl;
                     }
+
+                    m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCnt);
                 }
                 else
                 {
@@ -1116,6 +1012,8 @@ void ADQAIChannelGroup::daqTrigStream()
                         ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][0].recordNumber <<
                             " on channel " << chan << ", " << tr_headers[chan][0].recordLength << " samples." << std::endl;
                     }
+
+                    m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCnt);
                 }
                 // At this point: the first record in the transfer buffer or the entire
                 // transfer buffer has been parsed.
@@ -1131,6 +1029,8 @@ void ADQAIChannelGroup::daqTrigStream()
                     daqTrigStreamProcessRecord(record_data, &tr_headers[chan][i]);
                     ndsInfoStream(m_node) << "Completed record " << tr_headers[chan][i].recordNumber <<
                         " on channel " << chan << ", " << tr_headers[chan][i].recordLength << " samples." << std::endl;
+
+                    m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCnt);
                 }
 
                 if (samples_remaining > 0)
@@ -1151,7 +1051,7 @@ void ADQAIChannelGroup::daqTrigStream()
 
             // Read buffers by each channel and send them to DATA PVs
             //tr_buffers_ptr = (double*)tr_buffers[ch];
-            m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCntTotal);
+            //m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCntTotal);
         }
 
         // Update received_all_records
@@ -1168,12 +1068,8 @@ void ADQAIChannelGroup::daqTrigStream()
         {
             unsigned int* writeCntMax;
             success = m_adqDevPtr->GetWriteCountMax(writeCntMax);
-            if (!success)
-            {
-                ndsErrorStream(m_node) << "ERROR: Failed at GetWriteCountMax." << std::endl;
-                goto finish;
-            }
-            else
+            ADQNDS_MSG_WARNLOG(success, "WARNING: GetWriteCountMax failed.");
+            if (success)
             {
                 unsigned int* varTmp;
                 *varTmp = 1024 * 1024;
@@ -1184,7 +1080,7 @@ void ADQAIChannelGroup::daqTrigStream()
     } while (!received_all_records);
 
 finish:
-    ndsInfoStream(m_node) << "Acquisition finished." << std::endl;
+    ADQNDS_MSG_INFOLOG("Acquisition finished.");
     commitChanges(true);
     m_adqDevPtr->StopStreaming();
 
@@ -1208,7 +1104,6 @@ finish:
 void ADQAIChannelGroup::daqTrigStreamProcessRecord(short* recordData, streamingHeader_t* recordHeader)  // Need to create PV for average samples, probably it is important, since they have this method
 {
     // You may process a full record here (will be called once with every completed record)
-#ifdef PRINT_RECORD_INFO
     // Calculate average over all samples (as an example of processing a record)
     int64_t acc_result;
     double  acc_result_d;
@@ -1221,6 +1116,7 @@ void ADQAIChannelGroup::daqTrigStreamProcessRecord(short* recordData, streamingH
     }
     acc_result_d = (double)acc_result / (double)recordHeader->recordLength;
 
+#ifdef PRINT_RECORD_INFO
     // Print record info
     ndsInfoStream(m_node) << "--------------------------------------" << std::endl;
     ndsInfoStream(m_node) << " Device (SPD-" << (int)recordHeader->serialNumber  << "), Channel " << (int)recordHeader->channel << ", Record " << recordHeader->recordNumber << std::endl;
@@ -1244,87 +1140,46 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
 
     short* tr_buffers_ptr;
 
-    // Convert chanMask from std::string to unsigned char for certain ADQAPI functions
+    // Convert chanMask from std::string to unsigned char for GetData() function
     unsigned char chanMaskChar = *m_chanMask.c_str();
 
     success = m_adqDevPtr->MultiRecordSetup(m_recordCnt, m_sampleCnt);
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at MultiRecordSetup." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: MultiRecordSetup failed.");
 
     switch (m_trigMode)
     {
     case 0: // SW trigger
-        ndsInfoStream(m_node) << "Issuing Software trigger... " << std::endl;
+        ADQNDS_MSG_INFOLOG("Issuing Software trigger...");
         break;
     case 1: // External trigger
+        ADQNDS_MSG_INFOLOG("Issuing External trigger...");
+        break;
     case 2: // Level trigger
-        ndsInfoStream(m_node) << "Issuing Level trigger... " << std::endl;
+        ADQNDS_MSG_INFOLOG("Issuing Level trigger...");
 
         success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigEdge." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigEdge failed.");
 
         success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigLevel." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigLevel failed.");
 
         success = m_adqDevPtr->SetLvlTrigChannel(m_trigChan);
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at SetLvlTrigChannel." << std::endl;
-            goto finish;
-        }
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigChannel failed.");
         break;
     case 3: // Internal trigger
-        ndsWarningStream(m_node) << "Trigger the device to collect data." << std::endl;
-        sleep(10);
-
-        success = m_adqDevPtr->DisarmTrigger();
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
-            goto finish;
-        }
-        
-        success = m_adqDevPtr->ArmTrigger();
-        if (!success)
-        {
-            ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
-            goto finish;
-        }
-        
-        do
-        {
-            trigged = m_adqDevPtr->GetAcquiredAll();
-        } while (trigged == 0);
-        
+        ADQNDS_MSG_INFOLOG("Issuing Internal trigger...");
+        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigPeriod);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetInternalTriggerPeriod failed.");
         break;
     }
 
     success = m_adqDevPtr->DisarmTrigger();
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: DisarmTrigger failed.");
 
     success = m_adqDevPtr->ArmTrigger();
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at ArmTrigger." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: ArmTrigger failed.");
 
-    if (m_trigMode == 0)
+    if (m_trigMode == 0) // SW trigger
     {
         do
         {
@@ -1332,13 +1187,12 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
             for (int i = 0; i < m_recordCnt; ++i)
             {
                 success = m_adqDevPtr->SWTrig();
-                if (!success)
-                {
-                    ndsErrorStream(m_node) << "ERROR: Failed at SWTrig." << std::endl;
-                    goto finish;
-                }
+                ADQNDS_MSG_ERRLOG(success, "ERROR: SWTrig failed.");
             }
         } while (trigged == 0);
+
+        unsigned int acqRecTotal = m_adqDevPtr->GetAcquiredRecords();
+        ndsInfoStream(m_node) << "INFO: GetAcquiredRecords: " << acqRecTotal << std::endl;
     }
     else
     {
@@ -1346,13 +1200,16 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
         {
             trigged = m_adqDevPtr->GetAcquiredAll();
         } while (trigged == 0);
+
+        unsigned int acqRecTotal = m_adqDevPtr->GetAcquiredRecords();
+        ndsInfoStream(m_node) << "INFO: GetAcquiredRecords: " << acqRecTotal << std::endl;
     }
 
     success = m_adqDevPtr->GetStreamOverflow();
     if (success)
     {
-        ndsErrorStream(m_node) << "ERROR: Streaming overflow detected." << std::endl;
-        goto finish;
+        success = 0;
+        ADQNDS_MSG_ERRLOG(success, "ERROR: GetStreamOverflow detected.");
     }
 
     // Here sampleCntTotal should be calculated as (recordCntCollect * sampleCnt), what is taken care of in commitChanges method (recordCntCollectchanged)
@@ -1374,18 +1231,10 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
     }
 
     success = m_adqDevPtr->GetData(tr_buffers, m_sampleCntTotal, sizeof(short), 0, m_recordCntCollect, chanMaskChar, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at GetData." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: GetData failed.");
 
     success = m_adqDevPtr->DisarmTrigger();
-    if (!success)
-    {
-        ndsErrorStream(m_node) << "ERROR: Failed at DisarmTrigger." << std::endl;
-        goto finish;
-    }
+    ADQNDS_MSG_ERRLOG(success, "ERROR: DisarmTrigger failed.");
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -1396,9 +1245,9 @@ void ADQAIChannelGroup::daqMultiRecord()  // doesn't work yet, fails at GetData
 
 
 finish:
-    ndsInfoStream(m_node) << "Acquisition finished." << std::endl;
+    ADQNDS_MSG_INFOLOG("Acquisition finished.");
     commitChanges(true);
-    m_adqDevPtr->StopStreaming();
+    m_adqDevPtr->MultiRecordClose();
 
     if (buf_a != NULL)
         free(buf_a);
@@ -1419,10 +1268,209 @@ finish:
 
 void ADQAIChannelGroup::daqContinStream() // ----- need to investigate the API doc to develop this method
 {
+    unsigned int sampSkip;
+    double stream_time;
+    unsigned int nof_buffers, tr_bufsize, buffers_filled;
+    time_t start_time, curr_time;
+    double elapsed_seconds;
 
+    unsigned int chan, buf;
+
+    short* target_buffers[4];
+    unsigned char* target_headers[4];
+
+    int bufferstatusloops;
+    int success;
+
+    unsigned int s = 0;
+
+    unsigned int samples_added[4];
+    unsigned int headers_added[4];
+    unsigned int header_status[4];
+    unsigned int tot_samples_added;
+    uint64_t tot_bytes_parsed;
+
+    unsigned int stream_completed = 0;
+
+    sampSkip = 16384;
+    stream_time = 5.0; // seconds
+
+    nof_buffers = 8;
+
+    int adqType = m_adqDevPtr->GetADQType();
+    if (adqType == 714 || adqType == 14)
+    {
+        tr_bufsize = 512 * 1024;
+    }
+    if (adqType == 7)
+    {
+        tr_bufsize = 256 * 1024;
+    }
+
+    // Convert chanMask from std::string to unsigned char for SetupContinuousStreaming() function
+    unsigned char chanMaskChar = *m_chanMask.c_str();
+
+    for (chan = 0; chan < m_chanCnt; chan++) 
+    {
+        target_buffers[chan] = NULL;
+        target_headers[chan] = NULL;
+        if (chanMaskChar & (1 << chan)) 
+        {
+            target_buffers[chan] = (short*)malloc(tr_bufsize * sizeof(char));
+            target_headers[chan] = (unsigned char*)malloc(10 * sizeof(uint32_t));
+        }
+    }
+
+    success = m_adqDevPtr->StopStreaming();
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StopStreaming failed.");
+
+    success = m_adqDevPtr->ContinuousStreamingSetup(chanMaskChar);
+    ADQNDS_MSG_WARNLOG(success, "WARNING: ContinuousStreamingSetup failed.");
+
+    success = m_adqDevPtr->SetSampleSkip(sampSkip);
+    ADQNDS_MSG_WARNLOG(success, "WARNING: ContinuousStreamingSetup failed.");
+
+    // Start streaming
+    tot_samples_added = 0;
+    tot_bytes_parsed = 0;
+
+    success = m_adqDevPtr->StartStreaming();
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StartStreaming failed.");
+
+    time(&start_time);
+
+    if (m_trigMode == 0)
+    {
+        success = m_adqDevPtr->DisarmTrigger();
+        ADQNDS_MSG_ERRLOG(success, "ERROR: DisarmTrigger failed.");
+
+        success = m_adqDevPtr->ArmTrigger();
+        ADQNDS_MSG_ERRLOG(success, "ERROR: ArmTrigger failed.");
+
+        for (int i = 0; i < m_recordCnt; ++i)
+        {
+            success = m_adqDevPtr->SWTrig();
+            ADQNDS_MSG_ERRLOG(success, "ERROR: SWTrig failed.");
+        }
+    }
+
+    switch (m_trigMode)
+    {
+    case 0: // SW trigger
+        ADQNDS_MSG_INFOLOG("Issuing Software trigger...");
+        break;
+    case 1: // External trigger
+        ADQNDS_MSG_INFOLOG("Issuing External trigger...");
+        break;
+    case 2: // Level trigger
+        ADQNDS_MSG_INFOLOG("Issuing Level trigger...");
+
+        success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigEdge failed.");
+
+        success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigLevel failed.");
+
+        success = m_adqDevPtr->SetLvlTrigChannel(m_trigChan);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigChannel failed.");
+        break;
+    case 3: // Internal trigger
+        ADQNDS_MSG_INFOLOG("Issuing Internal trigger...");
+        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigPeriod);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetInternalTriggerPeriod failed.");
+        break;
+    }
+
+    time(&curr_time);
+    while (!stream_completed)
+    {
+
+        bufferstatusloops = 0;
+        buffers_filled = 0;
+
+        while (buffers_filled == 0 && success)
+        {
+            success = m_adqDevPtr->GetTransferBufferStatus(&buffers_filled);
+
+            if (buffers_filled == 0)
+            {
+                sleep(10);
+                bufferstatusloops++;
+
+                if (bufferstatusloops > 2000)
+                {
+                    // If the DMA transfer is taking too long, we should flush the DMA buffer before it times out. The timeout defaults to 60 seconds.
+                    ADQNDS_MSG_INFOLOG("Timeout, flushing DMA...");
+                    success = m_adqDevPtr->FlushDMA();
+                    ADQNDS_MSG_ERRLOG(success, "ERROR: FlushDMA failed.");
+                }
+            }
+        }
+
+        for (buf = 0; buf < buffers_filled; buf++)
+        {
+            ADQNDS_MSG_INFOLOG("Receiving data...");
+            success = m_adqDevPtr->GetDataStreaming((void**)target_buffers, (void**)target_headers, chanMaskChar, samples_added, headers_added, header_status);
+            ADQNDS_MSG_ERRLOG(success, "ERROR: GetDataStreaming failed.");
+
+            tot_samples_added += samples_added[0] + samples_added[1] + samples_added[2] + samples_added[3];
+            tot_bytes_parsed += (uint64_t)tr_bufsize;
+
+            // Here, process data. (perform calculations, write to file, let another process operate on the buffers, etc). 
+            // This will likely be the bottleneck for the transfer rate.
+            // NOT NEEDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            //for (chan = 0; chan < m_chanCnt; chan++) {
+            //    if (!(chanMaskChar & (1 << chan)))
+            //        continue;
+            //    for (s = 0; s < samples_added[0]; s++) {
+            //        fprintf(outfile[chan], "%d\n", target_buffers[chan][s]);
+            //    }
+            //}
+        }
+
+        time(&curr_time);
+        elapsed_seconds = difftime(curr_time, start_time);
+
+        if (elapsed_seconds > stream_time) 
+        {
+            stream_completed = 1;
+            ADQNDS_MSG_INFOLOG("Acquisition finished due to achieved target stream time.");
+        }
+
+        success = m_adqDevPtr->GetStreamOverflow();
+        if (success)
+        {
+            stream_completed = 1;
+            success = 0;
+            ADQNDS_MSG_ERRLOG(success, "ERROR: GetStreamOverflow detected.");
+        }
+    }
+
+finish:
+    ADQNDS_MSG_INFOLOG("Acquisition finished.");
+    commitChanges(true);
+    m_adqDevPtr->StopStreaming();
+
+    for (unsigned int chan = 0; chan < m_chanCnt; ++chan) 
+    {
+        if (target_buffers[chan])
+            free(target_buffers[chan]);
+        if (target_headers[chan])
+            free(target_headers[chan]);
+    }
+
+    try 
+    {
+        m_stateMachine.setState(nds::state_t::on);
+    }
+    catch (nds::StateMachineNoSuchTransition error) 
+    {
+        /* We are probably already in "stopping", no need to panic... */
+    }
 }
 
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
-
+    /* Destructor
+    */
 }

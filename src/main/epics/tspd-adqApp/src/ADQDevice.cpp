@@ -9,6 +9,7 @@
 #include <nds3/nds.h>
 
 #include "ADQDevice.h"
+#include "ADQDefinition.h"
 #include "ADQInfo.h"
 #include "ADQFourteen.h"
 #include "ADQSeven.h"
@@ -38,8 +39,8 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
     // Var for for-loop
     bool adqReqFound;
     // User input
-    char input_raw[6];
-    const char* input;
+    char adqSnReqRaw[6];
+    const char* adqSnReqTmp;
 
     try
     {
@@ -71,11 +72,11 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
             ////
             // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it!
             std::cout << "Enter device Serial Number (e.g. 06215, 06302):" << std::endl;
-            std::cin >> input_raw;
+            std::cin >> adqSnReqRaw;
             std::string prefix = "SPD-";
-            prefix.insert(4, input_raw);
-            input = prefix.c_str();
-            adqSnReq = (char*)input;
+            prefix.insert(4, adqSnReqRaw);
+            adqSnReqTmp = prefix.c_str();
+            adqSnReq = (char*)adqSnReqTmp;
 
 
             //// urojec L3: In such long cases where success means a bunch of code to execute I                   
@@ -148,20 +149,20 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                         {
                             // Get a pointer to device specific class
                             int adqType = m_adqDevPtr->GetADQType();
+                            const char* adqSn = adqSnReqRaw;
                             if (adqType == 714 || adqType == 14)
                             {
-                                std::shared_ptr<ADQFourteen> adqDevSpecific = std::make_shared<ADQFourteen>("DAQ", m_node, m_adqDevPtr);
+                                std::shared_ptr<ADQFourteen> adqDevSpecific = std::make_shared<ADQFourteen>(adqSn, m_node, m_adqDevPtr);
                                 m_adqFrtnPtr.push_back(adqDevSpecific);
                             }
                             if (adqType == 7)
                             {
-                                std::shared_ptr<ADQSeven> adqDevSpecific = std::make_shared<ADQSeven>("DAQ", m_node, m_adqDevPtr);
+                                std::shared_ptr<ADQSeven> adqDevSpecific = std::make_shared<ADQSeven>(adqSn, m_node, m_adqDevPtr);
                                 m_adqSvnPtr.push_back(adqDevSpecific);
-                            }
+                            } 
 
-                            // Get a pointer to device information class
-                            std::shared_ptr<ADQInfo> infoAdq = std::make_shared<ADQInfo>("INFO", m_node, m_adqDevPtr);
-                            m_infoPtr.push_back(infoAdq);
+                            std::shared_ptr<ADQInfo> adqInfo = std::make_shared<ADQInfo>(adqSn, m_node, m_adqDevPtr);
+                            m_adqInfoPtr.push_back(adqInfo);
 
                             // Set information log level
                             m_node.setLogLevel(nds::logLevel_t::info);
@@ -174,8 +175,8 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
                             ndsWarningStream(m_node) << "test WARNING" << std::endl;
                             ndsErrorStream(m_node) << "test ERROR" << std::endl;
 
-                            unsigned int m_chanCnt = m_adqDevPtr->GetNofChannels();
-                            ndsInfoStream(m_node) << "DEBUG: Device has " << m_chanCnt << " channels." << std::endl;
+                            unsigned int chanCnt = m_adqDevPtr->GetNofChannels();
+                            ndsInfoStream(m_node) << "DEBUG: Device has " << chanCnt << " channels." << std::endl;
 
                         } // IsStartedOK
                     }
