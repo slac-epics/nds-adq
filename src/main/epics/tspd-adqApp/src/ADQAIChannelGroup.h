@@ -85,6 +85,9 @@ public:
     void getSampleCntMax(timespec* pTimestamp, std::int32_t* pValue);
     void getSamplesTotal(timespec* pTimestamp, std::int32_t* pValue);
 
+    void setFlushTime(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getFlushTime(timespec* pTimestamp, std::int32_t* pValue);
+
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
 
     void commitChanges(bool calledFromDaqThread = false);
@@ -149,6 +152,9 @@ protected:
     bool m_trigFreqChanged;
     int32_t m_trigPeriod;
 
+    bool m_flushTimeChanged;
+    int32_t m_flushTime;
+
     nds::PVDelegateIn<std::string> m_logMsgPV;
     
 private:
@@ -169,6 +175,7 @@ private:
     nds::PVDelegateIn<std::int32_t> m_sampleCntTotalPV;
     nds::PVDelegateIn<std::int32_t> m_trigModePV;
     nds::PVDelegateIn<std::int32_t> m_trigFreqPV;
+    nds::PVDelegateIn<std::int32_t> m_flushTimePV;
 
     nds::Thread m_daqThread;
     bool m_stopDaq;

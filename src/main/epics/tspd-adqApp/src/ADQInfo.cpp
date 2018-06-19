@@ -85,7 +85,7 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_productNamePV.setScanType(nds::scanType_t::interrupt);
     m_productNamePV.setMaxElements(STRING_ENUM);
     m_productNamePV.processAtInit(PINI);
-    m_node.addChild(m_productNamePV);
+    m_node.addChild(m_productNamePV);   
 
     m_serialNumberPV.setScanType(nds::scanType_t::interrupt);
     m_serialNumberPV.setMaxElements(STRING_ENUM);
@@ -142,6 +142,7 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_pcieLinkWidPV.setScanType(nds::scanType_t::interrupt);
     m_pcieLinkWidPV.processAtInit(PINI);
     m_node.addChild(m_pcieLinkWidPV);
+    
 }
 
 void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)
@@ -216,14 +217,24 @@ void ADQInfo::getBusAddr(timespec* pTimestamp, std::int32_t* pValue)
 
 void ADQInfo::getBusType(timespec* pTimestamp, std::int32_t* pValue)
 {
-    if ((m_adqDevPtr->IsPCIeDevice()) || (m_adqDevPtr->IsPCIeLiteDevice()))
+    if (m_adqDevPtr->IsPCIeDevice())
     {
         *pValue = 0;
     }
 
-    if ((m_adqDevPtr->IsUSBDevice()) || (m_adqDevPtr->IsUSB3Device()))
+    if (m_adqDevPtr->IsPCIeLiteDevice())
     {
         *pValue = 1;
+    }
+
+    if (m_adqDevPtr->IsUSBDevice())
+    {
+        *pValue = 2;
+    }
+
+    if (m_adqDevPtr->IsUSB3Device())
+    {
+        *pValue = 3;
     }
 }
 

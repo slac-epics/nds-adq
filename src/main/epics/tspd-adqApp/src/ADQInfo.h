@@ -30,6 +30,8 @@ private:
 
     ADQInterface * m_adqDevPtr;
 
+    std::string m_productName;
+
     nds::PVDelegateIn<std::string> m_productNamePV;
     nds::PVDelegateIn<std::string> m_serialNumberPV;
     nds::PVDelegateIn<std::int32_t> m_productIDPV;

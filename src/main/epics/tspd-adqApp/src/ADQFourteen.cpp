@@ -221,7 +221,6 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
-    ADQAIChannelGroup* adqGrpPtr;
 
     if (!calledFromDaqThread && (
         m_stateMachine.getLocalState() != nds::state_t::on &&
@@ -230,11 +229,14 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
         return;
     }
 
-    if (m_chanActiveChanged)     // Needs to be moved to ADQ classes (7 and 14 have different options)
+    if (m_chanActiveChanged) 
     {
+        m_chanActiveChanged = false;
+
         if (!m_chanCnt)
         {
-            ndsWarningStream(m_node) << "FAILURE: No channels are found." << std::endl;
+            int success = 0;
+            ADQNDS_MSG_WARNLOG(success, "WARNING: No channels are found.");
         }
         else
         {
@@ -326,6 +328,4 @@ void ADQFourteen::commitChangesSpec(bool calledFromDaqThread)
         m_overVoltProtectChanged = false;
         m_overVoltProtectPV.push(now, m_overVoltProtect);
     }
-
-    commitChanges();
 }

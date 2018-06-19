@@ -191,7 +191,6 @@ void ADQSeven::commitChangesSpec(bool calledFromDaqThread)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
-    ADQAIChannelGroup* adqGrpPtr;
 
     if (!calledFromDaqThread && (
         m_stateMachine.getLocalState() != nds::state_t::on &&
@@ -200,8 +199,10 @@ void ADQSeven::commitChangesSpec(bool calledFromDaqThread)
         return;
     }
 
-    if (m_chanActiveChanged)     // Needs to be moved to ADQ classes (7 and 14 have different options)
+    if (m_chanActiveChanged)    
     {
+        m_chanActiveChanged = false;
+
         if (!m_chanCnt)
         {
             ndsWarningStream(m_node) << "FAILURE: No channels are found." << std::endl;
@@ -256,6 +257,4 @@ void ADQSeven::commitChangesSpec(bool calledFromDaqThread)
 
         m_trigChanPV.push(now, m_trigChan);
     }
-
-    commitChanges();
 }
