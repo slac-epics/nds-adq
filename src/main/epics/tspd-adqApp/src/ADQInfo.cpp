@@ -197,9 +197,9 @@ void ADQInfo::getTempDd(timespec* pTimestamp, std::int32_t* pValue)
 
 void ADQInfo::getSampRate(timespec* pTimestamp, double* pValue)
 {
-    double* sampRate;
-    m_adqDevPtr->GetSampleRate(0, sampRate);
-    pValue = sampRate;
+    double sampRate = 0;
+    m_adqDevPtr->GetSampleRate(0, &sampRate);
+    *pValue = sampRate;
 }
 
 void ADQInfo::getBusAddr(timespec* pTimestamp, std::int32_t* pValue)

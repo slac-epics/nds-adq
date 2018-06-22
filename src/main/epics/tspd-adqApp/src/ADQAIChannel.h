@@ -15,7 +15,7 @@ public:
     //// urojec L3: maybe make these methods a bit more descriptive. It is
     ////            a little bit hard to know what they do just from looking at
     ////            the name
-    void readTrigStream(short* rawData, std::int32_t sampleCnt);
+    void readDAQ(short* rawData, std::int32_t sampleCnt);
     void readMultiRecord(void* rawData, std::int32_t sampleCnt);
     void readContinStream(void* rawData, std::int32_t sampleCnt);
     void getDataPV(timespec* pTimestamp, std::vector<double>* pValue);

@@ -6,7 +6,7 @@
 #include <sstream>
 #include <unistd.h>
 
-// #define PRINT_RECORD_INFO
+//#define PRINT_RECORD_INFO
 
 #define PINI true
 #define CELSIUS_CONVERT 1/256

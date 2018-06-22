@@ -15,12 +15,12 @@ typedef struct
     //// struct fields or members should be lowerCase
     unsigned char recordStatus;
     unsigned char userID;
-    unsigned char channel;
+    unsigned char chan;
     unsigned char dataFormat;
     unsigned int serialNumber;
     unsigned int recordNumber;
     unsigned int samplePeriod;
-    unsigned long long timestamp;
+    unsigned long long timeStamp;
     unsigned long long recordStart;
     unsigned int recordLength;
     unsigned int reserved;
@@ -84,9 +84,14 @@ public:
     void getSampleCnt(timespec* pTimestamp, std::int32_t* pValue);
     void getSampleCntMax(timespec* pTimestamp, std::int32_t* pValue);
     void getSamplesTotal(timespec* pTimestamp, std::int32_t* pValue);
+    void setSampleSkip(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getSampleSkip(timespec* pTimestamp, std::int32_t* pValue);
 
     void setFlushTime(const timespec &pTimestamp, const std::int32_t &pValue);
     void getFlushTime(timespec* pTimestamp, std::int32_t* pValue);
+
+    void setStreamTime(const timespec &pTimestamp, const double &pValue);
+    void getStreamTime(timespec* pTimestamp, double* pValue);
 
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
 
@@ -105,6 +110,8 @@ public:
     void daqContinStream();
 
 protected:
+    bool m_pvChanged;
+
     int32_t m_daqMode;
     bool m_daqModeChanged;
     
@@ -132,6 +139,8 @@ protected:
     bool m_sampleCntChanged;
     int32_t m_sampleCntMax;
     int32_t m_sampleCntTotal;
+    bool m_sampleSkipChanged;
+    int32_t m_sampleSkip;
 
     int32_t m_chanActive;     // Device specific
     bool m_chanActiveChanged; //
@@ -152,14 +161,20 @@ protected:
     bool m_trigFreqChanged;
     int32_t m_trigPeriod;
 
+    int32_t m_overVoltProtect;
+    bool m_overVoltProtectChanged;
+
     bool m_flushTimeChanged;
     int32_t m_flushTime;
+
+    bool m_streamTimeChanged;
+    double m_streamTime;
 
     nds::PVDelegateIn<std::string> m_logMsgPV;
     
 private:
-    ADQInterface * m_adqDevPtr;
     nds::Port m_node;
+    ADQInterface * m_adqDevPtr;
 
     nds::PVDelegateIn<std::int32_t> m_daqModePV; 
     nds::PVDelegateIn<std::int32_t> m_patternModePV;
@@ -170,12 +185,14 @@ private:
     nds::PVDelegateIn<std::int32_t> m_dbsUpSatPV;   
     nds::PVDelegateIn<std::int32_t> m_recordCntPV;
     nds::PVDelegateIn<std::int32_t> m_recordCntCollectPV;
-    nds::PVDelegateIn<std::int32_t> m_sampleCntMaxPV;
     nds::PVDelegateIn<std::int32_t> m_sampleCntPV;
+    nds::PVDelegateIn<std::int32_t> m_sampleCntMaxPV;
     nds::PVDelegateIn<std::int32_t> m_sampleCntTotalPV;
+    nds::PVDelegateIn<std::int32_t> m_sampleSkipPV;
     nds::PVDelegateIn<std::int32_t> m_trigModePV;
     nds::PVDelegateIn<std::int32_t> m_trigFreqPV;
     nds::PVDelegateIn<std::int32_t> m_flushTimePV;
+    nds::PVDelegateIn<double> m_streamTimePV;
 
     nds::Thread m_daqThread;
     bool m_stopDaq;

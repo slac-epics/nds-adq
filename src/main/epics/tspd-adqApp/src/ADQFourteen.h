@@ -29,11 +29,8 @@ public:
     void commitChangesSpec(bool calledFromDaqThread = false);
 
 private:
-    ADQInterface * m_adqDevPtr;
     nds::Port m_node;
-
-    int32_t m_overVoltProtect;
-    bool m_overVoltProtectChanged;
+    ADQInterface * m_adqDevPtr;
 
     nds::PVDelegateIn<std::int32_t> m_chanActivePV;
     nds::PVDelegateIn<std::string> m_chanMaskPV;

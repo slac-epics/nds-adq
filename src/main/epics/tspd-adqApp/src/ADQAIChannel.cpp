@@ -86,7 +86,7 @@ void ADQAIChannel::stop()
 
 void ADQAIChannel::recover()
 {
-    throw nds::StateMachineRollBack("Cannot recover");
+    throw nds::StateMachineRollBack("INFO: Cannot recover");
 }
 
 bool ADQAIChannel::allowChange(const nds::state_t, const nds::state_t, const nds::state_t)
@@ -101,7 +101,7 @@ void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<double>* pValue)
      */
 }
 
-void ADQAIChannel::readTrigStream(short* rawData, std::int32_t sampleCnt)
+void ADQAIChannel::readDAQ(short* rawData, std::int32_t sampleCnt)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);

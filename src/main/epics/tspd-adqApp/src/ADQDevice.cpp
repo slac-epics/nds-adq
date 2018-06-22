@@ -29,13 +29,9 @@ ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const
     struct ADQInfoListEntry* adqInfoStruct;
     // Number of ADQ devices connected to the system from ListDevices function
     unsigned int adqDevList;
-    // Number of ADQ devices from NofADQ function
-    int adqTotalDevCnt;
     // ADQ device number from adqDevList array; indexing starts from 0
     // Please note that the device number when using GetADQ/NofADQ/etc will not have anything to do with the index number used in this function.
     unsigned int adqDevListNum;
-    // ADQ device number used for getting a pointer m_adqDevPtr
-    int adqDevNum;
     // Var for for-loop
     bool adqReqFound;
     // User input

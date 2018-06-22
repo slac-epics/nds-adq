@@ -16,6 +16,7 @@
 #include "ADQAIChannel.h" 
 
 ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) :
+    ADQAIChannelGroup(name + GROUP_CHAN_DEVICE, parentNode, adqDev),
     m_node(nds::Port(name, nds::nodeType_t::generic)),
     m_adqDevPtr(adqDev),
     m_chanActivePV(nds::PVDelegateIn<std::int32_t>("ChanActive-RB", std::bind(&ADQSeven::getChanActive,
@@ -37,8 +38,7 @@ ADQSeven::ADQSeven(const std::string& name, nds::Node& parentNode, ADQInterface 
     m_trigChanPV(nds::PVDelegateIn<std::int32_t>("TrigChan-RB", std::bind(&ADQSeven::getTrigChan,
                                                                         this,
                                                                         std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    ADQAIChannelGroup(name + GROUP_CHAN_DEVICE, parentNode, adqDev)
+                                                                        std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
 
