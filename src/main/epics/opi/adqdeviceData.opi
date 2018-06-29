@@ -10,7 +10,7 @@
   <background_color>
     <color name="IO Background" red="235" green="235" blue="235" />
   </background_color>
-  <boy_version>5.1.0.codac_core_6_0_0</boy_version>
+  <boy_version>5.1.0</boy_version>
   <foreground_color>
     <color name="IO Grid" red="215" green="215" blue="215" />
   </foreground_color>
@@ -56,14 +56,14 @@
     </fg_gradient_color>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="255" green="0" blue="0" />
     </foreground_color>
     <gradient>false</gradient>
-    <height>700</height>
+    <height>600</height>
     <horizontal_fill>true</horizontal_fill>
     <line_color>
       <color red="128" green="0" blue="255" />
@@ -85,7 +85,7 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Rectangle</widget_type>
-    <width>1200</width>
+    <width>1270</width>
     <wuid>-7f2ef3b6:163491e820d:-77ed</wuid>
     <x>0</x>
     <y>0</y>
@@ -155,26 +155,39 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>600</height>
+    <height>518</height>
     <name>XY Graph</name>
     <plot_area_background_color>
       <color red="255" green="255" blue="255" />
     </plot_area_background_color>
-    <plt_data_source>true</plt_data_source>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:${ADQChannel}:DATA</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:${ADQChannel}:DATA</pv_name>
     <pv_value />
     <rules>
       <rule name="axisXmax" prop_id="axis_0_maximum" out_exp="true">
-        <exp bool_exp="true">
+        <exp bool_exp="pv1==0 || pv1==2">
           <value>pv0</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNTTOTAL-RB</pv>
+        <pv trig="true">${ADQSerialNumber}:COM:SAMPCNTTOTAL-RB</pv>
+        <pv trig="true">${ADQSerialNumber}:COM:DAQMODE</pv>
       </rule>
       <rule name="Buffersize" prop_id="trace_0_buffer_size" out_exp="true">
-        <exp bool_exp="true">
+        <exp bool_exp="pv1==0 || pv1==2">
           <value>pv0</value>
         </exp>
-        <pv trig="true">ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNTTOTAL-RB</pv>
+        <exp bool_exp="pv1==1 || pv1 == 3">
+          <value>20000</value>
+        </exp>
+        <pv trig="true">${ADQSerialNumber}:COM:SAMPCNTTOTAL-RB</pv>
+        <pv trig="true">${ADQSerialNumber}:COM:DAQMODE</pv>
+      </rule>
+      <rule name="AutoScale" prop_id="axis_0_auto_scale" out_exp="true">
+        <exp bool_exp="pv0 == 1 || pv0 == 3">
+          <value>true</value>
+        </exp>
+        <exp bool_exp="pv0 != 1 || pv0 != 3">
+          <value>false</value>
+        </exp>
+        <pv trig="true">${ADQSerialNumber}:COM:DAQMODE</pv>
       </rule>
     </rules>
     <scale_options>
@@ -186,7 +199,6 @@ $(pv_value)</tooltip>
     <show_legend>true</show_legend>
     <show_plot_area_border>false</show_plot_area_border>
     <show_toolbar>true</show_toolbar>
-    <time_span>3600</time_span>
     <title>${ADQChannel} Data</title>
     <title_font>
       <fontdata fontName="Cantarell" height="14" style="1" pixels="false" />
@@ -220,9 +232,9 @@ $(trace_0_y_pv_value)</tooltip>
     <trigger_pv_value />
     <visible>true</visible>
     <widget_type>XY Graph</widget_type>
-    <width>1160</width>
+    <width>1250</width>
     <wuid>-7f2ef3b6:163491e820d:-77ec</wuid>
-    <x>20</x>
-    <y>80</y>
+    <x>10</x>
+    <y>72</y>
   </widget>
 </display>

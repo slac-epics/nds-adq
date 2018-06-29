@@ -10,7 +10,7 @@
   <background_color>
     <color name="IO Background" red="235" green="235" blue="235" />
   </background_color>
-  <boy_version>5.1.0.codac_core_6_0_0</boy_version>
+  <boy_version>5.1.0</boy_version>
   <foreground_color>
     <color name="IO Grid" red="215" green="215" blue="215" />
   </foreground_color>
@@ -19,7 +19,7 @@
   <macros>
     <include_parent_macros>true</include_parent_macros>
   </macros>
-  <name>IO BOY Widget Schema</name>
+  <name>ADQ Digitizer GUI</name>
   <rules />
   <scripts />
   <show_close_button>true</show_close_button>
@@ -86,7 +86,7 @@
     </border_color>
     <border_style>6</border_style>
     <border_width>1</border_width>
-    <enabled>false</enabled>
+    <enabled>true</enabled>
     <font>
       <opifont.name fontName="DejaVu Sans Mono" height="12" style="0" pixels="false">IO Input 1</opifont.name>
     </font>
@@ -94,13 +94,14 @@
     <foreground_color>
       <color name="IO OutputPV Fg" red="0" green="0" blue="0" />
     </foreground_color>
-    <height>36</height>
+    <height>38</height>
     <items>
-      <s>06215</s>
+      <s>ADQ-06215</s>
+      <s>ADQ-06302</s>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>Device prefix combo</name>
-    <pv_name>loc://ADQSerialNumber("06215")</pv_name>
+    <pv_name>loc://ADQSerialNumber("ADQ-06215")</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -229,7 +230,7 @@
       <color name="IO Foreground" red="0" green="0" blue="0" />
     </foreground_color>
     <group_name></group_name>
-    <height>927</height>
+    <height>859</height>
     <macros>
       <include_parent_macros>true</include_parent_macros>
     </macros>
@@ -263,7 +264,7 @@
     <tooltip></tooltip>
     <visible>true</visible>
     <widget_type>Linking Container</widget_type>
-    <width>1836</width>
+    <width>1833</width>
     <wuid>-7c6ac6a0:163723e06aa:-650b</wuid>
     <x>40</x>
     <y>120</y>

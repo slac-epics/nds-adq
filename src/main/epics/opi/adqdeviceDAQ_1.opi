@@ -10,7 +10,7 @@
   <background_color>
     <color name="IO Background" red="235" green="235" blue="235" />
   </background_color>
-  <boy_version>5.1.0.codac_core_6_0_0</boy_version>
+  <boy_version>5.1.0</boy_version>
   <foreground_color>
     <color name="IO Grid" red="215" green="215" blue="215" />
   </foreground_color>
@@ -56,14 +56,14 @@
     </fg_gradient_color>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="255" green="0" blue="0" />
     </foreground_color>
     <gradient>false</gradient>
-    <height>540</height>
+    <height>457</height>
     <horizontal_fill>true</horizontal_fill>
     <line_color>
       <color red="128" green="0" blue="255" />
@@ -85,8 +85,8 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Rectangle</widget_type>
-    <width>560</width>
-    <wuid>-5db0c403:163817ede27:-7385</wuid>
+    <width>516</width>
+    <wuid>2a414ac7:1640243509e:-40f0</wuid>
     <x>0</x>
     <y>0</y>
   </widget>
@@ -103,7 +103,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -126,9 +126,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>214</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7383</wuid>
+    <wuid>2a414ac7:1640243509e:-40ef</wuid>
     <x>0</x>
-    <y>358</y>
+    <y>310</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -143,7 +143,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -166,9 +166,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>134</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7382</wuid>
+    <wuid>2a414ac7:1640243509e:-40ee</wuid>
     <x>0</x>
-    <y>264</y>
+    <y>225</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -183,7 +183,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -206,9 +206,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>149</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7381</wuid>
+    <wuid>2a414ac7:1640243509e:-40ed</wuid>
     <x>0</x>
-    <y>66</y>
+    <y>51</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -223,7 +223,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -246,9 +246,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>143</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7380</wuid>
+    <wuid>2a414ac7:1640243509e:-40ec</wuid>
     <x>0</x>
-    <y>17</y>
+    <y>11</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -263,7 +263,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -286,9 +286,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>185</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-737f</wuid>
+    <wuid>2a414ac7:1640243509e:-40eb</wuid>
     <x>0</x>
-    <y>308</y>
+    <y>268</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -303,7 +303,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -326,9 +326,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>142</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-737e</wuid>
+    <wuid>2a414ac7:1640243509e:-40ea</wuid>
     <x>0</x>
-    <y>123</y>
+    <y>94</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -343,7 +343,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -366,9 +366,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>185</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-737d</wuid>
+    <wuid>2a414ac7:1640243509e:-40e9</wuid>
     <x>0</x>
-    <y>180</y>
+    <y>141</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -383,7 +383,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -406,9 +406,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>149</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-737c</wuid>
+    <wuid>2a414ac7:1640243509e:-40e8</wuid>
     <x>0</x>
-    <y>408</y>
+    <y>349</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -418,16 +418,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -440,28 +436,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_13</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:RECORDCNT</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:RECORDCNT</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -471,10 +454,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -483,9 +463,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>160</width>
-    <wuid>-5db0c403:163817ede27:-7378</wuid>
-    <x>240</x>
-    <y>182</y>
+    <wuid>2a414ac7:1640243509e:-40e7</wuid>
+    <x>197</x>
+    <y>143</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -495,16 +475,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -517,28 +493,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_14</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNT</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:SAMPCNT</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -548,10 +511,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -560,9 +520,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>160</width>
-    <wuid>-5db0c403:163817ede27:-7375</wuid>
-    <x>240</x>
-    <y>310</y>
+    <wuid>2a414ac7:1640243509e:-40e6</wuid>
+    <x>197</x>
+    <y>270</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -572,16 +532,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -594,28 +550,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_15</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DCBIAS</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DCBIAS</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -625,10 +568,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -637,9 +577,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>160</width>
-    <wuid>-5db0c403:163817ede27:-7373</wuid>
-    <x>240</x>
-    <y>360</y>
+    <wuid>2a414ac7:1640243509e:-40e5</wuid>
+    <x>197</x>
+    <y>312</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -649,16 +589,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -671,28 +607,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_16</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSBYPASS</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSBYPASS</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -702,10 +625,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -714,9 +634,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>60</width>
-    <wuid>-5db0c403:163817ede27:-7371</wuid>
-    <x>117</x>
-    <y>451</y>
+    <wuid>2a414ac7:1640243509e:-40e4</wuid>
+    <x>106</x>
+    <y>384</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -739,10 +659,10 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>32</height>
+    <height>34</height>
     <items_from_pv>true</items_from_pv>
     <name>trig_mode_1</name>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:TRIGMODE</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:TRIGMODE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -756,9 +676,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo Box</widget_type>
     <width>200</width>
-    <wuid>-5db0c403:163817ede27:-7370</wuid>
-    <x>196</x>
-    <y>18</y>
+    <wuid>2a414ac7:1640243509e:-40e3</wuid>
+    <x>152</x>
+    <y>11</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -781,17 +701,10 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>32</height>
-    <items>
-      <s>Normal</s>
-      <s>Test (x)</s>
-      <s>Count upwards</s>
-      <s>Count downwards</s>
-      <s>Alternating ups and downs</s>
-    </items>
-    <items_from_pv>false</items_from_pv>
+    <height>34</height>
+    <items_from_pv>true</items_from_pv>
     <name>patt_mode_3</name>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:PATTERNMODE</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:PATTERNMODE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -805,9 +718,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo Box</widget_type>
     <width>200</width>
-    <wuid>-5db0c403:163817ede27:-736f</wuid>
-    <x>196</x>
-    <y>66</y>
+    <wuid>2a414ac7:1640243509e:-40e2</wuid>
+    <x>152</x>
+    <y>50</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.polyline" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -830,7 +743,7 @@ $(pv_value)</tooltip>
     <fill_arrow>true</fill_arrow>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
@@ -842,9 +755,9 @@ $(pv_value)</tooltip>
     <line_width>1</line_width>
     <name>Polyline_19</name>
     <points>
-      <point x="35" y="113" />
-      <point x="0" y="113" />
-      <point x="559" y="113" />
+      <point x="32" y="91" />
+      <point x="0" y="91" />
+      <point x="515" y="91" />
     </points>
     <pv_name></pv_name>
     <pv_value />
@@ -861,10 +774,10 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Polyline</widget_type>
-    <width>560</width>
-    <wuid>-5db0c403:163817ede27:-736d</wuid>
+    <width>516</width>
+    <wuid>2a414ac7:1640243509e:-40e1</wuid>
     <x>0</x>
-    <y>113</y>
+    <y>91</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.polyline" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -887,7 +800,7 @@ $(pv_value)</tooltip>
     <fill_arrow>true</fill_arrow>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
@@ -899,9 +812,9 @@ $(pv_value)</tooltip>
     <line_width>1</line_width>
     <name>Polyline_20</name>
     <points>
-      <point x="35" y="167" />
-      <point x="0" y="167" />
-      <point x="559" y="167" />
+      <point x="32" y="134" />
+      <point x="0" y="134" />
+      <point x="515" y="134" />
     </points>
     <pv_name></pv_name>
     <pv_value />
@@ -918,10 +831,10 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Polyline</widget_type>
-    <width>560</width>
-    <wuid>-5db0c403:163817ede27:-736c</wuid>
+    <width>516</width>
+    <wuid>2a414ac7:1640243509e:-40e0</wuid>
     <x>0</x>
-    <y>167</y>
+    <y>134</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.polyline" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -944,7 +857,7 @@ $(pv_value)</tooltip>
     <fill_arrow>true</fill_arrow>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
@@ -956,9 +869,9 @@ $(pv_value)</tooltip>
     <line_width>1</line_width>
     <name>Polyline_21</name>
     <points>
-      <point x="35" y="349" />
-      <point x="0" y="349" />
-      <point x="559" y="349" />
+      <point x="32" y="306" />
+      <point x="0" y="306" />
+      <point x="515" y="306" />
     </points>
     <pv_name></pv_name>
     <pv_value />
@@ -975,10 +888,10 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Polyline</widget_type>
-    <width>560</width>
-    <wuid>-5db0c403:163817ede27:-736b</wuid>
+    <width>516</width>
+    <wuid>2a414ac7:1640243509e:-40df</wuid>
     <x>0</x>
-    <y>349</y>
+    <y>306</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -993,7 +906,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -1016,9 +929,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>90</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-736a</wuid>
+    <wuid>2a414ac7:1640243509e:-40de</wuid>
     <x>17</x>
-    <y>444</y>
+    <y>377</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -1028,16 +941,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -1050,28 +959,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_17</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSDC</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSDC</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -1081,10 +977,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -1093,9 +986,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>60</width>
-    <wuid>-5db0c403:163817ede27:-7368</wuid>
-    <x>117</x>
-    <y>496</y>
+    <wuid>2a414ac7:1640243509e:-40dd</wuid>
+    <x>106</x>
+    <y>420</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1110,7 +1003,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -1133,9 +1026,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>90</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7367</wuid>
+    <wuid>2a414ac7:1640243509e:-40dc</wuid>
     <x>17</x>
-    <y>489</y>
+    <y>413</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -1145,16 +1038,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -1167,28 +1056,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_18</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSUPSAT</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSUPSAT</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -1198,10 +1074,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -1210,9 +1083,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>60</width>
-    <wuid>-5db0c403:163817ede27:-7365</wuid>
-    <x>440</x>
-    <y>451</y>
+    <wuid>2a414ac7:1640243509e:-40db</wuid>
+    <x>396</x>
+    <y>384</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1227,7 +1100,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -1250,9 +1123,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>156</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7364</wuid>
-    <x>273</x>
-    <y>444</y>
+    <wuid>2a414ac7:1640243509e:-40da</wuid>
+    <x>251</x>
+    <y>377</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -1262,16 +1135,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -1284,28 +1153,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_19</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSLOWSAT</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSLOWSAT</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -1315,10 +1171,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -1327,9 +1180,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>60</width>
-    <wuid>-5db0c403:163817ede27:-7362</wuid>
-    <x>440</x>
-    <y>496</y>
+    <wuid>2a414ac7:1640243509e:-40d9</wuid>
+    <x>396</x>
+    <y>420</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1344,7 +1197,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -1367,9 +1220,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>156</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7361</wuid>
-    <x>273</x>
-    <y>489</y>
+    <wuid>2a414ac7:1640243509e:-40d8</wuid>
+    <x>251</x>
+    <y>413</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.polyline" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1392,7 +1245,7 @@ $(pv_value)</tooltip>
     <fill_arrow>true</fill_arrow>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
@@ -1404,9 +1257,9 @@ $(pv_value)</tooltip>
     <line_width>1</line_width>
     <name>Polyline_22</name>
     <points>
-      <point x="35" y="400" />
-      <point x="0" y="400" />
-      <point x="559" y="400" />
+      <point x="32" y="347" />
+      <point x="0" y="347" />
+      <point x="515" y="347" />
     </points>
     <pv_name></pv_name>
     <pv_value />
@@ -1423,10 +1276,10 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Polyline</widget_type>
-    <width>560</width>
-    <wuid>-5db0c403:163817ede27:-7360</wuid>
+    <width>516</width>
+    <wuid>2a414ac7:1640243509e:-40d7</wuid>
     <x>0</x>
-    <y>400</y>
+    <y>347</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.polyline" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1449,7 +1302,7 @@ $(pv_value)</tooltip>
     <fill_arrow>true</fill_arrow>
     <fill_level>0.0</fill_level>
     <font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
+      <opifont.name fontName="Sans" height="10" style="0" pixels="false">Default</opifont.name>
     </font>
     <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
     <foreground_color>
@@ -1461,9 +1314,9 @@ $(pv_value)</tooltip>
     <line_width>1</line_width>
     <name>Polyline_24</name>
     <points>
-      <point x="35" y="4" />
+      <point x="32" y="4" />
       <point x="0" y="4" />
-      <point x="559" y="4" />
+      <point x="515" y="4" />
     </points>
     <pv_name></pv_name>
     <pv_value />
@@ -1480,8 +1333,8 @@ $(pv_value)</tooltip>
     <transparent>false</transparent>
     <visible>true</visible>
     <widget_type>Polyline</widget_type>
-    <width>560</width>
-    <wuid>-5db0c403:163817ede27:-735f</wuid>
+    <width>516</width>
+    <wuid>2a414ac7:1640243509e:-40d6</wuid>
     <x>0</x>
     <y>4</y>
   </widget>
@@ -1498,7 +1351,7 @@ $(pv_value)</tooltip>
     <border_width>1</border_width>
     <enabled>true</enabled>
     <font>
-      <fontdata fontName="Cantarell" height="16" style="0" pixels="false" />
+      <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
     <foreground_color>
       <color red="0" green="0" blue="0" />
@@ -1521,9 +1374,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>186</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-735e</wuid>
+    <wuid>2a414ac7:1640243509e:-40d5</wuid>
     <x>0</x>
-    <y>222</y>
+    <y>183</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
@@ -1533,16 +1386,12 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <background_focus_color>
-      <color name="Minor" red="255" green="255" blue="0" />
-    </background_focus_color>
     <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
     <border_style>0</border_style>
     <border_width>1</border_width>
-    <confirm_focus_lost>true</confirm_focus_lost>
     <confirm_message></confirm_message>
     <enabled>true</enabled>
     <font>
@@ -1555,28 +1404,15 @@ $(pv_value)</tooltip>
     <format_type>0</format_type>
     <height>30</height>
     <horizontal_alignment>0</horizontal_alignment>
-    <label_alignment>1</label_alignment>
-    <label_color>
-      <color red="0" green="0" blue="0" />
-    </label_color>
-    <label_font>
-      <opifont.name fontName="Cantarell" height="11" style="0" pixels="false">Default</opifont.name>
-    </label_font>
-    <label_gap>2</label_gap>
-    <label_position>0</label_position>
-    <label_text></label_text>
     <limits_from_pv>false</limits_from_pv>
     <maximum>1.7976931348623157E308</maximum>
     <minimum>-1.7976931348623157E308</minimum>
     <multiline_input>false</multiline_input>
     <name>Text Input_11</name>
-    <next_focus>0</next_focus>
-    <password_input>false</password_input>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:RECORDCNTCOLLECT</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:RECORDCNTCOLLECT</pv_name>
     <pv_value />
-    <read_only>false</read_only>
     <rotation_angle>0.0</rotation_angle>
     <rules />
     <scale_options>
@@ -1586,10 +1422,7 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <selector_type>0</selector_type>
-    <show_h_scroll>false</show_h_scroll>
-    <show_native_border>true</show_native_border>
     <show_units>true</show_units>
-    <show_v_scroll>false</show_v_scroll>
     <style>0</style>
     <text></text>
     <tooltip>$(pv_name)
@@ -1598,9 +1431,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Text Input</widget_type>
     <width>160</width>
-    <wuid>-5db0c403:163817ede27:-735c</wuid>
-    <x>240</x>
-    <y>224</y>
+    <wuid>2a414ac7:1640243509e:-40d4</wuid>
+    <x>197</x>
+    <y>185</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1610,7 +1443,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1630,7 +1463,7 @@ $(pv_value)</tooltip>
     <name>Text Update_23</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:TRIGMODE-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:TRIGMODE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1650,9 +1483,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7384</wuid>
-    <x>400</x>
-    <y>18</y>
+    <wuid>2a414ac7:1640243509e:-40d3</wuid>
+    <x>356</x>
+    <y>12</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1662,7 +1495,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1682,7 +1515,7 @@ $(pv_value)</tooltip>
     <name>Text Update_24</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:PATTERNMODE-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:PATTERNMODE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1702,9 +1535,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-737b</wuid>
-    <x>400</x>
-    <y>66</y>
+    <wuid>2a414ac7:1640243509e:-40d2</wuid>
+    <x>356</x>
+    <y>51</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1714,7 +1547,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1734,7 +1567,7 @@ $(pv_value)</tooltip>
     <name>Text Update_25</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:CHANMASK-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:CHANMASK-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1754,9 +1587,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-737a</wuid>
-    <x>400</x>
-    <y>126</y>
+    <wuid>2a414ac7:1640243509e:-40d1</wuid>
+    <x>356</x>
+    <y>96</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1766,7 +1599,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1786,7 +1619,7 @@ $(pv_value)</tooltip>
     <name>Text Update_26</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:RECORDCNT-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:RECORDCNT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1806,9 +1639,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7379</wuid>
-    <x>400</x>
-    <y>182</y>
+    <wuid>2a414ac7:1640243509e:-40d0</wuid>
+    <x>356</x>
+    <y>143</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1818,7 +1651,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1838,7 +1671,7 @@ $(pv_value)</tooltip>
     <name>Text Update_27</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNTMAX-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:SAMPCNTMAX-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1858,9 +1691,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7377</wuid>
-    <x>400</x>
-    <y>267</y>
+    <wuid>2a414ac7:1640243509e:-40cf</wuid>
+    <x>356</x>
+    <y>228</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1870,7 +1703,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1890,7 +1723,7 @@ $(pv_value)</tooltip>
     <name>Text Update_28</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:SAMPCNT-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:SAMPCNT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1910,9 +1743,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7376</wuid>
-    <x>400</x>
-    <y>310</y>
+    <wuid>2a414ac7:1640243509e:-40ce</wuid>
+    <x>356</x>
+    <y>270</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1922,7 +1755,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1942,7 +1775,7 @@ $(pv_value)</tooltip>
     <name>Text Update_29</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DCBIAS-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DCBIAS-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -1962,9 +1795,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7374</wuid>
-    <x>400</x>
-    <y>360</y>
+    <wuid>2a414ac7:1640243509e:-40cd</wuid>
+    <x>356</x>
+    <y>312</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -1974,7 +1807,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -1994,7 +1827,7 @@ $(pv_value)</tooltip>
     <name>Text Update_30</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSBYPASS-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSBYPASS-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2014,9 +1847,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>60</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7372</wuid>
-    <x>177</x>
-    <y>451</y>
+    <wuid>2a414ac7:1640243509e:-40cc</wuid>
+    <x>166</x>
+    <y>384</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -2026,7 +1859,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -2046,7 +1879,7 @@ $(pv_value)</tooltip>
     <name>Text Update_31</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSDC-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSDC-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2066,9 +1899,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>60</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7369</wuid>
-    <x>177</x>
-    <y>496</y>
+    <wuid>2a414ac7:1640243509e:-40cb</wuid>
+    <x>166</x>
+    <y>420</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -2078,7 +1911,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -2098,7 +1931,7 @@ $(pv_value)</tooltip>
     <name>Text Update_32</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSUPSAT-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSUPSAT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2118,9 +1951,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>60</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7366</wuid>
-    <x>500</x>
-    <y>451</y>
+    <wuid>2a414ac7:1640243509e:-40ca</wuid>
+    <x>456</x>
+    <y>384</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -2130,7 +1963,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -2150,7 +1983,7 @@ $(pv_value)</tooltip>
     <name>Text Update_33</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:DBSLOWSAT-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:DBSLOWSAT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2170,9 +2003,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>60</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-7363</wuid>
-    <x>500</x>
-    <y>496</y>
+    <wuid>2a414ac7:1640243509e:-40c9</wuid>
+    <x>456</x>
+    <y>420</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -2182,7 +2015,7 @@ $(pv_value)</tooltip>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>true</border_alarm_sensitive>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -2202,7 +2035,7 @@ $(pv_value)</tooltip>
     <name>Text Update_18</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:COM:RECORDCNTCOLLECT-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:RECORDCNTCOLLECT-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2222,9 +2055,9 @@ $(pv_value)</tooltip>
     <widget_type>Text Update</widget_type>
     <width>160</width>
     <wrap_words>false</wrap_words>
-    <wuid>-5db0c403:163817ede27:-735d</wuid>
-    <x>400</x>
-    <y>224</y>
+    <wuid>2a414ac7:1640243509e:-40c8</wuid>
+    <x>356</x>
+    <y>185</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -2247,10 +2080,10 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>32</height>
+    <height>34</height>
     <items_from_pv>true</items_from_pv>
-    <name>Combo</name>
-    <pv_name>ADQ${ADQSerialNumber}:DAQ:CHANACTIVE</pv_name>
+    <name>Combo_1</name>
+    <pv_name>${ADQSerialNumber}:CHANACTIVE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -2264,8 +2097,8 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo</widget_type>
     <width>200</width>
-    <wuid>270d2813:163daa67d62:-7e23</wuid>
-    <x>196</x>
-    <y>126</y>
+    <wuid>2a414ac7:1640243509e:-40c7</wuid>
+    <x>152</x>
+    <y>95</y>
   </widget>
 </display>

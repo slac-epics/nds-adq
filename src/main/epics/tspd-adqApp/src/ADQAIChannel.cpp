@@ -101,7 +101,7 @@ void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<double>* pValue)
      */
 }
 
-void ADQAIChannel::readDAQ(short* rawData, std::int32_t sampleCnt)
+void ADQAIChannel::readData(short* rawData, std::int32_t sampleCnt)
 {
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
@@ -124,58 +124,16 @@ void ADQAIChannel::readDAQ(short* rawData, std::int32_t sampleCnt)
 
     //// urojec L1: why is both reserve and resize needed here
     m_data.resize(sampleCnt);
-
+    ndsInfoStream(m_node) << "INFO: Sending data..." << std::endl;
     //// urojec L2: it this ++ intentionally positioned before i? Do you know what is the difference with before and after?
     ////// ppipp: there is a difference between postfix and prefix, but it doesn't affect the process of for-loops; 
     //////        also i've read it is safer to use prefix and in general it is a good tone
     for (int i = 0; i < sampleCnt; ++i, ++target)
     {
-        *target = ((double)rawData[i]);
+        *target = (short)rawData[i];
     }
 
-    ////
     m_dataPV.push(now, m_data);
 
     commitChanges(true);
-}
-
-
-void ADQAIChannel::readMultiRecord(void* rawData, std::int32_t sampleCntTotal)
-{/*
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-
-    if (m_stateMachine.getLocalState() != nds::state_t::running)
-    {
-        // Print the warning message the first time this function is inappropriately called
-        if (m_firstReadout) {
-            m_firstReadout = false;
-            ndsInfoStream(m_node) << "Channel " << m_channelNum << " is not running." << std::endl;
-        }
-        return;
-    }
-
-    double data_ch;
-    int i;
-
-    data_ch = *(double*)rawData;
-    m_data.clear();
-    m_data.reserve(sampleCntTotal);
-    std::vector<double>::iterator target = m_data.begin();
-
-    m_data.resize(sampleCntTotal);
-
-    for (i = 0; i < sampleCntTotal; ++i, ++target)
-    {
-        *target = data_ch[i];
-    }
-
-    m_dataPV.push(now, m_data);
-
-    commitChanges(true); */
-}
-
-void ADQAIChannel::readContinStream(void* rawData, std::int32_t sampleCntTotal)
-{
-
 }

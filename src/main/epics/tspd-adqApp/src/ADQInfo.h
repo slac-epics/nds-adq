@@ -15,12 +15,15 @@ public:
     void getProductID(timespec* pTimestamp, std::int32_t* pValue);
     void getADQType(timespec* pTimestamp, std::int32_t* pValue);
     void getCardOption(timespec* pTimestamp, std::string* pValue);
+
     void getTempLocal(timespec* pTimestamp, std::int32_t* pValue);
     void getTempADCone(timespec* pTimestamp, std::int32_t* pValue);
     void getTempADCtwo(timespec* pTimestamp, std::int32_t* pValue);
     void getTempFPGA(timespec* pTimestamp, std::int32_t* pValue);
     void getTempDd(timespec* pTimestamp, std::int32_t* pValue);
+
     void getSampRate(timespec* pTimestamp, double* pValue);
+
     void getBusAddr(timespec* pTimestamp, std::int32_t* pValue);
     void getBusType(timespec* pTimestamp, std::int32_t* pValue);
     void getPCIeLinkRate(timespec* pTimestamp, std::int32_t* pValue);

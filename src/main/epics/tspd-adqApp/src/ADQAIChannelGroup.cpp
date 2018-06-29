@@ -111,12 +111,21 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_streamTimePV(nds::PVDelegateIn<double>("StreamTime-RB", std::bind(&ADQAIChannelGroup::getStreamTime,
                                                                         this,
                                                                         std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_trigLvlPV(nds::PVDelegateIn<std::int32_t>("TrigLevel-RB", std::bind(&ADQFourteen::getTrigLvl,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2))),
+    m_trigEdgePV(nds::PVDelegateIn<std::int32_t>("TrigEdge-RB", std::bind(&ADQFourteen::getTrigEdge,
+                                                                        this,
+                                                                        std::placeholders::_1,
                                                                         std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
     //m_node = parentNode.addChild(nds::Node(name));
 
     m_chanCnt = m_adqDevPtr->GetNofChannels();
+    m_adqType = m_adqDevPtr->GetADQType();
 
     // Create vector of pointers to each chanel
     for (size_t channelNum(0); channelNum != m_chanCnt; ++channelNum)
@@ -132,7 +141,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(m_logMsgPV);
 
     // PVs for data acquisition modes
-    nds::enumerationStrings_t daqModeList = { "Multi-Record", "Continuous streaming", "Triggered streaming", "Raw streaming" };
+    nds::enumerationStrings_t daqModeList = { "Multi-Record", "Continuous stream", "Triggered stream", "Raw stream" };
     nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("DAQMode", std::bind(&ADQAIChannelGroup::setDaqMode,
                                                                                                   this,
                                                                                                   std::placeholders::_1,
@@ -239,7 +248,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(m_dbsUpSatPV);
 
     // PV for Pattern Mode
-    nds::enumerationStrings_t patternModeList = { "Normal", "Test (x)", "Count upwards", "Count downwards", "Alternating ups and downs" };
+    nds::enumerationStrings_t patternModeList = { "Normal", "Test (x)", "Count upwards", "Count downwards", "Alter ups & downs" };
     node = nds::PVDelegateOut<std::int32_t>("PatternMode", std::bind(&ADQAIChannelGroup::setPatternMode,
                                                                         this,
                                                                         std::placeholders::_1,
@@ -349,6 +358,39 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_node.addChild(nodeDbl);
     m_streamTimePV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_streamTimePV);
+
+    //PVs for trigger level
+    node = nds::PVDelegateOut<std::int32_t>("TrigLevel", std::bind(&ADQFourteen::setTrigLvl,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2),
+                                                         std::bind(&ADQFourteen::getTrigLvl,
+                                                                        this,
+                                                                        std::placeholders::_1,
+                                                                        std::placeholders::_2));
+    m_node.addChild(node);
+
+
+    m_trigLvlPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_trigLvlPV);
+
+    // PVs for trigger edge
+    nds::enumerationStrings_t triggerEdgeList = { "Falling edge", "Rising edge" };
+    node = nds::PVDelegateOut<std::int32_t>("TrigEdge", std::bind(&ADQFourteen::setTrigEdge,
+                                                                          this,
+                                                                          std::placeholders::_1,
+                                                                          std::placeholders::_2),
+                                                        std::bind(&ADQFourteen::getTrigEdge,
+                                                                          this,
+                                                                          std::placeholders::_1,
+                                                                          std::placeholders::_2));
+    node.setEnumeration(triggerEdgeList);
+    m_node.addChild(node);
+
+
+    m_trigEdgePV.setScanType(nds::scanType_t::interrupt);
+    m_trigEdgePV.setEnumeration(triggerEdgeList);
+    m_node.addChild(m_trigEdgePV);
 
     // PV for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true, std::bind(&ADQAIChannelGroup::onSwitchOn, this),
@@ -561,12 +603,35 @@ void ADQAIChannelGroup::getStreamTime(timespec* pTimestamp, double* pValue)
     *pValue = m_streamTime;
 }
 
+void ADQAIChannelGroup::setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_trigLvl = pValue;
+    m_trigLvlChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getTrigLvl(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_trigLvl;
+}
+
+void ADQAIChannelGroup::setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue)
+{
+    m_trigEdge = pValue;
+    m_trigEdgeChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getTrigEdge(timespec* pTimestamp, std::int32_t* pValue)
+{
+    *pValue = m_trigEdge;
+}
+
 void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
     unsigned int success;
-    std::string adqOption = m_adqDevPtr->GetCardOption();
 
     /* Allow changes to parameters when device is ON/STOPPING/INITIALISING states.
      * Do not apply changes when device is on acquisition state.
@@ -687,7 +752,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_recordCntChanged = false;
         m_sampleCntChanged = false;
 
-        if ((m_recordCnt <= -1) && ((m_trigMode == 0) || (m_daqMode == 0)))
+        if ((m_recordCnt <= -1) && ((m_trigMode == 0) || (m_daqMode == 0))) // SW trigger, Multi-Record
         {
             m_recordCnt = 0;
             success = 0;
@@ -728,13 +793,14 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         }
     }
 
-    if (m_recordCntCollectChanged)
+    if (m_recordCntCollectChanged && (m_daqMode == 0)) // Multi-Record
     {
         m_recordCntCollectChanged = false;
 
         if (m_recordCntCollect > m_recordCnt)
         {
             m_recordCntCollect = m_recordCnt;
+            ADQNDS_MSG_WARNLOG(success, "WARNING: Number of records to collect cannot be higher than total number of records.");
         }
           
         m_recordCntCollectPV.push(now, m_recordCntCollect);
@@ -743,9 +809,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_sampleCntTotalPV.push(now, m_sampleCntTotal);
     }
     
-    if (m_trigFreqChanged && (m_trigFreq != 0))
+    if (m_trigFreqChanged && (m_trigMode == 3)) // Internal trigger
     {
         m_trigFreqChanged = false;
+
+        if (m_trigFreq <= 0)
+            m_trigFreq = 1;
+
         m_trigFreqPV.push(now, m_trigFreq);
         m_trigPeriod = 1000000000 / m_trigFreq;
     }
@@ -762,9 +832,10 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_flushTimePV.push(now, m_flushTime);
     }
 
-    if (m_sampleSkipChanged && (m_daqMode == 1)) // Continuous streaming
+    if (m_sampleSkipChanged && ((m_daqMode == 1) || (m_daqMode == 3))) // Continuous streaming or Raw streaming
     {
         m_sampleSkipChanged = false;
+        std::string adqOption = m_adqDevPtr->GetCardOption();
 
         if (m_sampleSkip <= 1)
         {
@@ -786,7 +857,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 ADQNDS_MSG_INFOLOG("INFO: Sample skip can't be 3 -> changed to 4.");
             }
 
-            if ( m_sampleSkip == 5 || m_sampleSkip == 6 || m_sampleSkip == 7)
+            if (m_sampleSkip == 5 || m_sampleSkip == 6 || m_sampleSkip == 7)
             {
                 m_sampleSkip = 8;
                 ADQNDS_MSG_INFOLOG("INFO: Sample skip can't be 5, 6 or 7 -> changed to 8.");
@@ -805,7 +876,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_sampleSkipPV.push(now, m_sampleSkip);
     }
 
-    if (m_streamTimeChanged && (m_daqMode == 1))
+    if (m_streamTimeChanged && (m_daqMode == 1)) // Continuous streaming
     {
         m_streamTimeChanged = false;
 
@@ -816,6 +887,18 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         }
 
         m_streamTimePV.push(now, m_streamTime);
+    }
+
+    if (m_trigEdgeChanged && (m_trigMode == 2)) // Level trigger
+    {
+        m_trigEdgeChanged = false;
+        m_trigEdgePV.push(now, m_trigEdge);
+    }
+
+    if (m_trigLvlChanged && (m_trigMode == 2)) // Level trigger
+    {
+        m_trigLvlChanged = false;
+        m_trigLvlPV.push(now, m_trigLvl);
     }
 }
 
@@ -858,7 +941,8 @@ void ADQAIChannelGroup::onStart()
         m_daqThread = m_node.runInThread("DAQ-ContinStream", std::bind(&ADQAIChannelGroup::daqContinStream, this));
     if (m_daqMode == 2)
         m_daqThread = m_node.runInThread("DAQ-TrigStream", std::bind(&ADQAIChannelGroup::daqTrigStream, this));
-    //if (m_daqMode == 3)
+    if (m_daqMode == 3)
+        m_daqThread = m_node.runInThread("DAQ-RawStream", std::bind(&ADQAIChannelGroup::daqRawStream, this));
         
 }
 
@@ -891,9 +975,6 @@ void ADQAIChannelGroup::daqTrigStream()
 {
     int success;
     unsigned int bufferSize;
-    streamingHeader_t* tr_headers[CHANNEL_NUMBER_MAX];
-    short* tr_buffers[CHANNEL_NUMBER_MAX];
-    short* tr_extra[CHANNEL_NUMBER_MAX];
     short* recordData;
     unsigned int preTrigSampleCnt = 0;
     unsigned int holdOffSampleCnt = 0;
@@ -909,21 +990,20 @@ void ADQAIChannelGroup::daqTrigStream()
     unsigned int gotRecordsTotalSum = 0;
     unsigned int recordsSum = 0;
 
-    int adqType = m_adqDevPtr->GetADQType();
-    if (adqType == 714 || adqType == 14)
+    if (m_adqType == 714 || m_adqType == 14)
     {
         bufferSize = 512 * 1024;
     }
-    if (adqType == 7)
+    if (m_adqType == 7)
     {
         bufferSize = 256 * 1024;
     }
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        tr_headers[chan] = NULL;
-        tr_buffers[chan] = NULL;
-        tr_extra[chan] = NULL;
+        m_daqStreamHeaders[chan] = NULL;
+        m_daqBuffers[chan] = NULL;
+        m_daqExtra[chan] = NULL;
 
         recordsDone[chan] = 0;
         samplesAdded[chan] = 0;
@@ -940,29 +1020,29 @@ void ADQAIChannelGroup::daqTrigStream()
         if (!((1 << chan) & chanMaskChar))
             continue;
 
-        tr_buffers[chan] = (short int*)malloc((size_t)bufferSize);
-        if (!tr_buffers[chan])
+        m_daqBuffers[chan] = (short int*)malloc((size_t)bufferSize);
+        if (!m_daqBuffers[chan])
         {
             success = 0;
             ADQNDS_MSG_ERRLOG(success, "ERROR: Failed to allocate memory for target buffers.");
         }
 
-        tr_headers[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
-        if (!tr_headers[chan])
+        m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
+        if (!m_daqStreamHeaders[chan])
         {
             success = 0;
             ADQNDS_MSG_ERRLOG(success, "ERROR: Failed to allocate memory for target headers.");
         }
 
-        tr_extra[chan] = (short int*)malloc((size_t)(sizeof(short)*m_sampleCnt));
-        if (!tr_extra[chan])
+        m_daqExtra[chan] = (short int*)malloc((size_t)(sizeof(short)*m_sampleCnt));
+        if (!m_daqExtra[chan])
         {
             success = 0;
             ADQNDS_MSG_ERRLOG(success, "ERROR: Failed to allocate memory for target extradata.");
         }
     }
 
-    if (adqType == 714 || adqType == 14) // Only ADQ14 function
+    if (m_adqType == 714 || m_adqType == 14) // Only ADQ14 function
     {
         // Allocate memory for record data (used for ProcessRecord function template)
         recordData = (short int*)malloc((size_t)(sizeof(short)*m_sampleCnt));
@@ -979,10 +1059,10 @@ void ADQAIChannelGroup::daqTrigStream()
     case 0: // SW trigger
         ADQNDS_MSG_INFOLOG("INFO: Issuing Software trigger... ");
         break;
-    case 1: // External trigger  ----- need to investigate the API doc to develop this method
+    case 1: // External trigger
         ADQNDS_MSG_INFOLOG("INFO: Issuing External trigger... ");
         break;
-    case 2: // Level trigger ----- need to investigate the API doc to develop this method
+    case 2: // Level trigger
         ADQNDS_MSG_INFOLOG("INFO: Issuing Level trigger... ");
        
         success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
@@ -994,7 +1074,7 @@ void ADQAIChannelGroup::daqTrigStream()
         success = m_adqDevPtr->SetLvlTrigChannel(m_trigChanInt);
         ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigChannel failed.");
         break;
-    case 3: // Internal trigger ----- need to investigate the API doc to develop this method
+    case 3: // Internal trigger
         ADQNDS_MSG_INFOLOG("INFO: Issuing Internal trigger... ");
         success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigFreq); 
         ADQNDS_MSG_ERRLOG(success, "ERROR: SetInternalTriggerPeriod failed.");
@@ -1035,8 +1115,8 @@ void ADQAIChannelGroup::daqTrigStream()
         success = m_adqDevPtr->GetStreamOverflow();
         if (success)
         {
-            ndsErrorStream(m_node) << "ERROR: Streaming overflow detected." << std::endl;
-            goto finish;
+            success = 0;
+            ADQNDS_MSG_WARNLOG(success, "WARNING: Streaming overflow detected.");
         }
 
         success = m_adqDevPtr->GetTransferBufferStatus(&buffersFilled);
@@ -1066,7 +1146,7 @@ void ADQAIChannelGroup::daqTrigStream()
         }
 
         ADQNDS_MSG_INFOLOG("INFO: Receiving data...");
-        success = m_adqDevPtr->GetDataStreaming((void**)tr_buffers, (void**)tr_headers, chanMaskChar, samplesAdded, headersAdded, headerStatus);
+        success = m_adqDevPtr->GetDataStreaming((void**)m_daqBuffers, (void**)m_daqStreamHeaders, chanMaskChar, samplesAdded, headersAdded, headerStatus);
         ADQNDS_MSG_ERRLOG(success, "ERROR: GetDataStreaming failed.");
 
         // Parse data
@@ -1104,25 +1184,25 @@ void ADQAIChannelGroup::daqTrigStream()
                     {
                         // There is not enough data in the transfer buffer to complete
                         // the record. Add all the samples to the extradata buffer.
-                        std::memcpy(&tr_extra[chan][samplesExtraData[chan]], tr_buffers[chan], sizeof(short)*samplesAdded[chan]);
+                        std::memcpy(&m_daqExtra[chan][samplesExtraData[chan]], m_daqBuffers[chan], sizeof(short)*samplesAdded[chan]);
                         samplesRemain -= samplesAdded[chan];
                         samplesExtraData[chan] += samplesAdded[chan];
                     }
                     else
                     {
-                        if (adqType == 714 || adqType == 14)
+                        if (m_adqType == 714 || m_adqType == 14)
                         {
                             // Move data to record_data
-                            std::memcpy((void*)recordData, tr_extra[chan], sizeof(short)*samplesExtraData[chan]);
-                            std::memcpy((void*)(recordData + samplesExtraData[chan]), tr_buffers[chan], sizeof(short)*(tr_headers[chan][0].recordLength - samplesExtraData[chan]));
-                            daqTrigStreamProcessRecord(recordData, &tr_headers[chan][0]);
+                            std::memcpy((void*)recordData, m_daqExtra[chan], sizeof(short)*samplesExtraData[chan]);
+                            std::memcpy((void*)(recordData + samplesExtraData[chan]), m_daqBuffers[chan], sizeof(short)*(m_daqStreamHeaders[chan][0].recordLength - samplesExtraData[chan]));
+                            daqTrigStreamProcessRecord(recordData, &m_daqStreamHeaders[chan][0]);
                         }
 
-                        samplesRemain -= tr_headers[chan][0].recordLength - samplesExtraData[chan];
+                        samplesRemain -= m_daqStreamHeaders[chan][0].recordLength - samplesExtraData[chan];
                         samplesExtraData[chan] = 0;
                     }
 
-                    m_AIChannelsPtr[chan]->readDAQ(tr_buffers[chan], m_sampleCntTotal);
+                    m_AIChannelsPtr[chan]->readData(m_daqBuffers[chan], m_sampleCntTotal);
                 }
                 else
                 {
@@ -1130,7 +1210,7 @@ void ADQAIChannelGroup::daqTrigStream()
                     {
                         // The samples in the transfer buffer begin a new record, this
                         // record is incomplete.
-                        std::memcpy(tr_extra[chan], tr_buffers[chan], sizeof(short)*samplesAdded[chan]);
+                        std::memcpy(m_daqExtra[chan], m_daqBuffers[chan], sizeof(short)*samplesAdded[chan]);
                         samplesRemain -= samplesAdded[chan];
                         samplesExtraData[chan] = samplesAdded[chan];
                     }
@@ -1138,13 +1218,13 @@ void ADQAIChannelGroup::daqTrigStream()
                     {
 
                         // Copy data to record buffer
-                        if (adqType == 714 || adqType == 14)
+                        if (m_adqType == 714 || m_adqType == 14)
                         {
-                            std::memcpy((void*)recordData, tr_buffers[chan], sizeof(short)*tr_headers[chan][0].recordLength);
-                            daqTrigStreamProcessRecord(recordData, &tr_headers[chan][0]);
+                            std::memcpy((void*)recordData, m_daqBuffers[chan], sizeof(short)*m_daqStreamHeaders[chan][0].recordLength);
+                            daqTrigStreamProcessRecord(recordData, &m_daqStreamHeaders[chan][0]);
                         }
                         
-                        samplesRemain -= tr_headers[chan][0].recordLength;
+                        samplesRemain -= m_daqStreamHeaders[chan][0].recordLength;
                     }
 
                     //m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCntTotal);
@@ -1156,13 +1236,13 @@ void ADQAIChannelGroup::daqTrigStream()
                 for (unsigned int i = 1; i < headersDone; ++i)
                 {
                     // Copy data to record buffer
-                    if (adqType == 714 || adqType == 14)
+                    if (m_adqType == 714 || m_adqType == 14)
                     {
-                        std::memcpy((void*)recordData, (&tr_buffers[chan][samplesAdded[chan] - samplesRemain]), sizeof(short)*tr_headers[chan][i].recordLength);
-                        daqTrigStreamProcessRecord(recordData, &tr_headers[chan][i]);
+                        std::memcpy((void*)recordData, (&m_daqBuffers[chan][samplesAdded[chan] - samplesRemain]), sizeof(short)*m_daqStreamHeaders[chan][i].recordLength);
+                        daqTrigStreamProcessRecord(recordData, &m_daqStreamHeaders[chan][i]);
                     }
                     
-                    samplesRemain -= tr_headers[chan][i].recordLength;
+                    samplesRemain -= m_daqStreamHeaders[chan][i].recordLength;
 
                     //m_AIChannelsPtr[chan]->readTrigStream(tr_buffers[chan], m_sampleCntTotal);
                 }
@@ -1171,11 +1251,11 @@ void ADQAIChannelGroup::daqTrigStream()
                 {
                     // There is an incomplete record at the end of the transfer buffer
                     // Copy the incomplete header to the start of the target_headers buffer
-                    std::memcpy(tr_headers[chan], &tr_headers[chan][headersDone], sizeof(streamingHeader_t));
+                    std::memcpy(m_daqStreamHeaders[chan], &m_daqStreamHeaders[chan][headersDone], sizeof(streamingHeader_t));
 
                     // Copy any remaining samples to the target_buffers_extradata buffer,
                     // they belong to the incomplete record
-                    std::memcpy(tr_extra[chan], &tr_buffers[chan][samplesAdded[chan] - samplesRemain], sizeof(short)*samplesRemain);
+                    std::memcpy(m_daqExtra[chan], &m_daqBuffers[chan][samplesAdded[chan] - samplesRemain], sizeof(short)*samplesRemain);
                     // printf("Incomplete at end of transfer buffer. %u samples.\n", samples_remaining);
                     // printf("Copying %u samples to the extradata buffer\n", samples_remaining);
                     samplesExtraData[chan] = samplesRemain;
@@ -1184,7 +1264,7 @@ void ADQAIChannelGroup::daqTrigStream()
             }
 
             // Read buffers from each channel and send them to DATA PVs
-            m_AIChannelsPtr[chan]->readDAQ(tr_buffers[chan], m_sampleCntTotal);
+            m_AIChannelsPtr[chan]->readData(m_daqBuffers[chan], m_sampleCntTotal);
         }
 
         // Update received_all_records
@@ -1205,12 +1285,12 @@ finish:
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan) 
     {
-        if (tr_buffers[chan])
-            free(tr_buffers[chan]);
-        if (tr_headers[chan])
-            free(tr_headers[chan]);
-        if (tr_extra[chan])
-            free(tr_extra[chan]);
+        if (m_daqBuffers[chan])
+            free(m_daqBuffers[chan]);
+        if (m_daqStreamHeaders[chan])
+            free(m_daqStreamHeaders[chan]);
+        if (m_daqExtra[chan])
+            free(m_daqExtra[chan]);
     }
 
     try 
@@ -1253,16 +1333,17 @@ void ADQAIChannelGroup::daqTrigStreamProcessRecord(short* recordData, streamingH
 void ADQAIChannelGroup::daqMultiRecord()  // Need to mention on GUI about triggering the device when ot SW trigger is used
 {
     int trigged, success;
-    short* buffers[CHANNEL_NUMBER_MAX];
-    void* tr_buffers[CHANNEL_NUMBER_MAX];
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        buffers[chan] = NULL;
+        m_daqBuffers[chan] = NULL;
     }
 
     // Convert chanMask from std::string to unsigned char for GetData() function
     unsigned char chanMaskChar = *m_chanMask.c_str();
+
+    success = m_adqDevPtr->MultiRecordSetChannelMask(chanMaskChar);
+    ADQNDS_MSG_ERRLOG(success, "ERROR: MultiRecordSetChannelMask failed.");
 
     switch (m_trigMode)
     {
@@ -1331,37 +1412,37 @@ void ADQAIChannelGroup::daqMultiRecord()  // Need to mention on GUI about trigge
     if (success)
     {
         success = 0;
-        ADQNDS_MSG_ERRLOG(success, "ERROR: GetStreamOverflow detected.");
+        ADQNDS_MSG_ERRLOG(success, "WARNING: GetStreamOverflow detected.");
     }
 
     // Here sampleCntTotal should be calculated as (recordCntCollect * sampleCnt), what is taken care of in commitChanges method (recordCntCollectchanged)
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        buffers[chan] = (short*)calloc(m_sampleCntTotal, sizeof(short));
+        m_daqBuffers[chan] = (short*)calloc(m_sampleCntTotal, sizeof(short));
     }
 
     // Create a pointer array containing the data buffer pointers
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        tr_buffers[chan] = (void*)buffers[chan];
+        m_daqVoidBuffers[chan] = (void*)m_daqBuffers[chan];
     }
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        if (buffers[chan] == NULL)
+        if (m_daqBuffers[chan] == NULL)
         {
             success = 0;
             ADQNDS_MSG_ERRLOG(success, "ERROR: Failed to allocate memory for target buffers.");
         }
     }
 
-    success = m_adqDevPtr->GetData(tr_buffers, m_sampleCntTotal, sizeof(short), 0, m_recordCntCollect, chanMaskChar, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
+    success = m_adqDevPtr->GetData(m_daqVoidBuffers, m_sampleCntTotal, sizeof(short), 0, m_recordCntCollect, chanMaskChar, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
     ADQNDS_MSG_ERRLOG(success, "ERROR: GetData failed.");
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
         // Read buffers by each channel and send them to DATA PVs
-        m_AIChannelsPtr[chan]->readDAQ((short*)tr_buffers[chan], m_sampleCntTotal);
+        m_AIChannelsPtr[chan]->readData((short*)m_daqVoidBuffers[chan], m_sampleCntTotal);
     }
 
     success = m_adqDevPtr->DisarmTrigger();
@@ -1375,8 +1456,8 @@ finish:
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        if (buffers[chan] != NULL)
-            free(buffers[chan]);
+        if (m_daqBuffers[chan])
+            free(m_daqBuffers[chan]);
     }
 
     try {
@@ -1393,8 +1474,6 @@ void ADQAIChannelGroup::daqContinStream()
     unsigned int bufferSize, buffersFilled;
     time_t start_time, curr_time;
     double elapsedSeconds;
-    short* tr_buffers[CHANNEL_NUMBER_MAX];
-    unsigned char* tr_headers[CHANNEL_NUMBER_MAX];
     int bufferStatusLoops;
     unsigned int samplesAdded[CHANNEL_NUMBER_MAX];
     unsigned int headersAdded[CHANNEL_NUMBER_MAX];
@@ -1403,12 +1482,11 @@ void ADQAIChannelGroup::daqContinStream()
     uint64_t bytesParsedTotal;
     unsigned int streamCompleted = 0;
 
-    int adqType = m_adqDevPtr->GetADQType();
-    if (adqType == 714 || adqType == 14)
+    if (m_adqType == 714 || m_adqType == 14)
     {
         bufferSize = 512 * 1024;
     }
-    if (adqType == 7)
+    if (m_adqType == 7)
     {
         bufferSize = 256 * 1024;
     }
@@ -1418,15 +1496,15 @@ void ADQAIChannelGroup::daqContinStream()
 
     for (unsigned int chan = 0; chan < m_chanCnt; chan++)
     {
-        tr_buffers[chan] = NULL;
-        tr_headers[chan] = NULL;
+        m_daqBuffers[chan] = NULL;
+        m_daqHeaders[chan] = NULL;
         if (chanMaskChar & (1 << chan)) 
         {
-            tr_buffers[chan] = (short*)malloc(bufferSize * sizeof(char));
-            tr_headers[chan] = (unsigned char*)malloc(10 * sizeof(uint32_t));
+            m_daqBuffers[chan] = (short*)malloc(bufferSize * sizeof(char));
+            m_daqHeaders[chan] = (unsigned char*)malloc(10 * sizeof(uint32_t));
         }
     }
-
+    
     success = m_adqDevPtr->StopStreaming();
     ADQNDS_MSG_ERRLOG(success, "ERROR: StopStreaming failed.");
 
@@ -1524,7 +1602,7 @@ void ADQAIChannelGroup::daqContinStream()
         for (unsigned int buf = 0; buf < buffersFilled; buf++)
         {
             ADQNDS_MSG_INFOLOG("INFO: Receiving data...");
-            success = m_adqDevPtr->GetDataStreaming((void**)tr_buffers, (void**)tr_headers, chanMaskChar, samplesAdded, headersAdded, headerStatus);
+            success = m_adqDevPtr->GetDataStreaming((void**)m_daqBuffers, (void**)m_daqHeaders, chanMaskChar, samplesAdded, headersAdded, headerStatus);
             ADQNDS_MSG_ERRLOG(success, "ERROR: GetDataStreaming failed.");
 
             for (unsigned int chan = 0; chan < m_chanCnt; ++chan) {
@@ -1538,7 +1616,7 @@ void ADQAIChannelGroup::daqContinStream()
             for (unsigned int chan = 0; chan < m_chanCnt; ++chan) {
                 if (!(chanMaskChar & (1 << chan)))
                     continue;
-                m_AIChannelsPtr[chan]->readDAQ(tr_buffers[chan], samplesAddedTotal);
+                m_AIChannelsPtr[chan]->readData(m_daqBuffers[chan], samplesAddedTotal);
             }
         }
 
@@ -1566,10 +1644,16 @@ finish:
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan) 
     {
-        if (tr_buffers[chan])
-            free(tr_buffers[chan]);
-        if (tr_headers[chan])
-            free(tr_headers[chan]);
+        if (m_daqBuffers[chan])
+        {
+            free(m_daqBuffers[chan]);
+            m_daqBuffers[chan] = NULL;
+        }
+        if (m_daqHeaders[chan])
+        {
+            free(m_daqHeaders[chan]);
+            m_daqHeaders[chan] = NULL;
+        }
     }
 
     try 
@@ -1582,8 +1666,165 @@ finish:
     }
 }
 
+void ADQAIChannelGroup::daqRawStream() // No idea how to implement multiple-channel-acquisition
+{
+    int success;
+    unsigned int bufferSize, buffersFilled;
+    int collectResult;
+    unsigned int m_sampleCntCollect;
+    signed short* data_stream_target;
+    short* m_daqBuffer;
+
+    if (m_chanActive > 3)
+    {
+        success = 0;
+        ADQNDS_MSG_ERRLOG(success, "ERROR: Channel mask should represent single channel.");
+    }
+      
+    if (m_adqType == 714 || m_adqType == 14)
+    {
+        bufferSize = 64 * 1024;
+    }
+    if (m_adqType == 7)
+    {
+        bufferSize = 512 * 1024;
+    }
+
+    ADQNDS_MSG_INFOLOG("INFO: Setting up streaming...");
+
+    success = m_adqDevPtr->SetTransferBuffers(CHANNEL_NUMBER_MAX, bufferSize);
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetTransferBuffers failed.");
+
+    m_sampleSkip = 8;
+
+    success = m_adqDevPtr->SetSampleSkip(m_sampleSkip);
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetSampleSkip failed.");
+
+    success = m_adqDevPtr->SetStreamStatus(1);
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetStreamStatus1 failed.");
+    success = m_adqDevPtr->SetStreamConfig(2, 1);
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetStreamConfig21 failed.");
+    success = m_adqDevPtr->SetStreamConfig(3, m_chanInt);
+    ADQNDS_MSG_ERRLOG(success, "ERROR: SetStreamConfig3mask failed.");
+
+    switch (m_trigMode)
+    {
+    case 0: // SW trigger
+        ADQNDS_MSG_INFOLOG("INFO: Issuing Software trigger... ");
+        break;
+    case 1: // External trigger
+        ADQNDS_MSG_INFOLOG("INFO: Issuing External trigger... ");
+        break;
+    case 2: // Level trigger
+        ADQNDS_MSG_INFOLOG("INFO: Issuing Level trigger... ");
+
+        success = m_adqDevPtr->SetLvlTrigEdge(m_trigEdge);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigEdge failed.");
+
+        success = m_adqDevPtr->SetLvlTrigLevel(m_trigLvl);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigLevel failed.");
+
+        success = m_adqDevPtr->SetLvlTrigChannel(m_trigChanInt);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetLvlTrigChannel failed.");
+        break;
+    case 3: // Internal trigger
+        ADQNDS_MSG_INFOLOG("INFO: Issuing Internal trigger... ");
+        success = m_adqDevPtr->SetInternalTriggerPeriod(m_trigFreq);
+        ADQNDS_MSG_ERRLOG(success, "ERROR: SetInternalTriggerPeriod failed.");
+        break;
+    }
+
+    ADQNDS_MSG_INFOLOG("INFO: Receving data...");
+    
+    // Created temporary target for streaming data
+    m_daqBuffer = NULL;
+
+    // Allocate temporary buffer for streaming data
+    m_daqBuffer = (signed short*)malloc(bufferSize * sizeof(signed short));
+
+    success = m_adqDevPtr->StopStreaming();
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StopStreaming failed.");
+
+    success = m_adqDevPtr->StartStreaming();
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StartStreaming failed.");
+
+    m_sampleCntCollect = bufferSize;
+
+    while (m_sampleCntCollect > 0)
+    {
+        unsigned int samples_in_buffer;
+        do
+        {
+            collectResult = m_adqDevPtr->GetTransferBufferStatus(&buffersFilled);
+
+        } while ((buffersFilled == 0) && (collectResult));
+
+        collectResult = m_adqDevPtr->CollectDataNextPage();
+        samples_in_buffer = MIN(m_adqDevPtr->GetSamplesPerPage(), m_sampleCntCollect);
+        ndsInfoStream(m_node) << "GetSamplesPerPage " << m_adqDevPtr->GetSamplesPerPage() << std::endl;
+
+        success = m_adqDevPtr->GetStreamOverflow();
+        if (success)
+        {
+            success = 0;
+            collectResult = 0;
+            ADQNDS_MSG_WARNLOG(success, "ERROR: Streaming overflow detected.");
+        }
+
+        if (collectResult)
+        {
+            // Buffer all data in RAM before writing to disk, if streaming to disk is need a high performance
+            // procedure could be implemented here.
+            // Data format is set to 16 bits, so buffer size is Samples*2 bytes
+            memcpy((void*)&m_daqBuffer[bufferSize - m_sampleCntCollect], m_adqDevPtr->GetPtrStream(), samples_in_buffer * sizeof(signed short));
+            m_sampleCntCollect -= samples_in_buffer;
+        }
+        else
+        {
+            ADQNDS_MSG_INFOLOG("INFO: Collect next data page failed!");
+            m_sampleCntCollect = 0;
+        }
+    }
+
+    success = m_adqDevPtr->StopStreaming();
+    ADQNDS_MSG_ERRLOG(success, "ERROR: StopStreaming failed.");
+
+    m_sampleCntCollect = bufferSize;
+
+    ADQNDS_MSG_INFOLOG("INFO: Writing data to PVs...");
+
+    // Read buffer and send its data to DATA PV
+    m_AIChannelsPtr[m_chanActive]->readData(m_daqBuffer, m_sampleCntCollect);
+
+finish:
+    ADQNDS_MSG_INFOLOG("INFO: Acquisition finished.");
+    commitChanges(true);
+
+    try
+    {
+        m_stateMachine.setState(nds::state_t::on);
+    }
+    catch (nds::StateMachineNoSuchTransition error)
+    {
+        /* We are probably already in "stopping", no need to panic... */
+    }
+}
+
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
-    /* Destructor
+    /*
+    ndsInfoStream(m_node) << "Buffers freed." << std::endl;
+
+    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+    {
+        if (m_daqBuffers[chan] != NULL)
+            free(m_daqBuffers[chan]);
+        if (m_daqHeaders[chan] != NULL)
+            free(m_daqHeaders[chan]);
+        if (m_daqStreamHeaders[chan] != NULL)
+            free(m_daqStreamHeaders[chan]);
+        if (m_daqExtra[chan] != NULL)
+            free(m_daqExtra[chan]);
+    }
     */
 }

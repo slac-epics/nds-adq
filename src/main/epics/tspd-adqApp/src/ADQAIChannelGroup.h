@@ -3,6 +3,7 @@
 
 #include <nds3/nds.h>
 #include "ADQAIChannel.h"
+#include "ADQDefinition.h"
 
 //// urojec L3: goes for all the declarations that have anything to do with channels:
 //// decide weather you will use ch, chn or channel everywhere and then be consistent,
@@ -33,8 +34,7 @@ public:
     virtual ~ADQAIChannelGroup();
 
     nds::StateMachine m_stateMachine;
-
-    unsigned int m_chanCnt;
+    
     std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannelsPtr;
 
     //// urojec L2: Why dso you use pointers in one direction and references in the other?
@@ -93,6 +93,11 @@ public:
     void setStreamTime(const timespec &pTimestamp, const double &pValue);
     void getStreamTime(timespec* pTimestamp, double* pValue);
 
+    void setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigLvl(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue);
+    void getTrigEdge(timespec* pTimestamp, std::int32_t* pValue);
+
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
 
     void commitChanges(bool calledFromDaqThread = false);
@@ -108,9 +113,11 @@ public:
     void daqTrigStreamProcessRecord(short* recordData, streamingHeader_t* recordHeader);
     void daqMultiRecord();
     void daqContinStream();
+    void daqRawStream();
 
 protected:
-    bool m_pvChanged;
+    unsigned int m_chanCnt;
+    int m_adqType;
 
     int32_t m_daqMode;
     bool m_daqModeChanged;
@@ -143,10 +150,9 @@ protected:
     int32_t m_sampleSkip;
 
     int32_t m_chanActive;     // Device specific
-    bool m_chanActiveChanged; //
-    int32_t m_chanBits;       // Four bits: 0 - channel A; 1 - ch B; 2 - ch C; 3 - ch D 
-    std::string m_chanMask;   // Variations: 0x1 (A), 0x2 (B), 0x4 (C), 0x8 (D), 0x3 (AB), 0xC (CD), 0xF (ABCD)
-    bool m_chanMaskChanged;   //
+    bool m_chanActiveChanged; 
+    unsigned int m_chanInt;
+    std::string m_chanMask;   // Variations: 0x1 (A), 0x2 (B), 0x4 (C), 0x8 (D), 0x3 (AB), 0xC (CD), 0xF (ABCD)  
     
     int32_t m_trigMode;
     bool m_trigModeChanged;
@@ -193,9 +199,17 @@ private:
     nds::PVDelegateIn<std::int32_t> m_trigFreqPV;
     nds::PVDelegateIn<std::int32_t> m_flushTimePV;
     nds::PVDelegateIn<double> m_streamTimePV;
+    nds::PVDelegateIn<std::int32_t> m_trigLvlPV;
+    nds::PVDelegateIn<std::int32_t> m_trigEdgePV;
 
     nds::Thread m_daqThread;
     bool m_stopDaq;
+
+    short* m_daqBuffers[CHANNEL_NUMBER_MAX];
+    void* m_daqVoidBuffers[CHANNEL_NUMBER_MAX];
+    unsigned char* m_daqHeaders[CHANNEL_NUMBER_MAX];
+    streamingHeader_t* m_daqStreamHeaders[CHANNEL_NUMBER_MAX];
+    short* m_daqExtra[CHANNEL_NUMBER_MAX];
 };
 
 #endif /* ADQAICHANNELGROUP_H */

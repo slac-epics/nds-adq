@@ -15,9 +15,7 @@ public:
     //// urojec L3: maybe make these methods a bit more descriptive. It is
     ////            a little bit hard to know what they do just from looking at
     ////            the name
-    void readDAQ(short* rawData, std::int32_t sampleCnt);
-    void readMultiRecord(void* rawData, std::int32_t sampleCnt);
-    void readContinStream(void* rawData, std::int32_t sampleCnt);
+    void readData(short* rawData, std::int32_t sampleCnt);
     void getDataPV(timespec* pTimestamp, std::vector<double>* pValue);
 
     void commitChanges(bool calledFromDaqThread = false);
