@@ -38,35 +38,6 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
 {
     parentNode.addChild(m_node);
 
-    // PVs for setting active channels
-    nds::enumerationStrings_t chanMaskList;
-    if (m_chanCnt == 4)
-    {
-        chanMaskList = { "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
-    }
-    if (m_chanCnt == 2)
-    {
-        chanMaskList = { "A", "B", "A+B" };
-    }
-    nds::PVDelegateOut<std::int32_t> node(nds::PVDelegateOut<std::int32_t>("ChanActive", std::bind(&ADQFourteen::setChanActive,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2),
-                                                                                         std::bind(&ADQFourteen::getChanActive,
-                                                                                                    this,
-                                                                                                    std::placeholders::_1,
-                                                                                                    std::placeholders::_2)));
-    node.setEnumeration(chanMaskList);
-    m_node.addChild(node);
-
-    m_chanActivePV.setScanType(nds::scanType_t::interrupt);
-    m_chanActivePV.setEnumeration(chanMaskList);
-    m_node.addChild(m_chanActivePV);
-
-    m_chanMaskPV.setScanType(nds::scanType_t::interrupt);
-    m_chanMaskPV.setMaxElements(4);
-    m_node.addChild(m_chanMaskPV);
-
     // PVs for trigger channel  
     nds::enumerationStrings_t trigChanList = { "None", "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
     node = nds::PVDelegateOut<std::int32_t>("TrigChan", std::bind(&ADQFourteen::setTrigChan,
@@ -102,34 +73,7 @@ ADQFourteen::ADQFourteen(const std::string& name, nds::Node& parentNode, ADQInte
     commitChangesSpec();
 }
 
-void ADQFourteen::setChanActive(const timespec &pTimestamp, const std::int32_t &pValue)
-{
-    m_chanActive = pValue;
-    m_chanActiveChanged = true;
-    commitChangesSpec();
-}
 
-void ADQFourteen::getChanActive(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_chanActive;
-}
-
-void ADQFourteen::getChanMask(timespec* pTimestamp, std::string* pValue)
-{
-    *pValue = m_chanMask;
-}
-
-void ADQFourteen::setTrigChan(const timespec &pTimestamp, const std::int32_t &pValue)
-{
-    m_trigChan = pValue;
-    m_trigChanChanged = true;
-    commitChangesSpec();
-}
-
-void ADQFourteen::getTrigChan(timespec* pTimestamp, std::int32_t* pValue)
-{
-    *pValue = m_trigChan;
-}
 
 void ADQFourteen::setOverVoltProtect(const timespec &pTimestamp, const std::int32_t &pValue)
 {

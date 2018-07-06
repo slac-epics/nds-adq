@@ -6,7 +6,7 @@
 class ADQInfo
 {
 public:
-    ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
+    ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqDev);
 
     nds::Port m_node;
 
@@ -30,8 +30,7 @@ public:
     void getPCIeLinkWid(timespec* pTimestamp, std::int32_t* pValue);
 
 private:
-
-    ADQInterface * m_adqDevPtr;
+    ADQInterface* m_adqDevPtr;
 
     std::string m_productName;
 

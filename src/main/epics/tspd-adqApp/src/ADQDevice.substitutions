@@ -1,7 +1,0 @@
-file db/ADQDevice.template {
-    pattern { PREFIX, INFO, DEV, GRP, CH }
-            { ADQ06215, INFO, DAQ, COM,  CH0 }
-            { ADQ06215, INFO, DAQ, COM, CH1 }
-            { ADQ06215, INFO, DAQ, COM, CH2 }
-            { ADQ06215, INFO, DAQ, COM, CH3 }
-}

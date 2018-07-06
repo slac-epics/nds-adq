@@ -1,14 +1,10 @@
 #ifndef ADQAICHANNELGROUP_H
 #define ADQAICHANNELGROUP_H
 
-#include <nds3/nds.h>
 #include "ADQAIChannel.h"
 #include "ADQDefinition.h"
 
-//// urojec L3: goes for all the declarations that have anything to do with channels:
-//// decide weather you will use ch, chn or channel everywhere and then be consistent,
-//// exaples: unsigned char Channel; setChannels, setTriggerChan
-
+#include <nds3/nds.h>
 
 typedef struct
 {
@@ -30,77 +26,84 @@ typedef struct
 class ADQAIChannelGroup
 {
 public:
-    ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev);
+    ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
     virtual ~ADQAIChannelGroup();
 
+    nds::Port m_node;
     nds::StateMachine m_stateMachine;
-    
-    std::vector<std::shared_ptr<ADQAIChannel> > m_AIChannelsPtr;
 
-    //// urojec L2: Why dso you use pointers in one direction and references in the other?
-    ////            why are references not good enough for getters?
-    ////            Also, tell my what is the diffrerence between const ref and ref and
-    ////            why are const references being used with setters instead of having the values
-    ////            passed directly into the method
-    //// ppipp: I cannot tell exactly why it is made so in NDS, but setValue methods use const references and getValue methods use pointers
-    ////        setValue methods are used to set a PV to requested value and getValue methods are for readback PVs; 
-    ////        PVs for setters have Passive scan field and PVs for getters have I/O Interrupt scan field 
-    ////                                                        (that is why there is also push functions in commitChanges);
-    ////        just in case here is a link to NDS doxygen: goo.gl/tgjCG7 (search for setValue and getValue methods)
-    ////        but I must note I saw this usage in Niklas' example first and then checked NDS
-    ////            P.S. I got an idea to try to have only one getValue method for all Rdbk PVs to make the code cleaner, 
-    ////                 since most of getValue methods need an int32_t variable... Need to try
+    std::vector<std::shared_ptr<ADQAIChannel>> m_AIChannelsPtr;
 
-    void setDaqMode(const timespec &pTimestamp, const std::int32_t &pValue);
+    // This function creates the most common type of PV and sets it readback PV to interrupt mode
+    template <typename T>
+    void createPv(const std::string& name, nds::PVDelegateIn<T>& pvRb,
+                  std::function<void(ADQAIChannelGroup*, const timespec&, const T&)> setter,
+                  std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter);
+
+    // This function creates the Enumeration type of PV and sets it readback PV to interrupt mode
+    template <typename T>
+    void createPvEnum(const std::string& name, nds::PVDelegateIn<T>& pvRb, nds::enumerationStrings_t enumList,
+                      std::function<void(ADQAIChannelGroup*, const timespec&, const T&)> setter,
+                      std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter);
+
+    // This function creates and returns the readback PV
+    template <typename T>
+    nds::PVDelegateIn<T> createPvRb(const std::string& name, std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter);
+
+    void setDaqMode(const timespec& pTimestamp, const std::int32_t& pValue);
     void getDaqMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setTrigMode(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setTrigMode(const timespec& pTimestamp, const std::int32_t& pValue);
     void getTrigMode(timespec* pTimestamp, std::int32_t* pValue);
-    void setTrigFreq(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setTrigFreq(const timespec& pTimestamp, const std::int32_t& pValue);
     void getTrigFreq(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setDcBias(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setDcBias(const timespec& pTimestamp, const std::int32_t& pValue);
     void getDcBias(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setDbsBypass(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setDbsBypass(const timespec& pTimestamp, const std::int32_t& pValue);
     void getDbsBypass(timespec* pTimestamp, std::int32_t* pValue);
-    void setDbsDc(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setDbsDc(const timespec& pTimestamp, const std::int32_t& pValue);
     void getDbsDc(timespec* pTimestamp, std::int32_t* pValue);
-    void setDbsLowSat(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setDbsLowSat(const timespec& pTimestamp, const std::int32_t& pValue);
     void getDbsLowSat(timespec* pTimestamp, std::int32_t* pValue);
-    void setDbsUpSat(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setDbsUpSat(const timespec& pTimestamp, const std::int32_t& pValue);
     void getDbsUpSat(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setPatternMode(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setPatternMode(const timespec& pTimestamp, const std::int32_t& pValue);
     void getPatternMode(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setRecordCnt(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setChanActive(const timespec& pTimestamp, const std::int32_t& pValue);
+    void getChanActive(timespec* pTimestamp, std::int32_t* pValue);
+    void getChanMask(timespec* pTimestamp, std::string* pValue);
+
+    void setRecordCnt(const timespec& pTimestamp, const std::int32_t& pValue);
     void getRecordCnt(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setRecordCntCollect(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setRecordCntCollect(const timespec& pTimestamp, const std::int32_t& pValue);
     void getRecordCntCollect(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setSampleCnt(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setSampleCnt(const timespec& pTimestamp, const std::int32_t& pValue);
     void getSampleCnt(timespec* pTimestamp, std::int32_t* pValue);
     void getSampleCntMax(timespec* pTimestamp, std::int32_t* pValue);
     void getSamplesTotal(timespec* pTimestamp, std::int32_t* pValue);
-    void setSampleSkip(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setSampleSkip(const timespec& pTimestamp, const std::int32_t& pValue);
     void getSampleSkip(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setFlushTime(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setFlushTime(const timespec& pTimestamp, const std::int32_t& pValue);
     void getFlushTime(timespec* pTimestamp, std::int32_t* pValue);
 
-    void setStreamTime(const timespec &pTimestamp, const double &pValue);
+    void setStreamTime(const timespec& pTimestamp, const double& pValue);
     void getStreamTime(timespec* pTimestamp, double* pValue);
 
-    void setTrigLvl(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setTrigLvl(const timespec& pTimestamp, const std::int32_t& pValue);
     void getTrigLvl(timespec* pTimestamp, std::int32_t* pValue);
-    void setTrigEdge(const timespec &pTimestamp, const std::int32_t &pValue);
+    void setTrigEdge(const timespec& pTimestamp, const std::int32_t& pValue);
     void getTrigEdge(timespec* pTimestamp, std::int32_t* pValue);
+    void setTrigChan(const timespec& pTimestamp, const std::int32_t& pValue);
+    void getTrigChan(timespec* pTimestamp, std::int32_t* pValue);
 
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
-
-    void commitChanges(bool calledFromDaqThread = false);
 
     void onSwitchOn();
     void onSwitchOff();
@@ -115,13 +118,15 @@ public:
     void daqContinStream();
     void daqRawStream();
 
-protected:
+private:
+    ADQInterface* m_adqInterface;
+
     unsigned int m_chanCnt;
     int m_adqType;
 
     int32_t m_daqMode;
     bool m_daqModeChanged;
-    
+
     int32_t m_patternMode;
     bool m_patternModeChanged;
 
@@ -136,12 +141,12 @@ protected:
     bool m_dbsLowSatChanged;
     int32_t m_dbsUpSat;
     bool m_dbsUpSatChanged;
-    
+
     int32_t m_recordCnt;
     bool m_recordCntChanged;
     int32_t m_recordCntCollect;
     bool m_recordCntCollectChanged;
-    
+
     int32_t m_sampleCnt;
     bool m_sampleCntChanged;
     int32_t m_sampleCntMax;
@@ -149,11 +154,11 @@ protected:
     bool m_sampleSkipChanged;
     int32_t m_sampleSkip;
 
-    int32_t m_chanActive;     // Device specific
-    bool m_chanActiveChanged; 
+    int32_t m_chanActive;   // Device specific
+    bool m_chanActiveChanged;
     unsigned int m_chanInt;
-    std::string m_chanMask;   // Variations: 0x1 (A), 0x2 (B), 0x4 (C), 0x8 (D), 0x3 (AB), 0xC (CD), 0xF (ABCD)  
-    
+    std::string m_chanMask;   // Variations: 0x1 (A), 0x2 (B), 0x4 (C), 0x8 (D), 0x3 (AB), 0xC (CD), 0xF (ABCD)
+
     int32_t m_trigMode;
     bool m_trigModeChanged;
     int32_t m_trigLvl;
@@ -163,7 +168,7 @@ protected:
     int32_t m_trigChan;
     int32_t m_trigChanInt;
     bool m_trigChanChanged;
-    int32_t m_trigFreq; 
+    int32_t m_trigFreq;
     bool m_trigFreqChanged;
     int32_t m_trigPeriod;
 
@@ -176,19 +181,18 @@ protected:
     bool m_streamTimeChanged;
     double m_streamTime;
 
-    nds::PVDelegateIn<std::string> m_logMsgPV;
-    
-private:
-    nds::Port m_node;
-    ADQInterface * m_adqDevPtr;
+    void commitChanges(bool calledFromDaqThread = false);
 
-    nds::PVDelegateIn<std::int32_t> m_daqModePV; 
+    nds::PVDelegateIn<std::string> m_logMsgPV;
+    nds::PVDelegateIn<std::int32_t> m_daqModePV;
     nds::PVDelegateIn<std::int32_t> m_patternModePV;
+    nds::PVDelegateIn<std::int32_t> m_chanActivePV;
+    nds::PVDelegateIn<std::string> m_chanMaskPV;
     nds::PVDelegateIn<std::int32_t> m_dcBiasPV;
     nds::PVDelegateIn<std::int32_t> m_dbsBypassPV;
     nds::PVDelegateIn<std::int32_t> m_dbsDcPV;
     nds::PVDelegateIn<std::int32_t> m_dbsLowSatPV;
-    nds::PVDelegateIn<std::int32_t> m_dbsUpSatPV;   
+    nds::PVDelegateIn<std::int32_t> m_dbsUpSatPV;
     nds::PVDelegateIn<std::int32_t> m_recordCntPV;
     nds::PVDelegateIn<std::int32_t> m_recordCntCollectPV;
     nds::PVDelegateIn<std::int32_t> m_sampleCntPV;
@@ -201,6 +205,7 @@ private:
     nds::PVDelegateIn<double> m_streamTimePV;
     nds::PVDelegateIn<std::int32_t> m_trigLvlPV;
     nds::PVDelegateIn<std::int32_t> m_trigEdgePV;
+    nds::PVDelegateIn<std::int32_t> m_trigChanPV;
 
     nds::Thread m_daqThread;
     bool m_stopDaq;

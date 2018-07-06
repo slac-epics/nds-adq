@@ -1,83 +1,52 @@
 #include <cstdlib>
-#include <string>
-#include <sstream>
-#include <iostream>
 #include <ctime>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
-#include "ADQInfo.h"
-#include "ADQDevice.h"
-#include "ADQDefinition.h"
-#include "ADQFourteen.h"
-#include "ADQSeven.h"
-#include "ADQAIChannelGroup.h"
 #include "ADQAIChannel.h"
+#include "ADQAIChannelGroup.h"
+#include "ADQDefinition.h"
+#include "ADQDevice.h"
+#include "ADQFourteen.h"
+#include "ADQInfo.h"
+#include "ADQSeven.h"
 
-ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *& adqDev) :
-    m_node(nds::Port(name + INFO_DEVICE, nds::nodeType_t::generic)),
-    m_adqDevPtr(adqDev),
-    m_productNamePV(nds::PVDelegateIn<std::string>("ProdName", std::bind(&ADQInfo::getProductName,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_serialNumberPV(nds::PVDelegateIn<std::string>("ProdSerial", std::bind(&ADQInfo::getSerialNumber,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_productIDPV(nds::PVDelegateIn<std::int32_t>("ProdID", std::bind(&ADQInfo::getProductID,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_adqTypePV(nds::PVDelegateIn<std::int32_t>("ProdType", std::bind(&ADQInfo::getADQType,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_cardOptionPV(nds::PVDelegateIn<std::string>("ProdOpt", std::bind(&ADQInfo::getCardOption,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_tempLocalPV(nds::PVDelegateIn<std::int32_t>("TempLocal", std::bind(&ADQInfo::getTempLocal,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_tempAdcOnePV(nds::PVDelegateIn<std::int32_t>("TempADC-1", std::bind(&ADQInfo::getTempADCone,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_tempAdcTwoPV(nds::PVDelegateIn<std::int32_t>("TempADC-2", std::bind(&ADQInfo::getTempADCtwo,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_tempFpgaPV(nds::PVDelegateIn<std::int32_t>("TempFPGA", std::bind(&ADQInfo::getTempFPGA,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_tempDiodPV(nds::PVDelegateIn<std::int32_t>("TempDiod", std::bind(&ADQInfo::getTempDd,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_sampRatePV(nds::PVDelegateIn<double>("SampRate", std::bind(&ADQInfo::getSampRate,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_busAddrPV(nds::PVDelegateIn<std::int32_t>("BusAddr", std::bind(&ADQInfo::getBusAddr,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_busTypePV(nds::PVDelegateIn<std::int32_t>("BusType", std::bind(&ADQInfo::getBusType,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_pcieLinkRatePV(nds::PVDelegateIn<std::int32_t>("PCIeLinkRate", std::bind(&ADQInfo::getPCIeLinkRate,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2))),
-    m_pcieLinkWidPV(nds::PVDelegateIn<std::int32_t>("PCIeLinkWid", std::bind(&ADQInfo::getPCIeLinkWid,
-                                                                        this,
-                                                                        std::placeholders::_1,
-                                                                        std::placeholders::_2)))
+ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqDev) :
+    m_node(nds::Port(name + INFO_DEVICE, nds::nodeType_t::generic)), m_adqDevPtr(adqDev),
+    m_productNamePV(nds::PVDelegateIn<std::string>("ProdName", std::bind(&ADQInfo::getProductName, this,
+                                                                         std::placeholders::_1, std::placeholders::_2))),
+    m_serialNumberPV(nds::PVDelegateIn<std::string>("ProdSerial", std::bind(&ADQInfo::getSerialNumber, this,
+                                                                            std::placeholders::_1, std::placeholders::_2))),
+    m_productIDPV(nds::PVDelegateIn<std::int32_t>("ProdID", std::bind(&ADQInfo::getProductID, this,
+                                                                      std::placeholders::_1, std::placeholders::_2))),
+    m_adqTypePV(nds::PVDelegateIn<std::int32_t>("ProdType", std::bind(&ADQInfo::getADQType, this, std::placeholders::_1,
+                                                                      std::placeholders::_2))),
+    m_cardOptionPV(nds::PVDelegateIn<std::string>("ProdOpt", std::bind(&ADQInfo::getCardOption, this,
+                                                                       std::placeholders::_1, std::placeholders::_2))),
+    m_tempLocalPV(nds::PVDelegateIn<std::int32_t>("TempLocal", std::bind(&ADQInfo::getTempLocal, this,
+                                                                         std::placeholders::_1, std::placeholders::_2))),
+    m_tempAdcOnePV(nds::PVDelegateIn<std::int32_t>("TempADC-1", std::bind(&ADQInfo::getTempADCone, this,
+                                                                          std::placeholders::_1, std::placeholders::_2))),
+    m_tempAdcTwoPV(nds::PVDelegateIn<std::int32_t>("TempADC-2", std::bind(&ADQInfo::getTempADCtwo, this,
+                                                                          std::placeholders::_1, std::placeholders::_2))),
+    m_tempFpgaPV(nds::PVDelegateIn<std::int32_t>("TempFPGA", std::bind(&ADQInfo::getTempFPGA, this,
+                                                                       std::placeholders::_1, std::placeholders::_2))),
+    m_tempDiodPV(nds::PVDelegateIn<std::int32_t>("TempDiod", std::bind(&ADQInfo::getTempDd, this, std::placeholders::_1,
+                                                                       std::placeholders::_2))),
+    m_sampRatePV(nds::PVDelegateIn<double>("SampRate", std::bind(&ADQInfo::getSampRate, this, std::placeholders::_1,
+                                                                 std::placeholders::_2))),
+    m_busAddrPV(nds::PVDelegateIn<std::int32_t>("BusAddr", std::bind(&ADQInfo::getBusAddr, this, std::placeholders::_1,
+                                                                     std::placeholders::_2))),
+    m_busTypePV(nds::PVDelegateIn<std::int32_t>("BusType", std::bind(&ADQInfo::getBusType, this, std::placeholders::_1,
+                                                                     std::placeholders::_2))),
+    m_pcieLinkRatePV(nds::PVDelegateIn<std::int32_t>("PCIeLinkRate", std::bind(&ADQInfo::getPCIeLinkRate, this,
+                                                                               std::placeholders::_1, std::placeholders::_2))),
+    m_pcieLinkWidPV(nds::PVDelegateIn<std::int32_t>("PCIeLinkWid", std::bind(&ADQInfo::getPCIeLinkWid, this,
+                                                                             std::placeholders::_1, std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
 
@@ -85,7 +54,7 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_productNamePV.setScanType(nds::scanType_t::interrupt);
     m_productNamePV.setMaxElements(STRING_ENUM);
     m_productNamePV.processAtInit(PINI);
-    m_node.addChild(m_productNamePV);   
+    m_node.addChild(m_productNamePV);
 
     m_serialNumberPV.setScanType(nds::scanType_t::interrupt);
     m_serialNumberPV.setMaxElements(STRING_ENUM);
@@ -126,7 +95,7 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_tempDiodPV);
 
-    // PV for sample rate 
+    // PV for sample rate
     m_sampRatePV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_sampRatePV);
@@ -147,7 +116,6 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface *&
     m_pcieLinkWidPV.setScanType(nds::scanType_t::interrupt);
     m_pcieLinkWidPV.processAtInit(PINI);
     m_node.addChild(m_pcieLinkWidPV);
-    
 }
 
 void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)
@@ -177,27 +145,27 @@ void ADQInfo::getCardOption(timespec* pTimestamp, std::string* pValue)
 
 void ADQInfo::getTempLocal(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_adqDevPtr->GetTemperature(TEMP_LOCAL)*CELSIUS_CONVERT;
+    *pValue = m_adqDevPtr->GetTemperature(TEMP_LOCAL) * CELSIUS_CONVERT;
 }
 
 void ADQInfo::getTempADCone(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_adqDevPtr->GetTemperature(TEMPADC_ONE)*CELSIUS_CONVERT;
+    *pValue = m_adqDevPtr->GetTemperature(TEMPADC_ONE) * CELSIUS_CONVERT;
 }
 
 void ADQInfo::getTempADCtwo(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_adqDevPtr->GetTemperature(TEMPADC_TWO)*CELSIUS_CONVERT;
+    *pValue = m_adqDevPtr->GetTemperature(TEMPADC_TWO) * CELSIUS_CONVERT;
 }
 
 void ADQInfo::getTempFPGA(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_adqDevPtr->GetTemperature(TEMP_FPGA)*CELSIUS_CONVERT;
+    *pValue = m_adqDevPtr->GetTemperature(TEMP_FPGA) * CELSIUS_CONVERT;
 }
 
 void ADQInfo::getTempDd(timespec* pTimestamp, std::int32_t* pValue)
 {
-    *pValue = m_adqDevPtr->GetTemperature(TEMP_DIOD)*CELSIUS_CONVERT;
+    *pValue = m_adqDevPtr->GetTemperature(TEMP_DIOD) * CELSIUS_CONVERT;
 }
 
 void ADQInfo::getSampRate(timespec* pTimestamp, double* pValue)
@@ -213,7 +181,7 @@ void ADQInfo::getBusAddr(timespec* pTimestamp, std::int32_t* pValue)
     {
         *pValue = m_adqDevPtr->GetPCIeAddress();
     }
-    
+
     if ((m_adqDevPtr->IsUSBDevice()) || (m_adqDevPtr->IsUSB3Device()))
     {
         *pValue = m_adqDevPtr->GetUSBAddress();

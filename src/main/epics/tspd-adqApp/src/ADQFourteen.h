@@ -28,9 +28,8 @@ private:
     nds::Port m_node;
     ADQInterface * m_adqDevPtr;
 
-    nds::PVDelegateIn<std::int32_t> m_chanActivePV;
-    nds::PVDelegateIn<std::string> m_chanMaskPV;
-    nds::PVDelegateIn<std::int32_t> m_trigChanPV;
+    
+    
     nds::PVDelegateIn<std::int32_t> m_overVoltProtectPV;
 };
 
