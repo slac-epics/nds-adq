@@ -4,9 +4,8 @@
 #include "ADQAIChannel.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQDefinition.h"
-#include "ADQFourteen.h"
 #include "ADQInfo.h"
-#include "ADQSeven.h"
+
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 

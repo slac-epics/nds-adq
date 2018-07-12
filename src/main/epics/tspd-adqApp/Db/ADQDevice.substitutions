@@ -1,7 +1,20 @@
-file db/ADQDevice.template {
-    pattern { PREFIX, INFO, DEV, GRP, CH }
-            { ADQ06215, INFO, DAQ, COM,  CH0 }
-            { ADQ06215, INFO, DAQ, COM, CH1 }
-            { ADQ06215, INFO, DAQ, COM, CH2 }
-            { ADQ06215, INFO, DAQ, COM, CH3 }
+file db/ADQDevice.template 
+{
+    pattern { PREFIX,  DEV,    INFO,  INFO_NELM }
+            { ADQ,     06215,  INFO,  32        }
+}
+
+file db/ADQAIGroupChannel.template 
+{
+    pattern { PREFIX,  DEV,    GRP }
+            { ADQ,     06215,  COM }
+}
+
+file db/ADQAIChannel.template 
+{
+    pattern { PREFIX,  DEV,    GRP,  CH  }
+            { ADQ,     06215,  COM,  CH0 }
+            { ADQ,     06215,  COM,  CH1 }
+            { ADQ,     06215,  COM,  CH2 }
+            { ADQ,     06215,  COM,  CH3 }
 }

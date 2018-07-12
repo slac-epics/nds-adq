@@ -10,7 +10,7 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install)
 # databases, templates, substitutions like this
-DB += ADQDevice.template ADQDevice.substitutions
+DB += ADQDevice.template ADQAIGroupChannel.template ADQAIChannel.template ADQDevice.substitutions
 
 # Automagically install .proto files
 ###DB += $(notdir $(wildcard ../*.proto))

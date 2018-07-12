@@ -1567,7 +1567,7 @@ $(pv_value)</tooltip>
     <name>Text Update_25</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>${ADQSerialNumber}:CHANMASK-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:CHANMASK-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -2083,7 +2083,7 @@ $(pv_value)</tooltip>
     <height>34</height>
     <items_from_pv>true</items_from_pv>
     <name>Combo_1</name>
-    <pv_name>${ADQSerialNumber}:CHANACTIVE</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:CHANACTIVE</pv_name>
     <pv_value />
     <rules />
     <scale_options>

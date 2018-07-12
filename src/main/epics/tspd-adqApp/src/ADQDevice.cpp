@@ -12,25 +12,12 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQDefinition.h"
 #include "ADQDevice.h"
-#include "ADQFourteen.h"
 #include "ADQInfo.h"
-#include "ADQSeven.h"
 
 ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
     m_node(deviceName)
 {
     unsigned int status;
-    // Pointer to ADQ info structure
-    struct ADQInfoListEntry* adqInfoStruct;
-    // Number of ADQ devices connected to the system from ListDevices function
-    unsigned int adqDevList;
-    // ADQ device number from adqDevList array; indexing starts from 0
-    // Please note that the device number when using GetADQ/NofADQ/etc will not have anything to do with the index number used in this function.
-    unsigned int adqDevListNum;
-    // Var for for-loop
-    bool adqReqFound;
-    // User input
-    const char* adqSnReqTmp;
 
     try
     {
@@ -39,6 +26,9 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         {
             throw nds::NdsError("Failed to create ADQ Control Unit (CreateADQControlUnit).");
         }
+
+        // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq/')
+        ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
 
         // Check revisions
         const int adqApiRev = ADQAPI_GetRevision();
@@ -52,6 +42,8 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         }
 
         // Find all connected devices
+        struct ADQInfoListEntry* adqInfoStruct;
+        unsigned int adqDevList;
         status = ADQControlUnit_ListDevices(m_adqCtrlUnit, &adqInfoStruct, &adqDevList);
         if (!status)
         {
@@ -66,11 +58,7 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         std::cout << "DEBUG: "
                   << "Number of ADQs: " << adqDevList << std::endl;
 
-        //// urojec L2: This is a very handy feature, but we need to provide an option for                                       !!!!!!!!!!!!!!!!
-        //// the serial number to be specified at startup - this is due to autostarting iocs etc.
-        //// Let's discuss, could be as simple as leaving the parameter holding the serial number as QUERY or something
-        ////
-        // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it!
+        // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it
         char adqSnReqRaw[6];
         std::ostringstream adqSnTmp;
 
@@ -81,10 +69,10 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
 
         /* This block searches a device with a requested serial number
         */
-        for (adqDevListNum = 0; adqDevListNum < adqDevList; ++adqDevListNum)
+        bool adqReqFound;
+        for (unsigned int adqDevListNum = 0; adqDevListNum < adqDevList; ++adqDevListNum)
         {
-            // Opens communication channel to a certain ADQ device;
-            // this ADQ will show up in lists of functions NofADQ and GetADQ
+            // Opens communication channel to a certain ADQ device
             status = ADQControlUnit_OpenDeviceInterface(m_adqCtrlUnit, adqDevListNum);
             if (!status)
             {
@@ -123,15 +111,12 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             throw nds::NdsError("Device didn't start normally (IsStartedOK).");
         }
 
-        std::shared_ptr<ADQInfo> adqInfo = std::make_shared<ADQInfo>(adqSnReq, m_node, m_adqInterface);
+        std::shared_ptr<ADQInfo> adqInfo = std::make_shared<ADQInfo>(adqSnReqRaw, m_node, m_adqInterface);
         m_adqInfoPtr.push_back(adqInfo);
 
-        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(adqSnReq, m_node, m_adqInterface);
+        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(adqSnReqRaw, m_node, m_adqInterface);
         m_adqChanGrpPtr.push_back(adqChanGrp);
-
-        // Set information log level
-        m_node.setLogLevel(nds::logLevel_t::info);
-
+        
         // Initialize requested device after declaration of all its PVs
         m_node.initialize(this, factory);
     }

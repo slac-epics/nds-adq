@@ -17,9 +17,8 @@
 #define TEMP_DIOD 4
 
 #define DATA_MAX_ELEMENTS (4 * 1024 * 1024)
-#define CHANNEL_NUMBER_MAX 8
+#define CHANNEL_COUNT_MAX 8
 #define STRING_ENUM 32
-#define ROOT_NODE_DEVICE "ADQ"
 #define GROUP_CHAN_DEVICE ":COM"
 #define INFO_DEVICE ":INFO"
 
@@ -28,38 +27,39 @@
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define ADQNDS_MSG_ERRLOG(status, text)                               \
-    do                                                                \
-    {                                                                 \
-        if (!status)                                                  \
-        {                                                             \
-            struct timespec now = { 0, 0 };                           \
-            clock_gettime(CLOCK_REALTIME, &now);                      \
-            m_logMsgPV.push(now, std::string(text));                  \
-            ndsErrorStream(m_node) << std::string(text) << std::endl; \
-            goto finish;                                              \
-        }                                                             \
-    } while (0)
-
-#define ADQNDS_MSG_WARNLOG(status, text)                                \
-    do                                                                  \
-    {                                                                   \
-        if (!status)                                                    \
-        {                                                               \
-            struct timespec now = { 0, 0 };                             \
-            clock_gettime(CLOCK_REALTIME, &now);                        \
-            m_logMsgPV.push(now, std::string(text));                    \
-            ndsWarningStream(m_node) << std::string(text) << std::endl; \
-        }                                                               \
-    } while (0)
-
-#define ADQNDS_MSG_INFOLOG(text)                                 \
+/* Macros for pushing log messages to PV
+ */
+#define ADQNDS_MSG_INFOLOG_PV(text)                              \
     do                                                           \
     {                                                            \
         struct timespec now = { 0, 0 };                          \
         clock_gettime(CLOCK_REALTIME, &now);                     \
         m_logMsgPV.push(now, std::string(text));                 \
         ndsInfoStream(m_node) << std::string(text) << std::endl; \
+    } while (0)
+
+ /* Macros for informing the user about occured major failures and
+  * stopping data acquisition
+  */
+#define ADQNDS_MSG_ERRLOG_PV(status, text) \
+    do                                     \
+    {                                      \
+        if (!status)                       \
+        {                                  \
+            ADQNDS_MSG_INFOLOG_PV(text);   \
+            goto finish;                   \
+        }                                  \
+    } while (0)
+
+ /* Macros for warning information in case of minor failures
+  */
+#define ADQNDS_MSG_WARNLOG_PV(status, text) \
+    do                                      \
+    {                                       \
+        if (!status)                        \
+        {                                   \
+            ADQNDS_MSG_INFOLOG_PV(text);    \
+        }                                   \
     } while (0)
 
 #endif /* ADQDEFINITION_H */

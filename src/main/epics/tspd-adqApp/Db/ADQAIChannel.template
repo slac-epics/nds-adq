@@ -1,0 +1,60 @@
+# # # # # # # # # # # # # # # # # # # # # #
+#                                         #
+#         PV records for Channels         #
+#                                         #
+# # # # # # # # # # # # # # # # # # # # # #
+
+record(waveform, "${PREFIX}-${DEV}:${GRP}:${CH}:DATA") {
+    field(DESC, "Received data")
+    field(FTVL, "SHORT")
+    field(NELM, "30000000")
+    field(PREC, "3")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo, "${PREFIX}-${DEV}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
+    field(DESC, "Set local state CH")
+    field(SCAN, "Passive")
+    field(ZRVL, 0)
+    field(ZRST, "UNKNOWN")
+    field(ONVL, 1)
+    field(ONST, "OFF")
+    field(TWVL, 2)
+    field(TWST, "SWITCHING_OFF")
+    field(THVL, 3)
+    field(THST, "INITIALIZING")
+    field(FRVL, 4)
+    field(FRST, "ON")
+    field(FVVL, 5)
+    field(FVST, "STOPPING")
+    field(SXVL, 6)
+    field(SXST, "STARTING")
+    field(SVVL, 7)
+    field(SVST, "RUNNING")
+    field(EIVL, 8)
+    field(EIST, "FAULT")
+}
+
+record(mbbi, "${PREFIX}-${DEV}:${GRP}:${CH}:STATEMACHINE:GETSTATE") {
+    field(DESC, "Get local state CH")
+    field(SCAN, "I/O Intr")
+    field(ZRVL, 0)
+    field(ZRST, "UNKNOWN")
+    field(ONVL, 1)
+    field(ONST, "OFF")
+    field(TWVL, 2)
+    field(TWST, "SWITCHING_OFF")
+    field(THVL, 3)
+    field(THST, "INITIALIZING")
+    field(FRVL, 4)
+    field(FRST, "ON")
+    field(FVVL, 5)
+    field(FVST, "STOPPING")
+    field(SXVL, 6)
+    field(SXST, "STARTING")
+    field(SVVL, 7)
+    field(SVST, "RUNNING")
+    field(EIVL, 8)
+    field(EIST, "FAULT")
+    field(EISV, "MAJOR")
+}
