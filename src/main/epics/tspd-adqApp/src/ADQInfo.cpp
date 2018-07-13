@@ -1,9 +1,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <mutex>
 #include <sstream>
 #include <string>
-#include <mutex>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -75,28 +75,28 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& 
     m_node.addChild(m_cardOptionPV);
 
     // PVs for temperatures
-    m_tempLocalPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempLocalPV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_tempLocalPV);
 
-    m_tempAdcOnePV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempAdcOnePV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_tempAdcOnePV);
 
-    m_tempAdcTwoPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempAdcTwoPV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_tempAdcTwoPV);
 
-    m_tempFpgaPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempFpgaPV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_tempFpgaPV);
 
-    m_tempDiodPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempDiodPV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_tempDiodPV);
 
     // PV for sample rate
-    m_sampRatePV.setScanType(nds::scanType_t::periodic, 1);
+    m_sampRatePV.setScanType(nds::scanType_t::interrupt);
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_sampRatePV);
 
@@ -151,7 +151,7 @@ void ADQInfo::getCardOption(timespec* pTimestamp, std::string* pValue)
 void ADQInfo::getTempLocal(timespec* pTimestamp, int32_t* pValue)
 {
     {
-        std::lock_guard<std::mutex> lock(adqDevMutex);
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         *pValue = m_adqDevPtr->GetTemperature(TEMP_LOCAL) * CELSIUS_CONVERT;
     }
     *pTimestamp = m_tempLocalPV.getTimestamp();
@@ -160,7 +160,7 @@ void ADQInfo::getTempLocal(timespec* pTimestamp, int32_t* pValue)
 void ADQInfo::getTempADCone(timespec* pTimestamp, int32_t* pValue)
 {
     {
-        std::lock_guard<std::mutex> lock(adqDevMutex);
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         *pValue = m_adqDevPtr->GetTemperature(TEMPADC_ONE) * CELSIUS_CONVERT;
     }
     *pTimestamp = m_tempAdcOnePV.getTimestamp();
@@ -169,7 +169,7 @@ void ADQInfo::getTempADCone(timespec* pTimestamp, int32_t* pValue)
 void ADQInfo::getTempADCtwo(timespec* pTimestamp, int32_t* pValue)
 {
     {
-        std::lock_guard<std::mutex> lock(adqDevMutex);
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         *pValue = m_adqDevPtr->GetTemperature(TEMPADC_TWO) * CELSIUS_CONVERT;
     }
     *pTimestamp = m_tempAdcTwoPV.getTimestamp();
@@ -178,7 +178,7 @@ void ADQInfo::getTempADCtwo(timespec* pTimestamp, int32_t* pValue)
 void ADQInfo::getTempFPGA(timespec* pTimestamp, int32_t* pValue)
 {
     {
-        std::lock_guard<std::mutex> lock(adqDevMutex);
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         *pValue = m_adqDevPtr->GetTemperature(TEMP_FPGA) * CELSIUS_CONVERT;
     }
     *pTimestamp = m_tempFpgaPV.getTimestamp();
@@ -187,7 +187,7 @@ void ADQInfo::getTempFPGA(timespec* pTimestamp, int32_t* pValue)
 void ADQInfo::getTempDd(timespec* pTimestamp, int32_t* pValue)
 {
     {
-        std::lock_guard<std::mutex> lock(adqDevMutex);
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         *pValue = m_adqDevPtr->GetTemperature(TEMP_DIOD) * CELSIUS_CONVERT;
     }
     *pTimestamp = m_tempDiodPV.getTimestamp();

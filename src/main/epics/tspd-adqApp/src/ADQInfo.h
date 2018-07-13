@@ -33,7 +33,7 @@ public:
 private:
     ADQInterface* m_adqDevPtr;
 
-    std::mutex adqDevMutex;  // protects adqDev library 
+    std::mutex m_adqDevMutex;  // protects adqDev library 
 
     std::string m_productName;
     nds::PVDelegateIn<std::string> m_productNamePV;

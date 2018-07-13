@@ -9,8 +9,6 @@
 
 typedef struct
 {
-    //// urojec L3: camelCase, don't use Capital start for anything else than class names, struct names
-    //// struct fields or members should be lowerCase
     unsigned char recordStatus;
     unsigned char userID;
     unsigned char chan;
@@ -91,8 +89,8 @@ public:
     void setSampleSkip(const timespec& pTimestamp, const int32_t& pValue);
     void getSampleSkip(timespec* pTimestamp, int32_t* pValue);
 
-    void setFlushTime(const timespec& pTimestamp, const int32_t& pValue);
-    void getFlushTime(timespec* pTimestamp, int32_t* pValue);
+    void setTimeout(const timespec& pTimestamp, const int32_t& pValue);
+    void getTimeout(timespec* pTimestamp, int32_t* pValue);
 
     void setStreamTime(const timespec& pTimestamp, const double& pValue);
     void getStreamTime(timespec* pTimestamp, double* pValue);
@@ -114,7 +112,6 @@ public:
     bool allowChange(const nds::state_t currentLocal, const nds::state_t currentGlobal, const nds::state_t nextLocal);
 
     void daqTrigStream();
-    void daqTrigStreamProcessRecord(short* recordData, streamingHeader_t* recordHeader);
     void daqMultiRecord();
     void daqContinStream();
     void daqRawStream();
@@ -122,7 +119,7 @@ public:
 private:
     ADQInterface* m_adqInterface;
 
-    std::mutex adqDevMutex;  // protects adqDev library 
+    std::mutex m_adqDevMutex;  // protects adqDev library 
 
     unsigned int m_chanCnt;
     int m_adqType;
@@ -213,8 +210,8 @@ private:
     nds::Thread m_daqThread;
     bool m_stopDaq;
 
+    short* m_rawDaqBuffer;
     short* m_daqBuffers[CHANNEL_COUNT_MAX];
-    void* m_daqVoidBuffers[CHANNEL_COUNT_MAX];
     unsigned char* m_daqHeaders[CHANNEL_COUNT_MAX];
     streamingHeader_t* m_daqStreamHeaders[CHANNEL_COUNT_MAX];
     short* m_daqExtra[CHANNEL_COUNT_MAX];

@@ -25,7 +25,8 @@
 #define sleep(interval) usleep(1000 * interval)   // usleep - microsecond interval
 
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+#define UNUSED(x) (void)x
 
 /* Macros for pushing log messages to PV
  */
@@ -38,28 +39,34 @@
         ndsInfoStream(m_node) << std::string(text) << std::endl; \
     } while (0)
 
- /* Macros for informing the user about occured major failures and
-  * stopping data acquisition
-  */
-#define ADQNDS_MSG_ERRLOG_PV(status, text) \
-    do                                     \
-    {                                      \
-        if (!status)                       \
-        {                                  \
-            ADQNDS_MSG_INFOLOG_PV(text);   \
-            goto finish;                   \
-        }                                  \
+/* Macros for informing the user about occured major failures and
+ * stopping data acquisition
+ */
+#define ADQNDS_MSG_ERRLOG_PV(status, text)                            \
+    do                                                                \
+    {                                                                 \
+        if (!status)                                                  \
+        {                                                             \
+            struct timespec now = { 0, 0 };                           \
+            clock_gettime(CLOCK_REALTIME, &now);                      \
+            m_logMsgPV.push(now, std::string(text));                  \
+            ndsErrorStream(m_node) << std::string(text) << std::endl; \
+            goto finish;                                              \
+        }                                                             \
     } while (0)
 
- /* Macros for warning information in case of minor failures
-  */
-#define ADQNDS_MSG_WARNLOG_PV(status, text) \
-    do                                      \
-    {                                       \
-        if (!status)                        \
-        {                                   \
-            ADQNDS_MSG_INFOLOG_PV(text);    \
-        }                                   \
+/* Macros for warning information in case of minor failures
+ */
+#define ADQNDS_MSG_WARNLOG_PV(status, text)                             \
+    do                                                                  \
+    {                                                                   \
+        if (!status)                                                    \
+        {                                                               \
+            struct timespec now = { 0, 0 };                             \
+            clock_gettime(CLOCK_REALTIME, &now);                        \
+            m_logMsgPV.push(now, std::string(text));                    \
+            ndsWarningStream(m_node) << std::string(text) << std::endl; \
+        }                                                               \
     } while (0)
 
 #endif /* ADQDEFINITION_H */

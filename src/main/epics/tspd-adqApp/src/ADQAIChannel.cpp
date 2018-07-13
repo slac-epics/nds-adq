@@ -84,6 +84,8 @@ void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<int32_t>* pValue)
     /* Dummy method for the m_dataPV;
      * methods starting with "read" are actual methods that push received data to PV
      */
+    UNUSED(pTimestamp);
+    UNUSED(pValue);
 }
 
 void ADQAIChannel::readData(short* rawData, int32_t sampleCnt)
@@ -108,7 +110,6 @@ void ADQAIChannel::readData(short* rawData, int32_t sampleCnt)
     m_data.resize(sampleCnt);
     std::vector<int32_t>::iterator target = m_data.begin();
 
-    ndsInfoStream(m_node) << "INFO: Sending data to PV..." << std::endl;
     for (int i = 0; i < sampleCnt; ++i, ++target)
     {
         *target = (short)rawData[i];

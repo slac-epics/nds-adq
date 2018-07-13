@@ -4,6 +4,7 @@
 #include <string.h>
 #include <string>
 #include <unistd.h>
+#include <mutex>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -17,7 +18,14 @@
 ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
     m_node(deviceName)
 {
+    UNUSED(parameters);
+
     unsigned int status;
+    struct ADQInfoListEntry* adqInfoStruct;
+    unsigned int adqDevList = 0;
+    char adqSnReqRaw[6];
+    std::ostringstream adqSnTmp;
+    bool adqReqFound = 0;
 
     try
     {
@@ -28,7 +36,7 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         }
 
         // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq/')
-        ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
+        //ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
 
         // Check revisions
         const int adqApiRev = ADQAPI_GetRevision();
@@ -42,8 +50,6 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         }
 
         // Find all connected devices
-        struct ADQInfoListEntry* adqInfoStruct;
-        unsigned int adqDevList;
         status = ADQControlUnit_ListDevices(m_adqCtrlUnit, &adqInfoStruct, &adqDevList);
         if (!status)
         {
@@ -59,9 +65,6 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
                   << "Number of ADQs: " << adqDevList << std::endl;
 
         // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it
-        char adqSnReqRaw[6];
-        std::ostringstream adqSnTmp;
-
         std::cout << "Enter device Serial Number (e.g. 06215, 06302):" << std::endl;
         std::cin >> adqSnReqRaw;
         adqSnTmp << "SPD-" << adqSnReqRaw;
@@ -69,7 +72,6 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
 
         /* This block searches a device with a requested serial number
         */
-        bool adqReqFound;
         for (unsigned int adqDevListNum = 0; adqDevListNum < adqDevList; ++adqDevListNum)
         {
             // Opens communication channel to a certain ADQ device
