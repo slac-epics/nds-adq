@@ -1,10 +1,9 @@
 #include <cstdlib>
+#include <ctime>
 #include <iostream>
-#include <sstream>
-#include <string.h>
-#include <string>
-#include <unistd.h>
 #include <mutex>
+#include <sstream>
+#include <string>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -15,134 +14,249 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 
-ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
-    m_node(deviceName)
+ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqDev) :
+    m_node(nds::Port(name + INFO_DEVICE, nds::nodeType_t::generic)), 
+    m_adqDevPtr(adqDev),
+    m_productNamePV(nds::PVDelegateIn<std::string>("ProdName", std::bind(&ADQInfo::getProductName, this,
+                                                                         std::placeholders::_1, std::placeholders::_2))),
+    m_serialNumberPV(nds::PVDelegateIn<std::string>("ProdSerial", std::bind(&ADQInfo::getSerialNumber, this,
+                                                                            std::placeholders::_1, std::placeholders::_2))),
+    m_productIDPV(nds::PVDelegateIn<int32_t>("ProdID", std::bind(&ADQInfo::getProductID, this, std::placeholders::_1,
+                                                                 std::placeholders::_2))),
+    m_adqTypePV(nds::PVDelegateIn<int32_t>("ProdType", std::bind(&ADQInfo::getADQType, this, std::placeholders::_1,
+                                                                 std::placeholders::_2))),
+    m_cardOptionPV(nds::PVDelegateIn<std::string>("ProdOpt", std::bind(&ADQInfo::getCardOption, this,
+                                                                       std::placeholders::_1, std::placeholders::_2))),
+    m_tempLocalPV(nds::PVDelegateIn<int32_t>("TempLocal", std::bind(&ADQInfo::getTempLocal, this, std::placeholders::_1,
+                                                                    std::placeholders::_2))),
+    m_tempAdcOnePV(nds::PVDelegateIn<int32_t>("TempADC-1", std::bind(&ADQInfo::getTempADCone, this,
+                                                                     std::placeholders::_1, std::placeholders::_2))),
+    m_tempAdcTwoPV(nds::PVDelegateIn<int32_t>("TempADC-2", std::bind(&ADQInfo::getTempADCtwo, this,
+                                                                     std::placeholders::_1, std::placeholders::_2))),
+    m_tempFpgaPV(nds::PVDelegateIn<int32_t>("TempFPGA", std::bind(&ADQInfo::getTempFPGA, this, std::placeholders::_1,
+                                                                  std::placeholders::_2))),
+    m_tempDiodPV(nds::PVDelegateIn<int32_t>("TempDiod", std::bind(&ADQInfo::getTempDd, this, std::placeholders::_1,
+                                                                  std::placeholders::_2))),
+    m_sampRatePV(nds::PVDelegateIn<double>("SampRate", std::bind(&ADQInfo::getSampRate, this, std::placeholders::_1,
+                                                                 std::placeholders::_2))),
+    m_busTypePV(nds::PVDelegateIn<int32_t>("BusType", std::bind(&ADQInfo::getBusType, this, std::placeholders::_1,
+                                                                std::placeholders::_2))),
+    m_busAddrPV(nds::PVDelegateIn<int32_t>("BusAddr", std::bind(&ADQInfo::getBusAddr, this, std::placeholders::_1,
+                                                                std::placeholders::_2))),
+    m_pcieLinkRatePV(nds::PVDelegateIn<int32_t>("PCIeLinkRate", std::bind(&ADQInfo::getPCIeLinkRate, this,
+                                                                          std::placeholders::_1, std::placeholders::_2))),
+    m_pcieLinkWidPV(nds::PVDelegateIn<int32_t>("PCIeLinkWid", std::bind(&ADQInfo::getPCIeLinkWid, this,
+                                                                        std::placeholders::_1, std::placeholders::_2)))
 {
-    UNUSED(parameters);
+    parentNode.addChild(m_node);
 
-    unsigned int status;
-    struct ADQInfoListEntry* adqInfoStruct;
-    unsigned int adqDevList = 0;
-    char adqSnReqRaw[6];
-    std::ostringstream adqSnTmp;
-    bool adqReqFound = 0;
+    // PVs for device info
+    m_productNamePV.setScanType(nds::scanType_t::interrupt);
+    m_productNamePV.setMaxElements(STRING_ENUM);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_productNamePV);
 
-    try
-    {
-        m_adqCtrlUnit = CreateADQControlUnit();   // Creates an ADQControlUnit called adq_cu
-        if (!m_adqCtrlUnit)
-        {
-            throw nds::NdsError("Failed to create ADQ Control Unit (CreateADQControlUnit).");
-        }
+    m_serialNumberPV.setScanType(nds::scanType_t::interrupt);
+    m_serialNumberPV.setMaxElements(STRING_ENUM);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_serialNumberPV);
 
-        // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq/')
-        //ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
+    m_productIDPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_productIDPV);
 
-        // Check revisions
-        const int adqApiRev = ADQAPI_GetRevision();
-        std::cout << "DEBUG: "
-                  << "API Revision: " << adqApiRev << std::endl;
-        if (!IS_VALID_DLL_REVISION(adqApiRev))
-        {
-            std::cout << "WARNING: The included header file and the linked library are of different revisions. This "
-                         "may cause corrupt behavior."
-                      << std::endl;
-        }
+    m_adqTypePV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_adqTypePV);
 
-        // Find all connected devices
-        status = ADQControlUnit_ListDevices(m_adqCtrlUnit, &adqInfoStruct, &adqDevList);
-        if (!status)
-        {
-            throw nds::NdsError("Listing connected devices failed (ADQControlUnit_ListDevices).");
-        }
+    m_cardOptionPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_cardOptionPV.setMaxElements(STRING_ENUM);
+    m_node.addChild(m_cardOptionPV);
 
-        if (adqDevList <= 0)
-        {
-            throw nds::NdsError("No ADQ devices found.");
-        }
+    // PVs for temperatures
+    m_tempLocalPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_tempLocalPV);
 
-        std::cout << "DEBUG: "
-                  << "Number of ADQs: " << adqDevList << std::endl;
+    m_tempAdcOnePV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_tempAdcOnePV);
 
-        // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it
-        std::cout << "Enter device Serial Number (e.g. 06215, 06302):" << std::endl;
-        std::cin >> adqSnReqRaw;
-        adqSnTmp << "SPD-" << adqSnReqRaw;
-        std::string adqSnReq(adqSnTmp.str());
+    m_tempAdcTwoPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_tempAdcTwoPV);
 
-        /* This block searches a device with a requested serial number
-        */
-        for (unsigned int adqDevListNum = 0; adqDevListNum < adqDevList; ++adqDevListNum)
-        {
-            // Opens communication channel to a certain ADQ device
-            status = ADQControlUnit_OpenDeviceInterface(m_adqCtrlUnit, adqDevListNum);
-            if (!status)
-            {
-                throw nds::NdsError("Device failure during interface opening (ADQControlUnit_OpenDeviceInterface).");
-            }
+    m_tempFpgaPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_tempFpgaPV);
 
-            // Make this device ready to use
-            status = ADQControlUnit_SetupDevice(m_adqCtrlUnit, adqDevListNum);
-            if (!status)
-            {
-                throw nds::NdsError("Device failure during setup (ADQControlUnit_SetupDevice).");
-            }
+    m_tempDiodPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_tempDiodPV);
 
-            // Get pointer to interface of the device
-            m_adqInterface = ADQControlUnit_GetADQ(m_adqCtrlUnit, adqDevListNum + 1);
+    // PV for sample rate
+    m_sampRatePV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_sampRatePV);
 
-            // Check if this ADQ serial number is the one requested
-            const char* adqSnRdbk = m_adqInterface->GetBoardSerialNumber();
-            if (adqSnReq == adqSnRdbk)
-            {
-                adqReqFound = true;
-                std::cout << "Requested ADQ device is found; Serial Number: " << adqSnRdbk << std::endl;
-                break;
-            }
-        }   // Requested serial number
+    // PV for Bus connection
+    m_busAddrPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_busAddrPV);
 
-        if (!adqReqFound)
-        {
-            throw nds::NdsError("Requested ADQ device was not found.");
-        }
+    m_busTypePV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_busTypePV);
 
-        // Check if ADQ started normally
-        status = m_adqInterface->IsStartedOK();
-        if (!status)
-        {
-            throw nds::NdsError("Device didn't start normally (IsStartedOK).");
-        }
+    m_pcieLinkRatePV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_pcieLinkRatePV);
 
-        std::shared_ptr<ADQInfo> adqInfo = std::make_shared<ADQInfo>(adqSnReqRaw, m_node, m_adqInterface);
-        m_adqInfoPtr.push_back(adqInfo);
-
-        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(adqSnReqRaw, m_node, m_adqInterface);
-        m_adqChanGrpPtr.push_back(adqChanGrp);
-        
-        // Initialize requested device after declaration of all its PVs
-        m_node.initialize(this, factory);
-    }
-    catch (const nds::NdsError& e)
-    {
-        if (m_adqCtrlUnit)
-        {
-            DeleteADQControlUnit(m_adqCtrlUnit);
-            std::cout << "ADQ Control Unit was deleted." << std::endl;
-        }
-        std::cout << "Initializing stopped due to error: " << e.what() << std::endl;
-    }
+    m_pcieLinkWidPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
+    m_node.addChild(m_pcieLinkWidPV);
 }
 
-ADQDevice::~ADQDevice()
+void ADQInfo::getProductName(timespec* pTimestamp, std::string* pValue)
 {
-    if (m_adqCtrlUnit)
-    {
-        DeleteADQControlUnit(m_adqCtrlUnit);
-        ndsInfoStream(m_node) << "ADQ Control Unit was deleted." << std::endl;
-    }
-    ndsInfoStream(m_node) << "ADQ Device class was destructed." << std::endl;
+    *pValue = m_adqDevPtr->GetBoardProductName();
+    *pTimestamp = m_productNamePV.getTimestamp();
 }
 
-// The following MACRO defines the function to be exported in order
-// to allow the dynamic loading of the shared module
-NDS_DEFINE_DRIVER(adq, ADQDevice)
+void ADQInfo::getSerialNumber(timespec* pTimestamp, std::string* pValue)
+{
+    *pValue = m_adqDevPtr->GetBoardSerialNumber();
+    *pTimestamp = m_serialNumberPV.getTimestamp();
+}
+
+void ADQInfo::getProductID(timespec* pTimestamp, int32_t* pValue)
+{
+    *pValue = m_adqDevPtr->GetProductID();
+    *pTimestamp = m_productIDPV.getTimestamp();
+}
+
+void ADQInfo::getADQType(timespec* pTimestamp, int32_t* pValue)
+{
+    *pValue = m_adqDevPtr->GetADQType();
+    *pTimestamp = m_adqTypePV.getTimestamp();
+}
+
+void ADQInfo::getCardOption(timespec* pTimestamp, std::string* pValue)
+{
+    *pValue = m_adqDevPtr->GetCardOption();
+    *pTimestamp = m_cardOptionPV.getTimestamp();
+}
+
+void ADQInfo::getTempLocal(timespec* pTimestamp, int32_t* pValue)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+        *pValue = m_adqDevPtr->GetTemperature(TEMP_LOCAL) * CELSIUS_CONVERT;
+    }
+    *pTimestamp = m_tempLocalPV.getTimestamp();
+}
+
+void ADQInfo::getTempADCone(timespec* pTimestamp, int32_t* pValue)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+        *pValue = m_adqDevPtr->GetTemperature(TEMPADC_ONE) * CELSIUS_CONVERT;
+    }
+    *pTimestamp = m_tempAdcOnePV.getTimestamp();
+}
+
+void ADQInfo::getTempADCtwo(timespec* pTimestamp, int32_t* pValue)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+        *pValue = m_adqDevPtr->GetTemperature(TEMPADC_TWO) * CELSIUS_CONVERT;
+    }
+    *pTimestamp = m_tempAdcTwoPV.getTimestamp();
+}
+
+void ADQInfo::getTempFPGA(timespec* pTimestamp, int32_t* pValue)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+        *pValue = m_adqDevPtr->GetTemperature(TEMP_FPGA) * CELSIUS_CONVERT;
+    }
+    *pTimestamp = m_tempFpgaPV.getTimestamp();
+}
+
+void ADQInfo::getTempDd(timespec* pTimestamp, int32_t* pValue)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+        *pValue = m_adqDevPtr->GetTemperature(TEMP_DIOD) * CELSIUS_CONVERT;
+    }
+    *pTimestamp = m_tempDiodPV.getTimestamp();
+}
+
+void ADQInfo::getSampRate(timespec* pTimestamp, double* pValue)
+{
+    double sampRate = 0;
+    m_adqDevPtr->GetSampleRate(0, &sampRate);
+    *pValue = sampRate;
+    *pTimestamp = m_sampRatePV.getTimestamp();
+}
+
+void ADQInfo::getBusAddr(timespec* pTimestamp, int32_t* pValue)
+{
+    if ((m_adqDevPtr->IsPCIeDevice()) || (m_adqDevPtr->IsPCIeLiteDevice()))
+    {
+        *pValue = m_adqDevPtr->GetPCIeAddress();
+    }
+
+    if ((m_adqDevPtr->IsUSBDevice()) || (m_adqDevPtr->IsUSB3Device()))
+    {
+        *pValue = m_adqDevPtr->GetUSBAddress();
+    }
+
+    *pTimestamp = m_busAddrPV.getTimestamp();
+}
+
+void ADQInfo::getBusType(timespec* pTimestamp, int32_t* pValue)
+{
+    if (m_adqDevPtr->IsPCIeDevice())
+    {
+        *pValue = 0;
+    }
+
+    if (m_adqDevPtr->IsPCIeLiteDevice())
+    {
+        *pValue = 1;
+    }
+
+    if (m_adqDevPtr->IsUSBDevice())
+    {
+        *pValue = 2;
+    }
+
+    if (m_adqDevPtr->IsUSB3Device())
+    {
+        *pValue = 3;
+    }
+
+    *pTimestamp = m_busTypePV.getTimestamp();
+}
+
+void ADQInfo::getPCIeLinkRate(timespec* pTimestamp, int32_t* pValue)
+{
+    if ((m_adqDevPtr->IsPCIeDevice()) || (m_adqDevPtr->IsPCIeLiteDevice()))
+    {
+        *pValue = m_adqDevPtr->GetPCIeLinkRate();
+    }
+
+    *pTimestamp = m_pcieLinkRatePV.getTimestamp();
+}
+
+void ADQInfo::getPCIeLinkWid(timespec* pTimestamp, int32_t* pValue)
+{
+    if ((m_adqDevPtr->IsUSBDevice()) || (m_adqDevPtr->IsUSB3Device()))
+    {
+        *pValue = m_adqDevPtr->GetPCIeLinkWidth();
+    }
+
+    *pTimestamp = m_pcieLinkWidPV.getTimestamp();
+}
