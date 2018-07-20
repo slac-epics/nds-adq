@@ -42,31 +42,66 @@ record(waveform, "${PREFIX}-${DEV}:${INFO}:PRODOPT") {
 
 record(longin, "${PREFIX}-${DEV}:${INFO}:TEMPLOCAL") {
     field(DESC, "Local temperature")
+    field(EGU, "°C")
+    field(HIHI, "105")
     field(SCAN, "1 second")
     field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${DEV}:${INFO}:TEMPADC-1") {
     field(DESC, "ADC1 temperature")
+    field(EGU, "°C")
+    field(HIHI, "105")
+    field(HIGH, "100")
     field(SCAN, "1 second")
     field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${DEV}:${INFO}:TEMPADC-2") {
     field(DESC, "ADC2 temperature")
+    field(EGU, "°C")
+    field(HIHI, "105")
+    field(HIGH, "100")
     field(SCAN, "1 second")
     field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${DEV}:${INFO}:TEMPFPGA") {
     field(DESC, "FPGA temperature")
+    field(EGU, "°C")
+    field(HIHI, "95")
+    field(HIGH, "90")
     field(SCAN, "1 second")
     field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${DEV}:${INFO}:TEMPDIOD") {
     field(DESC, "Diode temperature")
+    field(EGU, "°C")
+    field(HIHI, "105")
+    field(HIGH, "100")
     field(SCAN, "1 second")
+    field(PINI, "YES")
+}
+
+record(ai, "${PREFIX}-${DEV}:${INFO}:SAMPRATE") {
+    field(DESC, "Sample rate")
+    field(EGU, "Hz")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(ai, "${PREFIX}-${DEV}:${INFO}:SAMPRATEDEC") {
+    field(DESC, "Sample rate with decimation")
+    field(EGU, "Hz (dec)")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longin, "${PREFIX}-${DEV}:${INFO}:BYTESPERSAMPLE") {
+    field(DESC, "Number of bytes per sample")
+    field(EGU, "byte/S")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
@@ -90,12 +125,6 @@ record(longin, "${PREFIX}-${DEV}:${INFO}:PCIELINKWID") {
 
 record(longin, "${PREFIX}-${DEV}:${INFO}:PCIELINKRATE") {
     field(DESC, "PCIe link rate")
-    field(SCAN, "I/O Intr")
-    field(PINI, "YES")
-}
-
-record(ai, "${PREFIX}-${DEV}:${INFO}:SAMPRATE") {
-    field(DESC, "Sample rate")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }

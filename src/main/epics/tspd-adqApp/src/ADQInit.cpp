@@ -12,10 +12,10 @@
 #include "ADQAIChannel.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQDefinition.h"
+#include "ADQInit.h"
 #include "ADQDevice.h"
-#include "ADQInfo.h"
 
-ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
+ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
     m_node(deviceName)
 {
     UNUSED(parameters);
@@ -35,13 +35,11 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             throw nds::NdsError("Failed to create ADQ Control Unit (CreateADQControlUnit).");
         }
 
-        // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq/')
-        //ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
+        // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq')
+        ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
 
         // Check revisions
         const int adqApiRev = ADQAPI_GetRevision();
-        std::cout << "DEBUG: "
-                  << "API Revision: " << adqApiRev << std::endl;
         if (!IS_VALID_DLL_REVISION(adqApiRev))
         {
             std::cout << "WARNING: The included header file and the linked library are of different revisions. This "
@@ -61,9 +59,6 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             throw nds::NdsError("No ADQ devices found.");
         }
 
-        std::cout << "DEBUG: "
-                  << "Number of ADQs: " << adqDevList << std::endl;
-
         // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it
         std::cout << "Enter device Serial Number (e.g. 06215, 06302):" << std::endl;
         std::cin >> adqSnReqRaw;
@@ -71,7 +66,7 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         std::string adqSnReq(adqSnTmp.str());
 
         /* This block searches a device with a requested serial number
-        */
+         */
         for (unsigned int adqDevListNum = 0; adqDevListNum < adqDevList; ++adqDevListNum)
         {
             // Opens communication channel to a certain ADQ device
@@ -113,9 +108,6 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             throw nds::NdsError("Device didn't start normally (IsStartedOK).");
         }
 
-        std::shared_ptr<ADQInfo> adqInfo = std::make_shared<ADQInfo>(adqSnReqRaw, m_node, m_adqInterface);
-        m_adqInfoPtr.push_back(adqInfo);
-
         std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(adqSnReqRaw, m_node, m_adqInterface);
         m_adqChanGrpPtr.push_back(adqChanGrp);
         
@@ -133,7 +125,7 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
     }
 }
 
-ADQDevice::~ADQDevice()
+ADQInit::~ADQInit()
 {
     if (m_adqCtrlUnit)
     {
@@ -145,4 +137,4 @@ ADQDevice::~ADQDevice()
 
 // The following MACRO defines the function to be exported in order
 // to allow the dynamic loading of the shared module
-NDS_DEFINE_DRIVER(adq, ADQDevice)
+NDS_DEFINE_DRIVER(adq, ADQInit)

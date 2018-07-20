@@ -99,16 +99,6 @@ record(longin, "${PREFIX}-${DEV}:${GRP}:CHANMASK-RB") {
     field(SCAN, "I/O Intr")
 }
 
-record(longout, "${PREFIX}-${DEV}:${GRP}:DCBIAS") {
-    field(DESC, "Adjusted BIAS")
-    field(SCAN, "Passive")
-}
-
-record(longin, "${PREFIX}-${DEV}:${GRP}:DCBIAS-RB") {
-    field(DESC, "Adjusted BIAS Rdbk")
-    field(SCAN, "I/O Intr")
-}
-
 record(longout, "${PREFIX}-${DEV}:${GRP}:DBSBYPASS") {
     field(DESC, "DBS settings")
     field(SCAN, "Passive")
@@ -182,11 +172,6 @@ record(mbbi, "${PREFIX}-${DEV}:${GRP}:PATTERNMODE-RB") {
     field(FRST, "Alter ups & downs")
 }
 
-record(longin, "${PREFIX}-${DEV}:${GRP}:SAMPCNTMAX-RB") {
-    field(DESC, "Max number of samples Rdbk")
-    field(SCAN, "I/O Intr")
-}
-
 record(longout, "${PREFIX}-${DEV}:${GRP}:RECORDCNT") {
     field(DESC, "Number of records")
     field(SCAN, "Passive")
@@ -222,46 +207,105 @@ record(longin, "${PREFIX}-${DEV}:${GRP}:SAMPCNTTOTAL-RB") {
     field(SCAN, "I/O Intr")
 }
 
-record(longout, "${PREFIX}-${DEV}:${GRP}:TRIGFREQ") {
-    field(DESC, "Trigger frequency")
-    field(SCAN, "Passive")
-}
-
-record(longin, "${PREFIX}-${DEV}:${GRP}:TRIGFREQ-RB") {
-    field(DESC, "Trigger frequency Rdbk")
+record(longin, "${PREFIX}-${DEV}:${GRP}:SAMPCNTMAX-RB") {
+    field(DESC, "Max number of samples Rdbk")
     field(SCAN, "I/O Intr")
 }
 
-record(longout, "${PREFIX}-${DEV}:${GRP}:TRIGLEVEL") {
-    field(DESC, "Trigger level")
+record(longout, "${PREFIX}-${DEV}:${GRP}:SAMPSKIP") {
+    field(DESC, "Samples to skip")
     field(SCAN, "Passive")
 }
 
-record(longin, "${PREFIX}-${DEV}:${GRP}:TRIGLEVEL-RB") {
-    field(DESC, "Trigger level readback")
+record(longin, "${PREFIX}-${DEV}:${GRP}:SAMPSKIP-RB") {
+    field(DESC, "Samples to skip Rdbk")
     field(SCAN, "I/O Intr")
 }
 
-record(mbbo, "${PREFIX}-${DEV}:${GRP}:TRIGEDGE") {
-    field(DESC, "Trigger edge")
+record(longout, "${PREFIX}-${DEV}:${GRP}:SAMPDEC") {
+    field(DESC, "Sample decimation (for FWSDR)")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:SAMPDEC-RB") {
+    field(DESC, "Sample decimation (for FWSDR) Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:PRETRIGSAMP") {
+    field(DESC, "Pre-trigger samples")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:PRETRIGSAMP-RB") {
+    field(DESC, "Pre-trigger samples Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:TRIGHOLDOFFSAMP") {
+    field(DESC, "Hold-off samples")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:TRIGHOLDOFFSAMP-RB") {
+    field(DESC, "Hold-off samples Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:CLOCKSRC") {
+    field(DESC, "Clock source")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:CLOCKSRC-RB") {
+    field(DESC, "Clock source Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:CLOCKREFOUT") {
+    field(DESC, "Clock reference output signal")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:CLOCKREFOUT-RB") {
+    field(DESC, "Clock reference output signal Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGLVL") {
+    field(DESC, "Level Trigger level")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGLVL-RB") {
+    field(DESC, "Level Trigger level Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGEDGE") {
+    field(DESC, "Level Trigger edge")
     field(SCAN, "Passive")
     field(ZRVL, 0)
     field(ZRST, "Falling edge")
     field(ONVL, 1)
     field(ONST, "Rising edge")
+    field(TWVL, 2)
+    field(TWST, "Both edges")
 }
 
-record(mbbi, "${PREFIX}-${DEV}:${GRP}:TRIGEDGE-RB") {
-    field(DESC, "Trigger edge readback")
+record(mbbi, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGEDGE-RB") {
+    field(DESC, "Level Trigger edge Rdbk")
     field(SCAN, "Passive")
     field(ZRVL, 0)
     field(ZRST, "Falling edge")
     field(ONVL, 1)
     field(ONST, "Rising edge")
+    field(TWVL, 2)
+    field(TWST, "Both edges")
 }
 
-record(mbbo, "${PREFIX}-${DEV}:${GRP}:TRIGCHAN") {
-    field(DESC, "Trigger channel mask")
+record(mbbo, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGCHAN") {
+    field(DESC, "Level Trigger channel")
     field(SCAN, "Passive")
     field(ZRVL, 0)
     field(ZRST, "None")
@@ -273,10 +317,16 @@ record(mbbo, "${PREFIX}-${DEV}:${GRP}:TRIGCHAN") {
     field(THST, "C")
     field(FRVL, 4)
     field(FRST, "D")
+    field(FVVL, 5)
+    field(FVST, "A+B")
+    field(SXVL, 6)
+    field(SXST, "C+D")
+    field(SVVL, 7)
+    field(SVST, "A+B+C+D")
 }
 
-record(mbbi, "${PREFIX}-${DEV}:${GRP}:TRIGCHAN-RB") {
-    field(DESC, "Trigger channel mask readback")
+record(mbbi, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGCHAN-RB") {
+    field(DESC, "Level Trigger channel Rdbk")
     field(SCAN, "Passive")
     field(ZRVL, 0)
     field(ZRST, "None")
@@ -288,6 +338,93 @@ record(mbbi, "${PREFIX}-${DEV}:${GRP}:TRIGCHAN-RB") {
     field(THST, "C")
     field(FRVL, 4)
     field(FRST, "D")
+    field(FVVL, 5)
+    field(FVST, "A+B")
+    field(SXVL, 6)
+    field(SXST, "C+D")
+    field(SVVL, 7)
+    field(SVST, "A+B+C+D")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:LEVELTRIGCHANMASK-RB") {
+    field(DESC, "Level Trigger chanmask Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:EXTERNTRIGDELAY") {
+    field(DESC, "External Trigger delay")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:EXTERNTRIGDELAY-RB") {
+    field(DESC, "External Trigger delay Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(ao, "${PREFIX}-${DEV}:${GRP}:EXTERNTRIGTHRESHOLD") {
+    field(DESC, "External Trigger threshold")
+    field(PREC, "3")
+    field(SCAN, "Passive")
+}
+
+record(ai, "${PREFIX}-${DEV}:${GRP}:EXTERNTRIGTHRESHOLD-RB") {
+    field(DESC, "External Trigger threshold Rdbk")
+    field(PREC, "3")
+    field(SCAN, "I/O Intr")
+}
+
+record(mbbo, "${PREFIX}-${DEV}:${GRP}:EXTERNTRIGEDGE") {
+    field(DESC, "External Trigger edge")
+    field(SCAN, "Passive")
+    field(ZRVL, 0)
+    field(ZRST, "Falling edge")
+    field(ONVL, 1)
+    field(ONST, "Rising edge")
+    field(TWVL, 2)
+    field(TWST, "Both edges")
+}
+
+record(mbbi, "${PREFIX}-${DEV}:${GRP}:EXTERNTRIGEDGE-RB") {
+    field(DESC, "External Trigger edge Rdbk")
+    field(SCAN, "Passive")
+    field(ZRVL, 0)
+    field(ZRST, "Falling edge")
+    field(ONVL, 1)
+    field(ONST, "Rising edge")
+    field(TWVL, 2)
+    field(TWST, "Both edges")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:INTERNTRIGHIGHSAMP") {
+    field(DESC, "Internal Trigger high samp length edge")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:INTERNTRIGHIGHSAMP-RB") {
+    field(DESC, "Internal Trigger high samp length Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:INTERNTRIGLOWSAMP") {
+    field(DESC, "Internal Trigger low samp length")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:INTERNTRIGLOWSAMP-RB") {
+    field(DESC, "Internal Trigger low samp length Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:INTERNTRIGFREQ") {
+    field(DESC, "Internal Trigger frequency")
+    field(EGU, "Hz")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:INTERNTRIGFREQ-RB") {
+    field(DESC, "Internal Trigger frequency Rdbk")
+    field(EGU, "Hz")
+    field(SCAN, "I/O Intr")
 }
 
 record(longout, "${PREFIX}-${DEV}:${GRP}:TIMEOUT") {
@@ -303,11 +440,13 @@ record(longin, "${PREFIX}-${DEV}:${GRP}:TIMEOUT-RB") {
 record(ao, "${PREFIX}-${DEV}:${GRP}:STREAMTIME") {
     field(DESC, "Streaming time")
     field(SCAN, "Passive")
+    field(PREC, "3")
 }
 
 record(ai, "${PREFIX}-${DEV}:${GRP}:STREAMTIME-RB") {
     field(DESC, "Streaming time Rdbk")
     field(SCAN, "I/O Intr")
+    field(PREC, "3")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #

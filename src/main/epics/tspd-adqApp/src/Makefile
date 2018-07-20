@@ -11,7 +11,7 @@ LIBRARY_IOC += tspd-adq
 
 # We enable the c++11 flag, plus we define the NDS3_DLL preprocessor macro.
 #CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic -fPIC -pthread -DNDS3_DLL -DLINUX -g
-USR_CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic -DNDS3_DLL -pthread -DLINUX
+USR_CXXFLAGS = -std=c++11 -Wall -Wextra -Werror -pedantic -DNDS3_DLL -pthread -DLINUX
 
 # Flags passed to gcc during linking
 #LINK = -shared -fPIC -Wl,-as-needed
@@ -24,7 +24,7 @@ LIBS = -lnds3 -ladq
 #tspd-adq_LIBS = -lnds3 -ladq -lrt
 
 # tspd-adq_registerRecordDeviceDriver.cpp derives from tspd-adq.dbd
-tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQDevice.cpp ADQInfo.cpp
+tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQInit.cpp ADQDevice.cpp
 
 # Rules for building
 #$(TARGET): $(OBJS)

@@ -4,11 +4,32 @@
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
+record(ao, "${PREFIX}-${DEV}:${GRP}:${CH}:INPUTRANGE") {
+    field(DESC, "${CH} input range")
+    field(EGU, "mVpp")
+    field(SCAN, "Passive")
+}
+
+record(ai, "${PREFIX}-${DEV}:${GRP}:${CH}:INPUTRANGE-RB") {
+    field(DESC, "${CH} input range Rdbk")
+    field(EGU, "mVpp")
+    field(SCAN, "I/O Intr")
+}
+
+record(longout, "${PREFIX}-${DEV}:${GRP}:${CH}:DCBIAS") {
+    field(DESC, "${CH} Adjusted BIAS")
+    field(SCAN, "Passive")
+}
+
+record(longin, "${PREFIX}-${DEV}:${GRP}:${CH}:DCBIAS-RB") {
+    field(DESC, "${CH} Adjusted BIAS Rdbk")
+    field(SCAN, "I/O Intr")
+}
+
 record(waveform, "${PREFIX}-${DEV}:${GRP}:${CH}:DATA") {
     field(DESC, "Received data")
     field(FTVL, "SHORT")
     field(NELM, "30000000")
-    field(PREC, "3")
     field(SCAN, "I/O Intr")
 }
 

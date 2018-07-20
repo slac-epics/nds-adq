@@ -189,13 +189,13 @@ $(pv_value)</tooltip>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
+    <alarm_pulsing>true</alarm_pulsing>
     <auto_size>false</auto_size>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -205,7 +205,7 @@ $(pv_value)</tooltip>
     <font>
       <fontdata fontName="Cantarell" height="12" style="0" pixels="false" />
     </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <forecolor_alarm_sensitive>true</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
@@ -215,7 +215,7 @@ $(pv_value)</tooltip>
     <name>Text Update_19</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>${ADQSerialNumber}:COM:TRIGLEVEL-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:LEVELTRIGLVL-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -241,13 +241,13 @@ $(pv_value)</tooltip>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextInput" version="2.0.0">
     <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
+    <alarm_pulsing>true</alarm_pulsing>
     <auto_size>false</auto_size>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <background_color>
       <color red="215" green="215" blue="215" />
     </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -258,7 +258,7 @@ $(pv_value)</tooltip>
     <font>
       <fontdata fontName="Cantarell" height="14" style="0" pixels="false" />
     </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <forecolor_alarm_sensitive>true</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
@@ -272,7 +272,7 @@ $(pv_value)</tooltip>
     <name>Text Input_12</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>${ADQSerialNumber}:COM:TRIGLEVEL</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:LEVELTRIGLVL</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -378,13 +378,13 @@ $(pv_value)</tooltip>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
+    <alarm_pulsing>true</alarm_pulsing>
     <auto_size>false</auto_size>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -394,7 +394,7 @@ $(pv_value)</tooltip>
     <font>
       <fontdata fontName="Cantarell" height="12" style="0" pixels="false" />
     </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <forecolor_alarm_sensitive>true</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
@@ -404,7 +404,7 @@ $(pv_value)</tooltip>
     <name>Text Update_21</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>${ADQSerialNumber}:COM:TRIGCHAN-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:LEVELTRIGCHANMASK-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />
@@ -470,12 +470,12 @@ $(pv_value)</tooltip>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
+    <alarm_pulsing>true</alarm_pulsing>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <background_color>
       <color name="IO Grid" red="215" green="215" blue="215" />
     </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
     <border_color>
       <color name="IO Border" red="0" green="0" blue="0" />
     </border_color>
@@ -485,14 +485,14 @@ $(pv_value)</tooltip>
     <font>
       <fontdata fontName="Sans" height="12" style="0" pixels="false" />
     </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <forecolor_alarm_sensitive>true</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
     <height>34</height>
     <items_from_pv>true</items_from_pv>
     <name>patt_mode_1</name>
-    <pv_name>${ADQSerialNumber}:COM:TRIGCHAN</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:LEVELTRIGCHAN</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -512,12 +512,12 @@ $(pv_value)</tooltip>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
+    <alarm_pulsing>true</alarm_pulsing>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <background_color>
       <color name="IO Grid" red="215" green="215" blue="215" />
     </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
     <border_color>
       <color name="IO Border" red="0" green="0" blue="0" />
     </border_color>
@@ -527,14 +527,14 @@ $(pv_value)</tooltip>
     <font>
       <fontdata fontName="Sans" height="12" style="0" pixels="false" />
     </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <forecolor_alarm_sensitive>true</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
     <height>34</height>
     <items_from_pv>true</items_from_pv>
     <name>patt_mode_2</name>
-    <pv_name>${ADQSerialNumber}:COM:TRIGEDGE</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:LEVELTRIGEDGE</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -554,13 +554,13 @@ $(pv_value)</tooltip>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
+    <alarm_pulsing>true</alarm_pulsing>
     <auto_size>false</auto_size>
     <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
     <background_color>
       <color red="255" green="255" blue="255" />
     </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_alarm_sensitive>true</border_alarm_sensitive>
     <border_color>
       <color red="0" green="128" blue="255" />
     </border_color>
@@ -570,7 +570,7 @@ $(pv_value)</tooltip>
     <font>
       <fontdata fontName="Cantarell" height="12" style="0" pixels="false" />
     </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <forecolor_alarm_sensitive>true</forecolor_alarm_sensitive>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
@@ -580,7 +580,7 @@ $(pv_value)</tooltip>
     <name>Text Update_22</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>${ADQSerialNumber}:COM:TRIGEDGE-RB</pv_name>
+    <pv_name>${ADQSerialNumber}:COM:LEVELTRIGEDGE-RB</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />

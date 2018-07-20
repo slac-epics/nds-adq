@@ -2,6 +2,7 @@
 #define ADQAICHANNELGROUP_H
 
 #include "ADQAIChannel.h"
+#include "ADQDevice.h"
 #include "ADQDefinition.h"
 
 #include <nds3/nds.h>
@@ -22,7 +23,7 @@ typedef struct
     unsigned int reserved;
 } streamingHeader_t;
 
-class ADQAIChannelGroup
+class ADQAIChannelGroup : public ADQDevice
 {
 public:
     ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
@@ -54,11 +55,6 @@ public:
 
     void setTrigMode(const timespec& pTimestamp, const int32_t& pValue);
     void getTrigMode(timespec* pTimestamp, int32_t* pValue);
-    void setTrigFreq(const timespec& pTimestamp, const int32_t& pValue);
-    void getTrigFreq(timespec* pTimestamp, int32_t* pValue);
-
-    void setDcBias(const timespec& pTimestamp, const int32_t& pValue);
-    void getDcBias(timespec* pTimestamp, int32_t* pValue);
 
     void setDbsBypass(const timespec& pTimestamp, const int32_t& pValue);
     void getDbsBypass(timespec* pTimestamp, int32_t* pValue);
@@ -88,6 +84,17 @@ public:
     void getSamplesTotal(timespec* pTimestamp, int32_t* pValue);
     void setSampleSkip(const timespec& pTimestamp, const int32_t& pValue);
     void getSampleSkip(timespec* pTimestamp, int32_t* pValue);
+    void setSampleDec(const timespec& pTimestamp, const int32_t& pValue);
+    void getSampleDec(timespec* pTimestamp, int32_t* pValue);
+    void setPreTrigSamp(const timespec& pTimestamp, const int32_t& pValue);
+    void getPreTrigSamp(timespec* pTimestamp, int32_t* pValue);
+    void setTrigHoldOffSamp(const timespec& pTimestamp, const int32_t& pValue);
+    void getTrigHoldOffSamp(timespec* pTimestamp, int32_t* pValue);
+
+    void setClockSrc(const timespec& pTimestamp, const int32_t& pValue);
+    void getClockSrc(timespec* pTimestamp, int32_t* pValue);
+    void setClockRefOut(const timespec& pTimestamp, const int32_t& pValue);
+    void getClockRefOut(timespec* pTimestamp, int32_t* pValue);
 
     void setTimeout(const timespec& pTimestamp, const int32_t& pValue);
     void getTimeout(timespec* pTimestamp, int32_t* pValue);
@@ -95,12 +102,25 @@ public:
     void setStreamTime(const timespec& pTimestamp, const double& pValue);
     void getStreamTime(timespec* pTimestamp, double* pValue);
 
-    void setTrigLvl(const timespec& pTimestamp, const int32_t& pValue);
-    void getTrigLvl(timespec* pTimestamp, int32_t* pValue);
-    void setTrigEdge(const timespec& pTimestamp, const int32_t& pValue);
-    void getTrigEdge(timespec* pTimestamp, int32_t* pValue);
-    void setTrigChan(const timespec& pTimestamp, const int32_t& pValue);
-    void getTrigChan(timespec* pTimestamp, int32_t* pValue);
+    void setLevelTrigLvl(const timespec& pTimestamp, const int32_t& pValue);
+    void getLevelTrigLvl(timespec* pTimestamp, int32_t* pValue);
+    void setLevelTrigEdge(const timespec& pTimestamp, const int32_t& pValue);
+    void getLevelTrigEdge(timespec* pTimestamp, int32_t* pValue);
+    void setLevelTrigChan(const timespec& pTimestamp, const int32_t& pValue);
+    void getLevelTrigChan(timespec* pTimestamp, int32_t* pValue);
+    void getLevelTrigChanMask(timespec* pTimestamp, int32_t* pValue);
+    void setExternTrigDelay(const timespec& pTimestamp, const int32_t& pValue);
+    void getExternTrigDelay(timespec* pTimestamp, int32_t* pValue);
+    void setExternTrigThreshold(const timespec& pTimestamp, const double& pValue);
+    void getExternTrigThreshold(timespec* pTimestamp, double* pValue);
+    void setExternTrigEdge(const timespec& pTimestamp, const int32_t& pValue);
+    void getExternTrigEdge(timespec* pTimestamp, int32_t* pValue);
+    void setInternTrigHighSamp(const timespec& pTimestamp, const int32_t& pValue);
+    void getInternTrigHighSamp(timespec* pTimestamp, int32_t* pValue);
+    void setInternTrigLowSamp(const timespec& pTimestamp, const int32_t& pValue);
+    void getInternTrigLowSamp(timespec* pTimestamp, int32_t* pValue);
+    void setInternTrigFreq(const timespec& pTimestamp, const int32_t& pValue);
+    void getInternTrigFreq(timespec* pTimestamp, int32_t* pValue);
 
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
 
@@ -119,8 +139,6 @@ public:
 private:
     ADQInterface* m_adqInterface;
 
-    std::mutex m_adqDevMutex;  // protects adqDev library 
-
     unsigned int m_chanCnt;
     int m_adqType;
 
@@ -129,9 +147,6 @@ private:
 
     int32_t m_patternMode;
     bool m_patternModeChanged;
-
-    int32_t m_dcBias;
-    bool m_dcBiasChanged;
 
     int32_t m_dbsBypass;
     bool m_dbsBypassChanged;
@@ -153,24 +168,45 @@ private:
     int32_t m_sampleCntTotal;
     bool m_sampleSkipChanged;
     int32_t m_sampleSkip;
+    bool m_sampleDecChanged;
+    int32_t m_sampleDec;
+    bool m_preTrigSampChanged;
+    int32_t m_preTrigSamp;
+    bool m_trigHoldOffSampChanged;
+    int32_t m_trigHoldOffSamp;
 
-    int32_t m_chanActive;   // Device specific
+    bool m_clockSrcChanged;
+    int32_t m_clockSrc;
+    bool m_clockRefOutChanged;
+    int32_t m_clockRefOut;
+
+    int32_t m_chanActive;
     bool m_chanActiveChanged;
     unsigned int m_chanInt;
     int32_t m_chanMask;   // Variations: 0x1 (A), 0x2 (B), 0x4 (C), 0x8 (D), 0x3 (AB), 0xC (CD), 0xF (ABCD)
 
     int32_t m_trigMode;
     bool m_trigModeChanged;
-    int32_t m_trigLvl;
-    bool m_trigLvlChanged;
-    int32_t m_trigEdge;
-    bool m_trigEdgeChanged;
-    int32_t m_trigChan;
-    int32_t m_trigChanInt;
-    bool m_trigChanChanged;
-    int32_t m_trigFreq;
-    bool m_trigFreqChanged;
-    int32_t m_trigPeriod;
+    int32_t m_levelTrigLvl;
+    bool m_levelTrigLvlChanged;
+    int32_t m_levelTrigEdge;
+    bool m_levelTrigEdgeChanged;
+    int32_t m_levelTrigChan;
+    int32_t m_levelTrigChanMask;
+    bool m_levelTrigChanChanged;
+    int32_t m_externTrigDelay;
+    bool m_externTrigDelayChanged;
+    double m_externTrigThreshold;
+    bool m_externTrigThresholdChanged;
+    int32_t m_externTrigEdge;
+    bool m_externTrigEdgeChanged;
+    int32_t m_internTrigHighSamp;
+    bool m_internTrigHighSampChanged;
+    int32_t m_internTrigLowSamp;
+    bool m_internTrigLowSampChanged;
+    int32_t m_internTrigFreq;
+    bool m_internTrigFreqChanged;
+    int32_t m_internTrigPeriod;
 
     int32_t m_overVoltProtect;
     bool m_overVoltProtectChanged;
@@ -188,7 +224,6 @@ private:
     nds::PVDelegateIn<int32_t> m_patternModePV;
     nds::PVDelegateIn<int32_t> m_chanActivePV;
     nds::PVDelegateIn<int32_t> m_chanMaskPV;
-    nds::PVDelegateIn<int32_t> m_dcBiasPV;
     nds::PVDelegateIn<int32_t> m_dbsBypassPV;
     nds::PVDelegateIn<int32_t> m_dbsDcPV;
     nds::PVDelegateIn<int32_t> m_dbsLowSatPV;
@@ -199,22 +234,33 @@ private:
     nds::PVDelegateIn<int32_t> m_sampleCntMaxPV;
     nds::PVDelegateIn<int32_t> m_sampleCntTotalPV;
     nds::PVDelegateIn<int32_t> m_sampleSkipPV;
+    nds::PVDelegateIn<int32_t> m_sampleDecPV;
+    nds::PVDelegateIn<int32_t> m_preTrigSampPV;
+    nds::PVDelegateIn<int32_t> m_trigHoldOffSampPV;
+    nds::PVDelegateIn<int32_t> m_clockSrcPV;
+    nds::PVDelegateIn<int32_t> m_clockRefOutPV;
     nds::PVDelegateIn<int32_t> m_trigModePV;
-    nds::PVDelegateIn<int32_t> m_trigFreqPV;
-    nds::PVDelegateIn<int32_t> m_trigLvlPV;
-    nds::PVDelegateIn<int32_t> m_trigEdgePV;
-    nds::PVDelegateIn<int32_t> m_trigChanPV;
+    nds::PVDelegateIn<int32_t> m_levelTrigLvlPV;
+    nds::PVDelegateIn<int32_t> m_levelTrigEdgePV;
+    nds::PVDelegateIn<int32_t> m_levelTrigChanPV;
+    nds::PVDelegateIn<int32_t> m_levelTrigChanMaskPV;
+    nds::PVDelegateIn<int32_t> m_externTrigDelayPV;
+    nds::PVDelegateIn<double> m_externTrigThresholdPV;
+    nds::PVDelegateIn<int32_t> m_externTrigEdgePV;
+    nds::PVDelegateIn<int32_t> m_internTrigHighSampPV;
+    nds::PVDelegateIn<int32_t> m_internTrigLowSampPV;
+    nds::PVDelegateIn<int32_t> m_internTrigFreqPV;
     nds::PVDelegateIn<int32_t> m_timeoutPV;
     nds::PVDelegateIn<double> m_streamTimePV;
 
     nds::Thread m_daqThread;
     bool m_stopDaq;
 
-    short* m_rawDaqBuffer;
-    short* m_daqBuffers[CHANNEL_COUNT_MAX];
-    unsigned char* m_daqHeaders[CHANNEL_COUNT_MAX];
+    short* m_daqRawDataBuffer;
+    short* m_daqDataBuffer[CHANNEL_COUNT_MAX];
+    unsigned char* m_daqRecordHeaders[CHANNEL_COUNT_MAX];
     streamingHeader_t* m_daqStreamHeaders[CHANNEL_COUNT_MAX];
-    short* m_daqExtra[CHANNEL_COUNT_MAX];
+    short* m_daqLeftoverSamples[CHANNEL_COUNT_MAX];
 };
 
 #endif /* ADQAICHANNELGROUP_H */
