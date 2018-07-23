@@ -18,12 +18,9 @@
 ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
     m_node(deviceName)
 {
-    UNUSED(parameters);
-
     unsigned int status;
     struct ADQInfoListEntry* adqInfoStruct;
     unsigned int adqDevList = 0;
-    char adqSnReqRaw[6];
     std::ostringstream adqSnTmp;
     bool adqReqFound = 0;
 
@@ -59,14 +56,11 @@ ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds
             throw nds::NdsError("No ADQ devices found.");
         }
 
-        // Before continuing it is needed to ask for a specified ADQ serial number of the device to connect to it
-        std::cout << "Enter device Serial Number (e.g. 06215, 06302):" << std::endl;
-        std::cin >> adqSnReqRaw;
-        adqSnTmp << "SPD-" << adqSnReqRaw;
-        std::string adqSnReq(adqSnTmp.str());
-
         /* This block searches a device with a requested serial number
          */
+        std::ostringstream adqSnTmp;
+        adqSnTmp << "SPD-" << parameters.at("ADQSN");
+        std::string adqSnReq(adqSnTmp.str());
         for (unsigned int adqDevListNum = 0; adqDevListNum < adqDevList; ++adqDevListNum)
         {
             // Opens communication channel to a certain ADQ device
@@ -91,7 +85,6 @@ ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds
             if (adqSnReq == adqSnRdbk)
             {
                 adqReqFound = true;
-                std::cout << "Requested ADQ device is found; Serial Number: " << adqSnRdbk << std::endl;
                 break;
             }
         }   // Requested serial number
@@ -108,7 +101,7 @@ ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds
             throw nds::NdsError("Device didn't start normally (IsStartedOK).");
         }
 
-        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(adqSnReqRaw, m_node, m_adqInterface);
+        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(parameters.at("ADQSN"), m_node, m_adqInterface);
         m_adqChanGrpPtr.push_back(adqChanGrp);
         
         // Initialize requested device after declaration of all its PVs
@@ -135,6 +128,7 @@ ADQInit::~ADQInit()
     ndsInfoStream(m_node) << "ADQ Device class was destructed." << std::endl;
 }
 
-// The following MACRO defines the function to be exported in order
-// to allow the dynamic loading of the shared module
-NDS_DEFINE_DRIVER(adq, ADQInit)
+/* This macro defines the driver name and the name of the class that implements the driver.
+ * Name is provided by the shared module for other NDS3 functions (e.g. ndsCreateDevice).
+ */
+NDS_DEFINE_DRIVER(tspd_adq, ADQInit)

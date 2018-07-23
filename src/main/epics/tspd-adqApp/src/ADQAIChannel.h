@@ -21,7 +21,7 @@ public:
     void readData(short* rawData, int32_t sampleCnt);
     void getDataPV(timespec* pTimestamp, std::vector<int32_t>* pValue);
 
-    void commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface);
+    void commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> m_logMsgPV);
 
 private:
     nds::Node m_node;

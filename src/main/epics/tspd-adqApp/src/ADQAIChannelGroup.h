@@ -102,6 +102,8 @@ public:
     void setStreamTime(const timespec& pTimestamp, const double& pValue);
     void getStreamTime(timespec* pTimestamp, double* pValue);
 
+    void setSWTrigEdge(const timespec& pTimestamp, const int32_t& pValue);
+    void getSWTrigEdge(timespec* pTimestamp, int32_t* pValue);
     void setLevelTrigLvl(const timespec& pTimestamp, const int32_t& pValue);
     void getLevelTrigLvl(timespec* pTimestamp, int32_t* pValue);
     void setLevelTrigEdge(const timespec& pTimestamp, const int32_t& pValue);
@@ -121,6 +123,8 @@ public:
     void getInternTrigLowSamp(timespec* pTimestamp, int32_t* pValue);
     void setInternTrigFreq(const timespec& pTimestamp, const int32_t& pValue);
     void getInternTrigFreq(timespec* pTimestamp, int32_t* pValue);
+    void setInternTrigEdge(const timespec& pTimestamp, const int32_t& pValue);
+    void getInternTrigEdge(timespec* pTimestamp, int32_t* pValue);
 
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
 
@@ -187,6 +191,8 @@ private:
 
     int32_t m_trigMode;
     bool m_trigModeChanged;
+    int32_t m_swTrigEdge;
+    bool m_swTrigEdgeChanged;
     int32_t m_levelTrigLvl;
     bool m_levelTrigLvlChanged;
     int32_t m_levelTrigEdge;
@@ -207,6 +213,8 @@ private:
     int32_t m_internTrigFreq;
     bool m_internTrigFreqChanged;
     int32_t m_internTrigPeriod;
+    int32_t m_internTrigEdge;
+    bool m_internTrigEdgeChanged;
 
     int32_t m_overVoltProtect;
     bool m_overVoltProtectChanged;
@@ -240,6 +248,7 @@ private:
     nds::PVDelegateIn<int32_t> m_clockSrcPV;
     nds::PVDelegateIn<int32_t> m_clockRefOutPV;
     nds::PVDelegateIn<int32_t> m_trigModePV;
+    nds::PVDelegateIn<int32_t> m_swTrigEdgePV;
     nds::PVDelegateIn<int32_t> m_levelTrigLvlPV;
     nds::PVDelegateIn<int32_t> m_levelTrigEdgePV;
     nds::PVDelegateIn<int32_t> m_levelTrigChanPV;
@@ -250,6 +259,7 @@ private:
     nds::PVDelegateIn<int32_t> m_internTrigHighSampPV;
     nds::PVDelegateIn<int32_t> m_internTrigLowSampPV;
     nds::PVDelegateIn<int32_t> m_internTrigFreqPV;
+    nds::PVDelegateIn<int32_t> m_internTrigEdgePV;
     nds::PVDelegateIn<int32_t> m_timeoutPV;
     nds::PVDelegateIn<double> m_streamTimePV;
 

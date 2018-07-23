@@ -87,11 +87,13 @@ void ADQAIChannel::getDcBias(timespec* pTimestamp, int32_t* pValue)
 /* This function updates readback PVs according to changed each channel's parameter
  * and applies them to the device with ADQAPI functions.
  */
-void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface)
+void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> m_logMsgPV)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
     unsigned int status = 0;
+
+    std::ostringstream textTmp;
 
     if (!calledFromDaqThread &&
         (m_stateMachine.getLocalState() != nds::state_t::on && m_stateMachine.getLocalState() != nds::state_t::stopping &&
@@ -116,7 +118,11 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
                 if (m_inputRange <= 0)
                 {
                     m_inputRange = 500;
-                    ndsInfoStream(m_node) << "INFO: Input range is set to 0.5 Vpp by default, CH" << m_channelNum << std::endl;
+
+                    textTmp << "INFO: Input range is set to 0.5 Vpp by default, CH" << m_channelNum;
+                    std::string textForPV(textTmp.str());
+                    ADQNDS_MSG_INFOLOG_PV(textForPV);
+                    //ndsInfoStream(m_node) << "INFO: Input range is set to 0.5 Vpp by default, CH" << m_channelNum << std::endl;
                 }
 
                 if ((m_inputRange > 0) || (m_inputRange < 0.5))
@@ -137,12 +143,20 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
                 }
                 else
                 {
-                    ndsWarningStream(m_node) << "WARNING: SetInputRange failed, CH" << m_channelNum << std::endl;
+                    //ndsWarningStream(m_node) << "WARNING: SetInputRange failed, CH" << m_channelNum << std::endl;
+
+                    textTmp << "WARNING: SetInputRange failed, CH" << m_channelNum;
+                    std::string textForPV(textTmp.str());
+                    ADQNDS_MSG_WARNLOG_PV(status, textForPV);
                 }
             }
             else
             {
-                ndsWarningStream(m_node) << "WARNING: Device doesn't support adjustable input range." << std::endl;
+                //ndsWarningStream(m_node) << "WARNING: Device doesn't support adjustable input range." << std::endl;
+
+                textTmp << "WARNING: Device doesn't support adjustable input range, CH" << m_channelNum;
+                std::string textForPV(textTmp.str());
+                ADQNDS_MSG_WARNLOG_PV(status, textForPV);
             }
         }
     }
@@ -158,7 +172,11 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
 
             if (!status)
             {
-                ndsWarningStream(m_node) << "WARNING: SetAdjustableBias failed on CH" << m_channelNum << std::endl;
+                //ndsWarningStream(m_node) << "WARNING: SetAdjustableBias failed on CH" << m_channelNum << std::endl;
+
+                textTmp << "WARNING: SetAdjustableBias failed on CH" << m_channelNum;
+                std::string textForPV(textTmp.str());
+                ADQNDS_MSG_WARNLOG_PV(status, textForPV);
             }
             else
             {
@@ -170,7 +188,11 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
         }
         else
         {
-            ndsInfoStream(m_node) << "INFO: Device doesn't support adjustable bias." << std::endl;
+            //ndsInfoStream(m_node) << "INFO: Device doesn't support adjustable bias." << std::endl;
+            
+            textTmp << "INFO: Device doesn't support adjustable bias, CH" << m_channelNum;
+            std::string textForPV(textTmp.str());
+            ADQNDS_MSG_INFOLOG_PV(textForPV);
         }
     }
 }

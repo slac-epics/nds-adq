@@ -17,16 +17,15 @@ public:
     ~ADQInit();
 
 private:
-    // ADQ device interface
+    nds::Node m_node;
+    // Pointer to ADQ device interface
     ADQInterface* m_adqInterface;
 
     // ADQ Control Unit
     void* m_adqCtrlUnit;
 
-    // Pointers to Group channel class
+    // Vector of pointers to Group channel class
     std::vector<std::shared_ptr<ADQAIChannelGroup>> m_adqChanGrpPtr;
-
-    nds::Node m_node;
 };
 
 #endif /* ADQINIT_H */

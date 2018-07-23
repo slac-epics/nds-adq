@@ -15,7 +15,7 @@
     <color name="IO Grid" red="215" green="215" blue="215" />
   </foreground_color>
   <grid_space>1</grid_space>
-  <height>900</height>
+  <height>960</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
   </macros>
@@ -28,7 +28,7 @@
   <show_ruler>true</show_ruler>
   <snap_to_geometry>true</snap_to_geometry>
   <widget_type>Display</widget_type>
-  <width>1870</width>
+  <width>1860</width>
   <wuid>-14a921ec:134b2495e46:-7f53</wuid>
   <x>0</x>
   <y>0</y>
@@ -63,7 +63,7 @@
       <color red="255" green="0" blue="0" />
     </foreground_color>
     <gradient>false</gradient>
-    <height>859</height>
+    <height>931</height>
     <horizontal_fill>true</horizontal_fill>
     <line_color>
       <color red="128" green="0" blue="255" />
@@ -224,7 +224,7 @@ $(pv_value)</tooltip>
       <color name="IO Foreground" red="0" green="0" blue="0" />
     </foreground_color>
     <group_name></group_name>
-    <height>600</height>
+    <height>672</height>
     <macros>
       <include_parent_macros>true</include_parent_macros>
     </macros>
@@ -2234,7 +2234,7 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>34</height>
+    <height>38</height>
     <items_from_pv>true</items_from_pv>
     <name>daq_mode</name>
     <pv_name>${ADQSerialNumber}:COM:DAQMODE</pv_name>
@@ -2289,7 +2289,7 @@ $(pv_value)</tooltip>
           <value>adqdeviceDAQ_IntTrig.opi</value>
         </exp>
         <exp bool_exp="pv0 == 0">
-          <value></value>
+          <value>adqdeviceDAQ_SWTrig.opi</value>
         </exp>
         <exp bool_exp="pv0 == 1">
           <value>adqdeviceDAQ_ExtTrig.opi</value>
@@ -2309,7 +2309,7 @@ $(pv_value)</tooltip>
     <width>1</width>
     <wuid>-7c6ac6a0:163723e06aa:7d3</wuid>
     <x>32</x>
-    <y>590</y>
+    <y>633</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -3123,7 +3123,7 @@ $(pv_value)</tooltip>
     <width>517</width>
     <wuid>-7709521f:164b26dd63e:-7f3f</wuid>
     <x>33</x>
-    <y>747</y>
+    <y>831</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.TextUpdate" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -3153,7 +3153,7 @@ $(pv_value)</tooltip>
     <name>Text Update_28</name>
     <precision>0</precision>
     <precision_from_pv>true</precision_from_pv>
-    <pv_name>${ADQSerialNumber}:INFO:SAMPRATE</pv_name>
+    <pv_name>${ADQSerialNumber}:INFO:SAMPRATEDEC</pv_name>
     <pv_value />
     <rotation_angle>0.0</rotation_angle>
     <rules />

@@ -39,8 +39,6 @@ ADQDevice::ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterfac
                                                                   std::placeholders::_2))),
     m_sampRatePV(nds::PVDelegateIn<double>("SampRate", std::bind(&ADQDevice::getSampRate, this, std::placeholders::_1,
                                                                  std::placeholders::_2))),
-    m_sampRateDecPV(nds::PVDelegateIn<double>("SampRateDec", std::bind(&ADQDevice::getSampRate, this,
-                                                                       std::placeholders::_1, std::placeholders::_2))),
     m_bytesPerSampPV(nds::PVDelegateIn<int32_t>("BytesPerSample", std::bind(&ADQDevice::getBytesPerSample, this,
                                                                             std::placeholders::_1, std::placeholders::_2))),
     m_busTypePV(nds::PVDelegateIn<int32_t>("BusType", std::bind(&ADQDevice::getBusType, this, std::placeholders::_1,
@@ -50,7 +48,9 @@ ADQDevice::ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterfac
     m_pcieLinkRatePV(nds::PVDelegateIn<int32_t>("PCIeLinkRate", std::bind(&ADQDevice::getPCIeLinkRate, this,
                                                                           std::placeholders::_1, std::placeholders::_2))),
     m_pcieLinkWidPV(nds::PVDelegateIn<int32_t>("PCIeLinkWid", std::bind(&ADQDevice::getPCIeLinkWid, this,
-                                                                        std::placeholders::_1, std::placeholders::_2)))
+                                                                        std::placeholders::_1, std::placeholders::_2))),
+    m_sampRateDecPV(nds::PVDelegateIn<double>("SampRateDec", std::bind(&ADQDevice::getSampRateDec, this,
+                                                                       std::placeholders::_1, std::placeholders::_2)))
 {
     parentNode.addChild(m_node);
 
@@ -104,8 +104,7 @@ ADQDevice::ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterfac
     m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_sampRatePV);
 
-    m_sampRateDecPV.setScanType(nds::scanType_t::periodic, 1);
-    m_sampRateDecPV.processAtInit(PINI);
+    m_sampRateDecPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_sampRateDecPV);
 
     // PV for number of bytes per sample
@@ -212,11 +211,10 @@ void ADQDevice::getSampRate(timespec* pTimestamp, double* pValue)
 
 void ADQDevice::getSampRateDec(timespec* pTimestamp, double* pValue)
 {
-    std::lock_guard<std::mutex> lock(m_adqDevMutex);
-    double sampRate = 0;
-    m_adqInterface->GetSampleRate(1, &sampRate);
-    *pValue = sampRate;
-    *pTimestamp = m_sampRatePV.getTimestamp();
+    double sampRateDec = 0;
+    m_adqInterface->GetSampleRate(1, &sampRateDec);
+    *pValue = sampRateDec;
+    *pTimestamp = m_sampRateDecPV.getTimestamp();
 }
 
 void ADQDevice::getBytesPerSample(timespec* pTimestamp, int32_t* pValue)

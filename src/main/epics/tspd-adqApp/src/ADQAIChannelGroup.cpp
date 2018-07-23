@@ -42,6 +42,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_clockSrcPV(createPvRb<int32_t>("ClockSrc-RB", &ADQAIChannelGroup::getClockSrc)),
     m_clockRefOutPV(createPvRb<int32_t>("ClockRefOut-RB", &ADQAIChannelGroup::getClockRefOut)),
     m_trigModePV(createPvRb<int32_t>("TrigMode-RB", &ADQAIChannelGroup::getTrigMode)),
+    m_swTrigEdgePV(createPvRb<int32_t>("SWTrigEdge-RB", &ADQAIChannelGroup::getSWTrigEdge)),
     m_levelTrigLvlPV(createPvRb<int32_t>("LevelTrigLvl-RB", &ADQAIChannelGroup::getLevelTrigLvl)),
     m_levelTrigEdgePV(createPvRb<int32_t>("LevelTrigEdge-RB", &ADQAIChannelGroup::getLevelTrigEdge)),
     m_levelTrigChanPV(createPvRb<int32_t>("LevelTrigChan-RB", &ADQAIChannelGroup::getLevelTrigChan)),
@@ -52,6 +53,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_internTrigHighSampPV(createPvRb<int32_t>("InternTrigHighSamp-RB", &ADQAIChannelGroup::getInternTrigHighSamp)),
     m_internTrigLowSampPV(createPvRb<int32_t>("InternTrigLowSamp-RB", &ADQAIChannelGroup::getInternTrigLowSamp)),
     m_internTrigFreqPV(createPvRb<int32_t>("InternTrigFreq-RB", &ADQAIChannelGroup::getInternTrigFreq)),
+    m_internTrigEdgePV(createPvRb<int32_t>("InternTrigEdge-RB", &ADQAIChannelGroup::getInternTrigEdge)),
     m_timeoutPV(createPvRb<int32_t>("Timeout-RB", &ADQAIChannelGroup::getTimeout)),
     m_streamTimePV(createPvRb<double>("StreamTime-RB", &ADQAIChannelGroup::getStreamTime))
 {
@@ -146,6 +148,9 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_levelTrigChanMaskPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_levelTrigChanMaskPV);
 
+    // PV for SW trigger edge
+    createPvEnum<int32_t>("SWTrigEdge", m_swTrigEdgePV, triggerEdgeList, &ADQAIChannelGroup::setSWTrigEdge, &ADQAIChannelGroup::getSWTrigEdge);
+
     // PV for external trigger delay
     createPv<int32_t>("ExternTrigDelay", m_externTrigDelayPV, &ADQAIChannelGroup::setExternTrigDelay, &ADQAIChannelGroup::getExternTrigDelay);
 
@@ -161,9 +166,12 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     // PV for internal trigger low samples length
     createPv<int32_t>("InternTrigLowSamp", m_internTrigLowSampPV, &ADQAIChannelGroup::setInternTrigLowSamp, &ADQAIChannelGroup::getInternTrigLowSamp);
 
-    // PV for trigger frequence
+    // PV for trigger frequency
     createPv<int32_t>("InternTrigFreq", m_internTrigFreqPV, &ADQAIChannelGroup::setInternTrigFreq, &ADQAIChannelGroup::getInternTrigFreq);
-
+    
+    // PV for internal trigger edge
+    createPvEnum<int32_t>("InternTrigEdge", m_internTrigEdgePV, triggerEdgeList, &ADQAIChannelGroup::setInternTrigEdge, &ADQAIChannelGroup::getInternTrigEdge);
+    
     // PV for flush timeout
     createPv<int32_t>("Timeout", m_timeoutPV, &ADQAIChannelGroup::setTimeout, &ADQAIChannelGroup::getTimeout);
 
@@ -490,6 +498,20 @@ void ADQAIChannelGroup::getTrigMode(timespec* pTimestamp, int32_t* pValue)
     *pTimestamp = m_trigModePV.getTimestamp();
 }
 
+void ADQAIChannelGroup::setSWTrigEdge(const timespec& pTimestamp, const int32_t& pValue)
+{
+    m_swTrigEdge = pValue;
+    m_swTrigEdgePV.getTimestamp() = pTimestamp;
+    m_swTrigEdgeChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getSWTrigEdge(timespec* pTimestamp, int32_t* pValue)
+{
+    *pValue = m_swTrigEdge;
+    *pTimestamp = m_swTrigEdgePV.getTimestamp();
+}
+
 void ADQAIChannelGroup::setLevelTrigLvl(const timespec& pTimestamp, const int32_t& pValue)
 {
     m_levelTrigLvl = pValue;
@@ -616,6 +638,20 @@ void ADQAIChannelGroup::setInternTrigFreq(const timespec& pTimestamp, const int3
     commitChanges();
 }
 
+void ADQAIChannelGroup::setInternTrigEdge(const timespec& pTimestamp, const int32_t& pValue)
+{
+    m_internTrigEdge = pValue;
+    m_internTrigEdgePV.getTimestamp() = pTimestamp;
+    m_internTrigEdgeChanged = true;
+    commitChanges();
+}
+
+void ADQAIChannelGroup::getInternTrigEdge(timespec* pTimestamp, int32_t* pValue)
+{
+    *pValue = m_internTrigEdge;
+    *pTimestamp = m_internTrigEdgePV.getTimestamp();
+}
+
 void ADQAIChannelGroup::getInternTrigFreq(timespec* pTimestamp, int32_t* pValue)
 {
     *pValue = m_internTrigFreq;
@@ -684,6 +720,8 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             }
         }
         m_daqModePV.push(now, m_daqMode);
+
+        // Trigger sample and records numbers to update
         m_recordCntChanged = true;
         m_sampleCntChanged = true;
     }
@@ -711,6 +749,23 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             m_trigMode = m_adqInterface->GetTriggerMode();
             m_trigMode -= 1;
             m_trigModePV.push(now, m_trigMode);
+        }
+
+        // Trigger a particular trigger edge to update
+        switch (m_trigMode)
+        {
+        case 0:
+            m_swTrigEdgeChanged = true;
+            break;
+        case 1:
+            m_externTrigEdgeChanged = true;
+            break;
+        case 2:
+            m_levelTrigEdgeChanged = true;
+            break;
+        case 3:
+            m_internTrigEdgeChanged = true;
+            break;
         }
     }
 
@@ -973,10 +1028,10 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_sampleSkipChanged = false;
         std::string adqOption = m_adqInterface->GetCardOption();
 
-        if (m_sampleSkip <= 1)
+        if (m_sampleSkip < 1)
         {
-            m_sampleSkip = 2;
-            ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be less than 2 -> changed to 2.");
+            m_sampleSkip = 1;
+            ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be less than 1 -> changed to 1.");
         }
 
         if (m_sampleSkip > 65536)
@@ -1014,6 +1069,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
         m_sampleSkip = m_adqInterface->GetSampleSkip();
         m_sampleSkipPV.push(now, m_sampleSkip);
+
+        // Trigger sample rate with decimation to update
+        double tmp = 0;
+        m_sampRateDecPV.read(&now, &tmp);
+        m_sampRateDecPV.push(now, tmp);
     }
 
     if (m_sampleDecChanged)
@@ -1038,6 +1098,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             m_sampleDec = m_adqInterface->GetSampleDecimation();
             m_sampleSkipPV.push(now, m_sampleDec);
+            
+            // Trigger sample rate with decimation to update
+            double tmp = 0;
+            m_sampRateDecPV.read(&now, &tmp);
+            m_sampRateDecPV.push(now, tmp);
         }
         else
         {
@@ -1094,6 +1159,29 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         }
     }
 
+    if (m_trigMode == 0) // SW trigger
+    {
+        if (m_swTrigEdgeChanged)
+        {
+            m_swTrigEdgeChanged = false;
+
+            status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_swTrigEdge);
+            ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetTriggerEdge failed.");
+
+            if (status)
+            {
+                unsigned int trigEdge = 0;
+                status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
+                ADQNDS_MSG_WARNLOG_PV(status, "ERROR: GetTriggerEdge failed.");
+                if (status)
+                {
+                    m_swTrigEdge = trigEdge;
+                    m_swTrigEdgePV.push(now, m_swTrigEdge);
+                }
+            }
+        }
+    }
+
     if (m_trigMode == 1)   // External trigger
     {
         if (m_externTrigDelayChanged)
@@ -1105,7 +1193,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 if (m_externTrigDelay > 37)
                     m_externTrigDelay = 37;
 
-                ADQNDS_MSG_INFOLOG_PV("INFO: For ADQ14 valid range is [0, 37].");
+                ADQNDS_MSG_INFOLOG_PV("INFO: Trigger delay: for ADQ14 valid range is [0, 37].");
             }
 
             if (m_adqType == 7)
@@ -1115,7 +1203,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 if (m_externTrigDelay > 63)
                     m_externTrigDelay = 63;
 
-                ADQNDS_MSG_INFOLOG_PV("INFO: For ADQ7 valid range is [1, 63].");
+                ADQNDS_MSG_INFOLOG_PV("INFO: Trigger delay: for ADQ7 valid range is [1, 63].");
             }
 
             status = m_adqInterface->SetExternalTriggerDelay(m_externTrigDelay);
@@ -1149,13 +1237,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         {
             m_externTrigEdgeChanged = false;
 
-            status = m_adqInterface->SetTriggerEdge(m_trigMode+1, m_externTrigEdge);
+            status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_externTrigEdge);
             ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetTriggerEdge failed.");
 
             if (status)
             {
                 unsigned int trigEdge = 0;
-                status = m_adqInterface->GetTriggerEdge(m_trigMode+1, &trigEdge);
+                status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
                 ADQNDS_MSG_WARNLOG_PV(status, "ERROR: GetTriggerEdge failed.");
                 if (status)
                 {
@@ -1379,6 +1467,26 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             m_internTrigFreqPV.push(now, m_internTrigFreq);
         }
+
+        if (m_internTrigEdgeChanged)
+        {
+            m_internTrigEdgeChanged = false;
+
+            status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_internTrigEdge);
+            ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetTriggerEdge failed.");
+
+            if (status)
+            {
+                unsigned int trigEdge = 0;
+                status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
+                ADQNDS_MSG_WARNLOG_PV(status, "ERROR: GetTriggerEdge failed.");
+                if (status)
+                {
+                    m_internTrigEdge = trigEdge;
+                    m_internTrigEdgePV.push(now, m_internTrigEdge);
+                }
+            }
+        }
     }
 
     if (m_timeoutChanged)
@@ -1392,6 +1500,12 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
         m_timeoutPV.push(now, m_timeout);
     }
+
+    // Check changes on channels
+    for (auto const& channel : m_AIChannelsPtr)
+    {
+        channel->commitChanges(true, m_adqInterface, m_logMsgPV);
+    }
 }
 
 /* Sets the device and its channels to state ON. Allows to apply changes to PVs.
@@ -1403,8 +1517,9 @@ void ADQAIChannelGroup::onSwitchOn()
     // Enable all channels
     for (auto const& channel : m_AIChannelsPtr)
     {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         channel->setState(nds::state_t::on);
-        channel->commitChanges(true, m_adqInterface);
+        channel->commitChanges(true, m_adqInterface, m_logMsgPV);
     }
 }
 
@@ -1428,8 +1543,9 @@ void ADQAIChannelGroup::onStart()
 {
     for (auto const& channel : m_AIChannelsPtr)
     {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         channel->setState(nds::state_t::running);
-        channel->commitChanges(true, m_adqInterface);
+        channel->commitChanges(true, m_adqInterface, m_logMsgPV);
     }
 
     m_stopDaq = false;

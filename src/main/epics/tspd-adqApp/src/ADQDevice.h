@@ -33,9 +33,6 @@ public:
     void getPCIeLinkRate(timespec* pTimestamp, int32_t* pValue);
     void getPCIeLinkWid(timespec* pTimestamp, int32_t* pValue);
 
-protected:
-    std::mutex m_adqDevMutex;  // protects adqDev library
-
 private:
     ADQInterface* m_adqInterface;
 
@@ -51,12 +48,17 @@ private:
     nds::PVDelegateIn<int32_t> m_tempFpgaPV;
     nds::PVDelegateIn<int32_t> m_tempDiodPV;
     nds::PVDelegateIn<double> m_sampRatePV;
-    nds::PVDelegateIn<double> m_sampRateDecPV;
+    //nds::PVDelegateIn<double> m_sampRateDecPV;
     nds::PVDelegateIn<int32_t> m_bytesPerSampPV;
     nds::PVDelegateIn<int32_t> m_busTypePV;
     nds::PVDelegateIn<int32_t> m_busAddrPV;
     nds::PVDelegateIn<int32_t> m_pcieLinkRatePV;
     nds::PVDelegateIn<int32_t> m_pcieLinkWidPV;
+
+protected:
+    std::mutex m_adqDevMutex;  // protects adqDev library
+
+    nds::PVDelegateIn<double> m_sampRateDecPV;
 };
 
 #endif /* ADQDEVICE_H */
