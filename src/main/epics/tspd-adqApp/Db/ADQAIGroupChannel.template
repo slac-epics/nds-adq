@@ -1,6 +1,10 @@
 # # # # # # # # # # # # # # # # # # # # # #
+#        ADQAIGroupChannel class          #
+# # # # # # # # # # # # # # # # # # # # # #
+
+# # # # # # # # # # # # # # # # # # # # # #
 #                                         #
-#    ADQSNice settings for Channel Group    #
+#         Parameters for DAQ modes        #
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
@@ -139,7 +143,6 @@ record(longout, "${PREFIX}-${ADQSN}:${GRP}:DBSUPSAT") {
 record(longin, "${PREFIX}-${ADQSN}:${GRP}:DBSUPSAT-RB") {
     field(DESC, "DBS settings Rdbk")
     field(SCAN, "I/O Intr")
-    field(PINI, "YES")
 }
 
 record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:PATTERNMODE") {
@@ -385,12 +388,14 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGDELAY-RB") {
 
 record(ao, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGTHRESHOLD") {
     field(DESC, "External Trigger threshold")
+    field(EGU, "V")
     field(PREC, "3")
     field(SCAN, "Passive")
 }
 
 record(ai, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGTHRESHOLD-RB") {
     field(DESC, "External Trigger threshold Rdbk")
+    field(EGU, "V")
     field(PREC, "3")
     field(SCAN, "I/O Intr")
 }
@@ -473,23 +478,27 @@ record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:INTERNTRIGEDGE-RB") {
 
 record(longout, "${PREFIX}-${ADQSN}:${GRP}:TIMEOUT") {
     field(DESC, "Timeout")
+    field(EGU, "ms")
     field(SCAN, "Passive")
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${GRP}:TIMEOUT-RB") {
     field(DESC, "Timeout Rdbk")
+    field(EGU, "ms")
     field(SCAN, "I/O Intr")
 }
 
 record(ao, "${PREFIX}-${ADQSN}:${GRP}:STREAMTIME") {
     field(DESC, "Streaming time")
     field(SCAN, "Passive")
+    field(EGU, "s")
     field(PREC, "3")
 }
 
 record(ai, "${PREFIX}-${ADQSN}:${GRP}:STREAMTIME-RB") {
     field(DESC, "Streaming time Rdbk")
     field(SCAN, "I/O Intr")
+    field(EGU, "s")
     field(PREC, "3")
 }
 

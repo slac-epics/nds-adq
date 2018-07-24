@@ -1,4 +1,4 @@
-#ifndef ADQAICHANNELGROUP_H
+﻿#ifndef ADQAICHANNELGROUP_H
 #define ADQAICHANNELGROUP_H
 
 #include "ADQAIChannel.h"
@@ -8,6 +8,8 @@
 #include <nds3/nds.h>
 #include <mutex>
 
+/*! @brief This structure is used by Triggered streaming DAQ mode.
+ */
 typedef struct
 {
     unsigned char recordStatus;
@@ -23,6 +25,16 @@ typedef struct
     unsigned int reserved;
 } streamingHeader_t;
 
+/*! @brief This class handles majority of parameters for correct setup of each data acquisition mode.
+ *
+ * Data acquisition is handled in this class. The state machine of the device is defined here.
+ * Each digitizer's channel gets a representation by calling ADQCHannel constructor for N amount of physical channels.
+ * 
+ * @param name a name with which this class will register its child node.
+ * @param parentNode a name of a parent node to which this class' node is a child.
+ * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+ * @sa ADQInit(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters)
+ */
 class ADQAIChannelGroup : public ADQDevice
 {
 public:
@@ -34,19 +46,22 @@ public:
 
     std::vector<std::shared_ptr<ADQAIChannel>> m_AIChannelsPtr;
 
-    // This function creates the most common type of PV and sets it readback PV to interrupt mode
+    /*! @brief This function creates the most common type of PV and sets it readback PV to interrupt mode.
+    */
     template <typename T>
     void createPv(const std::string& name, nds::PVDelegateIn<T>& pvRb,
                   std::function<void(ADQAIChannelGroup*, const timespec&, const T&)> setter,
                   std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter);
 
-    // This function creates the Enumeration type of PV and sets it readback PV to interrupt mode
+    /*! @brief This function creates the Enumeration type of PV and sets it readback PV to interrupt mode.
+    */
     template <typename T>
     void createPvEnum(const std::string& name, nds::PVDelegateIn<T>& pvRb, nds::enumerationStrings_t enumList,
                       std::function<void(ADQAIChannelGroup*, const timespec&, const T&)> setter,
                       std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter);
 
-    // This function creates and returns the readback PV
+    /*! @brief This function creates and returns the readback PV.
+    */
     template <typename T>
     nds::PVDelegateIn<T> createPvRb(const std::string& name, std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter);
 
@@ -135,9 +150,20 @@ public:
     void recover();
     bool allowChange(const nds::state_t currentLocal, const nds::state_t currentGlobal, const nds::state_t nextLocal);
 
+    /*! @brief This method processes Triggered streaming data acquisition.
+    */
     void daqTrigStream();
+
+    /*! @brief This method processes Multi-Record data acquisition.
+    */
     void daqMultiRecord();
+
+    /*! @brief This method processes Continuous streaming data acquisition.
+    */
     void daqContinStream();
+
+    /*! @brief This method processes Raw streaming data acquisition.
+    */
     void daqRawStream();
 
 private:
@@ -225,6 +251,8 @@ private:
     bool m_streamTimeChanged;
     double m_streamTime;
 
+    /*! @brief This method processes changes applied to channel specific parameters.
+    */
     void commitChanges(bool calledFromDaqThread = false);
 
     nds::PVDelegateIn<std::string> m_logMsgPV;

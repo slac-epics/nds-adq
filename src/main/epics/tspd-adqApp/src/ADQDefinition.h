@@ -24,17 +24,17 @@
 #define GROUP_CHAN_DEVICE ":COM"
 #define INFO_DEVICE ":INFO"
 
-/* Macro for usleep function
+/*! @brief Macro for usleep function
  */
 #define sleep(interval) usleep(1000 * interval)
 
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
-/* Macro for busying unused parameters in methods
+/*! @brief Macro for busying unused parameters in methods
  */
 #define UNUSED(x) (void)x
 
-/* Macro for pushing log messages to PV. Used in ADQAIChannelGroup methods.
+/*! @brief Macro for pushing log messages to PV. Used in ADQAIChannelGroup methods.
  */
 #define ADQNDS_MSG_INFOLOG_PV(text)                              \
     do                                                           \
@@ -45,7 +45,7 @@
         ndsInfoStream(m_node) << std::string(text) << std::endl; \
     } while (0)
 
-/* Macro for informing the user about occured major failures and
+/*! @brief Macro for informing the user about occured major failures and
  * stopping data acquisition. Used in ADQAIChannelGroup methods.
  */
 #define ADQNDS_MSG_ERRLOG_PV(status, text)                            \
@@ -61,7 +61,7 @@
         }                                                             \
     } while (0)
 
-/* Macro for warning information in case of minor failures.
+/*! @brief Macro for warning information in case of minor failures.
  * Used in ADQAIChannelGroup methods.
  */
 #define ADQNDS_MSG_WARNLOG_PV(status, text)                             \

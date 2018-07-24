@@ -168,10 +168,10 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
 
     // PV for trigger frequency
     createPv<int32_t>("InternTrigFreq", m_internTrigFreqPV, &ADQAIChannelGroup::setInternTrigFreq, &ADQAIChannelGroup::getInternTrigFreq);
-    
+
     // PV for internal trigger edge
     createPvEnum<int32_t>("InternTrigEdge", m_internTrigEdgePV, triggerEdgeList, &ADQAIChannelGroup::setInternTrigEdge, &ADQAIChannelGroup::getInternTrigEdge);
-    
+
     // PV for flush timeout
     createPv<int32_t>("Timeout", m_timeoutPV, &ADQAIChannelGroup::setTimeout, &ADQAIChannelGroup::getTimeout);
 
@@ -722,8 +722,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_daqModePV.push(now, m_daqMode);
 
         // Trigger sample and records numbers to update
-        m_recordCntChanged = true;
-        m_sampleCntChanged = true;
+        m_recordCntPV.read(&now, &m_recordCnt);
+        m_recordCntPV.push(now, m_recordCnt);
+        m_sampleCntPV.read(&now, &m_sampleCnt);
+        m_sampleCntPV.push(now, m_sampleCnt);
+        // Trigger records to collect to update
+        m_recordCntCollectPV.read(&now, &m_recordCntCollect);
+        m_recordCntCollectPV.push(now, m_recordCntCollect);
     }
 
     if (m_patternModeChanged)
@@ -749,23 +754,6 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             m_trigMode = m_adqInterface->GetTriggerMode();
             m_trigMode -= 1;
             m_trigModePV.push(now, m_trigMode);
-        }
-
-        // Trigger a particular trigger edge to update
-        switch (m_trigMode)
-        {
-        case 0:
-            m_swTrigEdgeChanged = true;
-            break;
-        case 1:
-            m_externTrigEdgeChanged = true;
-            break;
-        case 2:
-            m_levelTrigEdgeChanged = true;
-            break;
-        case 3:
-            m_internTrigEdgeChanged = true;
-            break;
         }
     }
 
@@ -985,12 +973,20 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             m_sampleCntTotal = m_sampleCnt * m_recordCnt;
             m_sampleCntTotalPV.push(now, m_sampleCntTotal);
+
+            // Trigger records to collect to update
+            m_recordCntCollectPV.read(&now, &m_recordCntCollect);
+            m_recordCntCollectPV.push(now, m_recordCntCollect);
         }
         else
         {
             m_recordCntPV.push(now, m_recordCnt);
             m_sampleCntPV.push(now, m_sampleCnt);
             m_sampleCntTotalPV.push(now, m_sampleCnt);
+
+            // Trigger records to collect to update
+            m_recordCntCollectPV.read(&now, &m_recordCntCollect);
+            m_recordCntCollectPV.push(now, m_recordCntCollect);
         }
     }
 
@@ -1098,7 +1094,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             m_sampleDec = m_adqInterface->GetSampleDecimation();
             m_sampleSkipPV.push(now, m_sampleDec);
-            
+
             // Trigger sample rate with decimation to update
             double tmp = 0;
             m_sampRateDecPV.read(&now, &tmp);
@@ -1119,6 +1115,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             m_preTrigSamp = 0;
             ADQNDS_MSG_INFOLOG_PV("INFO: Number of pre-trigger samples must be less than number of samples per "
                                   "record.");
+        }
+
+        if (m_preTrigSamp < 0)
+        {
+            m_preTrigSamp = 0;
         }
 
         if (m_daqMode == 0)   // Multi-Record
@@ -1145,6 +1146,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             ADQNDS_MSG_INFOLOG_PV("INFO: Number of hold-off samples must be less than number of samples per record.");
         }
 
+        if (m_trigHoldOffSamp < 0)
+        {
+            m_trigHoldOffSamp = 0;
+        }
+
         if (m_daqMode == 0)   // Multi-Record
         {
             status = m_adqInterface->SetTriggerHoldOffSamples(m_trigHoldOffSamp);
@@ -1159,7 +1165,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         }
     }
 
-    if (m_trigMode == 0) // SW trigger
+    if (m_trigMode == 0)   // SW trigger
     {
         if (m_swTrigEdgeChanged)
         {
@@ -1306,13 +1312,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         {
             m_levelTrigEdgeChanged = false;
 
-            status = m_adqInterface->SetTriggerEdge(m_trigMode+1, m_levelTrigEdge);
+            status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_levelTrigEdge);
             ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetLvlTrigEdge failed.");
 
             if (status)
             {
                 unsigned int trigEdge = 0;
-                status = m_adqInterface->GetTriggerEdge(m_trigMode+1, &trigEdge);
+                status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
                 ADQNDS_MSG_WARNLOG_PV(status, "ERROR: GetTriggerEdge failed.");
                 if (status)
                 {
@@ -1736,7 +1742,7 @@ void ADQAIChannelGroup::daqTrigStream()
      */
     do
     {
-        // Mutex is used to save digitizer from interruptions during infinite collection
+        // Mutex is used to save digitizer's API library from interruptions during infinite collection
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
 
@@ -1790,6 +1796,7 @@ void ADQAIChannelGroup::daqTrigStream()
             status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer, (void**)m_daqStreamHeaders, m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
             ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetDataStreaming failed.");
         }
+
         // Go through each channel's m_daqDataBuffer data: check on incomplete records, add samples of incomplete records to the next records
         for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
         {
@@ -1936,13 +1943,13 @@ finish:
     }
     catch (nds::StateMachineNoSuchTransition error)
     {
-        /* We are probably already in "stopping", no need to panic... */
+        // We are probably already in "stopping" state, no need to panic...
     }
 }
 
-/* Data acquisition method for multi-record
+/* Data acquisition method for Multi-Record
 */
-void ADQAIChannelGroup::daqMultiRecord()   // Need to mention on GUI about triggering the device when ot SW trigger is used
+void ADQAIChannelGroup::daqMultiRecord()
 {
     int trigged, status;
     void* daqVoidBuffers[CHANNEL_COUNT_MAX];
@@ -1950,6 +1957,26 @@ void ADQAIChannelGroup::daqMultiRecord()   // Need to mention on GUI about trigg
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
         m_daqDataBuffer[chan] = NULL;
+    }
+
+    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+    {
+        m_daqDataBuffer[chan] = (short*)calloc(m_sampleCntTotal, sizeof(short));
+    }
+
+    // Create a pointer array containing the data buffer pointers
+    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+    {
+        daqVoidBuffers[chan] = (void*)m_daqDataBuffer[chan];
+    }
+
+    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+    {
+        if (m_daqDataBuffer[chan] == NULL)
+        {
+            status = 0;
+            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: Failed to allocate memory for target buffers.");
+        }
     }
 
     {
@@ -1977,47 +2004,26 @@ void ADQAIChannelGroup::daqMultiRecord()   // Need to mention on GUI about trigg
                     ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
                 }
             } while (trigged == 0);
-
-            unsigned int acqRecTotal = m_adqInterface->GetAcquiredRecords();
-            ndsInfoStream(m_node) << "INFO: GetAcquiredRecords: " << acqRecTotal << std::endl;
         }
         else
         {
             do
             {
                 trigged = m_adqInterface->GetAcquiredAll();
-            } while (trigged == 0);
-
-            unsigned int acqRecTotal = m_adqInterface->GetAcquiredRecords();
-            ndsInfoStream(m_node) << "INFO: GetAcquiredRecords: " << acqRecTotal << std::endl;
+            } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
+
+        std::ostringstream textTmp;
+        unsigned int acqRecTotal = m_adqInterface->GetAcquiredRecords();
+        textTmp << "INFO: GetAcquiredRecords: " << acqRecTotal;
+        std::string textForPV(textTmp.str());
+        ADQNDS_MSG_INFOLOG_PV(textForPV);
 
         status = m_adqInterface->GetStreamOverflow();
         if (status)
         {
             status = 0;
             ADQNDS_MSG_ERRLOG_PV(status, "WARNING: GetStreamOverflow detected.");
-        }
-    }
-
-    // Here sampleCntTotal should be calculated as (recordCntCollect * sampleCnt), what is taken care of in commitChanges method (recordCntCollectchanged)
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        m_daqDataBuffer[chan] = (short*)calloc(m_sampleCntTotal, sizeof(short));
-    }
-
-    // Create a pointer array containing the data buffer pointers
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        daqVoidBuffers[chan] = (void*)m_daqDataBuffer[chan];
-    }
-
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        if (m_daqDataBuffer[chan] == NULL)
-        {
-            status = 0;
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: Failed to allocate memory for target buffers.");
         }
     }
 
@@ -2059,7 +2065,7 @@ finish:
     }
     catch (nds::StateMachineNoSuchTransition error)
     {
-        /* We are probably already in "stopping", no need to panic... */
+        // We are probably already in "stopping" state, no need to panic...
     }
 }
 
@@ -2099,6 +2105,7 @@ void ADQAIChannelGroup::daqContinStream()
         }
     }
 
+    while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
         status = m_adqInterface->StopStreaming();
@@ -2247,7 +2254,7 @@ finish:
     }
     catch (nds::StateMachineNoSuchTransition error)
     {
-        /* We are probably already in "stopping", no need to panic... */
+        // We are probably already in "stopping" state, no need to panic...
     }
 }
 
@@ -2301,7 +2308,7 @@ void ADQAIChannelGroup::daqRawStream()
 
     m_sampleCntCollect = bufferSize;
 
-    while (m_sampleCntCollect > 0)
+    while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && (m_sampleCntCollect > 0))
     {
         unsigned int bufferSampCnt;
         {
@@ -2377,7 +2384,7 @@ finish:
     }
     catch (nds::StateMachineNoSuchTransition error)
     {
-        /* We are probably already in "stopping", no need to panic... */
+        // We are probably already in "stopping", no need to panic...
     }
 }
 

@@ -10,6 +10,14 @@
 #include <nds3/nds.h>
 #include <mutex>
 
+/*! @brief This class creates a device that communicates with a digitizer.
+ *
+ * ADQ Control Unit is handled by this class. The pointer to ADQAPI interface is also created here.
+ *
+ * @param factory contains an interface to the control system that requested a creation of the device.
+ * @param deviceName a name with which the device should be presented to the control system (root node).
+ * @param parameters here a serial number of the requested digitizer is passed to the device. 
+ */
 class ADQInit
 {
 public:

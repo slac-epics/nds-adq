@@ -3,6 +3,12 @@
 
 #include <nds3/nds.h>
 
+/*! @brief This class handles channel specific parameters and pushes acquired data to appropriate data PVs.
+ *
+ * @param name a name with which this class will register its child node.
+ * @param parentNode a name of a parent node to which this class' node is a child.
+ * @param channelNum a number of channel which a constructed class represents.
+ */
 class ADQAIChannel
 {
 public:
@@ -18,9 +24,17 @@ public:
 
     void setState(nds::state_t newState);
 
+    /*! @brief This method passes the acquired data to appropriate data PV.
+     */
     void readData(short* rawData, int32_t sampleCnt);
     void getDataPV(timespec* pTimestamp, std::vector<int32_t>* pValue);
 
+    /*! @brief This method processes changes applied to channel specific parameters.
+     *
+     * @param calledFromDaqThread a flag that prevents this function to be called when set to false.
+     * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+     * @param m_logMsgPV a PV from ADQAIGroupChannel that receives any log messages.
+     */
     void commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> m_logMsgPV);
 
 private:

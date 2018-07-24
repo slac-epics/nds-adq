@@ -105,6 +105,7 @@ ADQDevice::ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterfac
     m_node.addChild(m_sampRatePV);
 
     m_sampRateDecPV.setScanType(nds::scanType_t::interrupt);
+    m_sampRatePV.processAtInit(PINI);
     m_node.addChild(m_sampRateDecPV);
 
     // PV for number of bytes per sample

@@ -4,6 +4,12 @@
 #include <nds3/nds.h>
 #include <mutex>
 
+/*! @brief This class monitors informative parameters of the connected digitizer.
+*
+* @param name a name with which this class will register its child node.
+* @param parentNode a name of a parent node to which this class' node is a child.
+* @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+*/
 class ADQDevice
 {
 public:
@@ -48,7 +54,6 @@ private:
     nds::PVDelegateIn<int32_t> m_tempFpgaPV;
     nds::PVDelegateIn<int32_t> m_tempDiodPV;
     nds::PVDelegateIn<double> m_sampRatePV;
-    //nds::PVDelegateIn<double> m_sampRateDecPV;
     nds::PVDelegateIn<int32_t> m_bytesPerSampPV;
     nds::PVDelegateIn<int32_t> m_busTypePV;
     nds::PVDelegateIn<int32_t> m_busAddrPV;

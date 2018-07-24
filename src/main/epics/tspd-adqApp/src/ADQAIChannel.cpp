@@ -122,7 +122,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
                     textTmp << "INFO: Input range is set to 0.5 Vpp by default, CH" << m_channelNum;
                     std::string textForPV(textTmp.str());
                     ADQNDS_MSG_INFOLOG_PV(textForPV);
-                    //ndsInfoStream(m_node) << "INFO: Input range is set to 0.5 Vpp by default, CH" << m_channelNum << std::endl;
                 }
 
                 if ((m_inputRange > 0) || (m_inputRange < 0.5))
@@ -143,8 +142,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
                 }
                 else
                 {
-                    //ndsWarningStream(m_node) << "WARNING: SetInputRange failed, CH" << m_channelNum << std::endl;
-
                     textTmp << "WARNING: SetInputRange failed, CH" << m_channelNum;
                     std::string textForPV(textTmp.str());
                     ADQNDS_MSG_WARNLOG_PV(status, textForPV);
@@ -152,8 +149,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
             }
             else
             {
-                //ndsWarningStream(m_node) << "WARNING: Device doesn't support adjustable input range." << std::endl;
-
                 textTmp << "WARNING: Device doesn't support adjustable input range, CH" << m_channelNum;
                 std::string textForPV(textTmp.str());
                 ADQNDS_MSG_WARNLOG_PV(status, textForPV);
@@ -172,8 +167,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
 
             if (!status)
             {
-                //ndsWarningStream(m_node) << "WARNING: SetAdjustableBias failed on CH" << m_channelNum << std::endl;
-
                 textTmp << "WARNING: SetAdjustableBias failed on CH" << m_channelNum;
                 std::string textForPV(textTmp.str());
                 ADQNDS_MSG_WARNLOG_PV(status, textForPV);
@@ -188,8 +181,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
         }
         else
         {
-            //ndsInfoStream(m_node) << "INFO: Device doesn't support adjustable bias." << std::endl;
-            
             textTmp << "INFO: Device doesn't support adjustable bias, CH" << m_channelNum;
             std::string textForPV(textTmp.str());
             ADQNDS_MSG_INFOLOG_PV(textForPV);

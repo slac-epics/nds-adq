@@ -99,7 +99,7 @@ record(ai, "${PREFIX}-${ADQSN}:${INFO}:SAMPRATEDEC") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:BYTESPERSAMPLE") {
     field(DESC, "Number of bytes per sample")
-    field(EGU, "byte/S")
+    field(EGU, "b/Samp")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }

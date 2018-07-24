@@ -1,6 +1,10 @@
 # # # # # # # # # # # # # # # # # # # # # #
+#           ADQAIChannel class            #
+# # # # # # # # # # # # # # # # # # # # # #
+
+# # # # # # # # # # # # # # # # # # # # # #
 #                                         #
-#         PV records for Channels         #
+#       Parameters and data records       #
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
@@ -32,6 +36,12 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
     field(NELM, "30000000")
     field(SCAN, "I/O Intr")
 }
+
+# # # # # # # # # # # # # # # # # # # # # #
+#                                         #
+#       StateMachine for Channels         #
+#                                         #
+# # # # # # # # # # # # # # # # # # # # # #
 
 record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
     field(DESC, "Set local state CH")
