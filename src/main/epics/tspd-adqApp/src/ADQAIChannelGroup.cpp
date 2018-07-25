@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2018 Cosylab d.d.
+// This software is distributed under the terms found
+// in file LICENSE.txt that is included with this distribution.
+//
+
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -904,7 +910,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                     ++i;
                 }
             }
-            sleep(1000);
+            SLEEP(1000);
 
             if (i == dbsInstCnt)
             {
@@ -1084,16 +1090,14 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 m_sampleDec = 0;
             }
 
-            if (m_sampleDec > 2)
-            {
-                m_sampleDec = 34;
-            }
-
             status = m_adqInterface->SetSampleDecimation(m_sampleDec);
             ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleDecimation failed.");
 
-            m_sampleDec = m_adqInterface->GetSampleDecimation();
-            m_sampleSkipPV.push(now, m_sampleDec);
+            if (status)
+            {
+                m_sampleDec = m_adqInterface->GetSampleDecimation();
+                m_sampleSkipPV.push(now, m_sampleDec);
+            }
 
             // Trigger sample rate with decimation to update
             double tmp = 0;
@@ -1772,7 +1776,7 @@ void ADQAIChannelGroup::daqTrigStream()
 
                     ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetTransferBufferStatus failed.");
                     // Sleep to avoid loading the processor too much
-                    sleep(10);
+                    SLEEP(10);
                 }
 
                 // Timeout reached, flush the transfer buffer to receive data
@@ -2159,7 +2163,7 @@ void ADQAIChannelGroup::daqContinStream()
 
                 if (buffersFilled == 0)
                 {
-                    sleep(10);
+                    SLEEP(10);
                     bufferStatusLoops++;
 
                     if (bufferStatusLoops > 2000)

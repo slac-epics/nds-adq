@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2018 Cosylab d.d.
+// This software is distributed under the terms found
+// in file LICENSE.txt that is included with this distribution.
+//
+
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -176,14 +182,14 @@ void ADQDevice::getTempLocal(timespec* pTimestamp, int32_t* pValue)
 void ADQDevice::getTempADCone(timespec* pTimestamp, int32_t* pValue)
 {
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-    *pValue = m_adqInterface->GetTemperature(TEMPADC_ONE) * CELSIUS_CONVERT;
+    *pValue = m_adqInterface->GetTemperature(TEMP_ADC_ONE) * CELSIUS_CONVERT;
     *pTimestamp = m_tempAdcOnePV.getTimestamp();
 }
 
 void ADQDevice::getTempADCtwo(timespec* pTimestamp, int32_t* pValue)
 {
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-    *pValue = m_adqInterface->GetTemperature(TEMPADC_TWO) * CELSIUS_CONVERT;
+    *pValue = m_adqInterface->GetTemperature(TEMP_ADC_TWO) * CELSIUS_CONVERT;
     *pTimestamp = m_tempAdcTwoPV.getTimestamp();
 }
 

@@ -1,42 +1,122 @@
+//
+// Copyright (c) 2018 Cosylab d.d.
+// This software is distributed under the terms found
+// in file LICENSE.txt that is included with this distribution.
+//
+
 #ifndef ADQDEVICE_H
 #define ADQDEVICE_H
 
-#include <nds3/nds.h>
 #include <mutex>
+#include <nds3/nds.h>
 
-/*! @brief This class monitors informative parameters of the connected digitizer.
-*
-* @param name a name with which this class will register its child node.
-* @param parentNode a name of a parent node to which this class' node is a child.
-* @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
-*/
+/** @file ADQDevice.h
+ * @brief This file defines ADQDevice class.
+ */
+
+/** @class ADQDevice
+ * @brief This class monitors informative parameters of the connected digitizer.
+ */
 class ADQDevice
 {
 public:
+    /** @fn ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
+     * @brief ADQDevice class constructor.
+     * @param name a name with which this class will register its child node.
+     * @param parentNode a name of a parent node to which this class' node is a child.
+     * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+     */
     ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
     virtual ~ADQDevice();
 
+    /** @var m_node
+     * @brief ADQDevice class node that connects to the device.
+     */
     nds::Port m_node;
 
+    /** @fn getProductName
+     * @brief Gets the digitizer's product name.
+     */
     void getProductName(timespec* pTimestamp, std::string* pValue);
+
+    /** @fn getSerialNumber
+     * @brief Gets the digitizer's serial number.
+     */
     void getSerialNumber(timespec* pTimestamp, std::string* pValue);
+
+    /** @fn getProductID
+     * @brief Gets the digitizer's product ID.
+     */
     void getProductID(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getADQType
+     * @brief Gets the digitizer's type.
+     */
     void getADQType(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getCardOption
+     * @brief Gets the digitizer's card option.
+     */
     void getCardOption(timespec* pTimestamp, std::string* pValue);
 
+    /** @fn getTempLocal
+     * @brief Gets the digitizer's PCB temperature.
+     */
     void getTempLocal(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getTempADCone
+     * @brief Gets the digitizer's ADC1 temperature.
+     */
     void getTempADCone(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getTempADCtwo
+     * @brief Gets the digitizer's ADC2 temperature.
+     */
     void getTempADCtwo(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getTempFPGA
+     * @brief Gets the digitizer's FPGA temperature.
+     */
     void getTempFPGA(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getTempDd
+     * @brief Gets the digitizer's DCDC2A temperature.
+     */
     void getTempDd(timespec* pTimestamp, int32_t* pValue);
 
+    /** @fn getSampRate
+     * @brief Gets the digitizer's base sample rate.
+     */
     void getSampRate(timespec* pTimestamp, double* pValue);
+
+    /** @fn getSampRateDec
+     * @brief Gets the digitizer's decimated sample rate.
+     */
     void getSampRateDec(timespec* pTimestamp, double* pValue);
+
+    /** @fn getBytesPerSample
+     * @brief Gets the number of bytes needed to store each sample.
+     */
     void getBytesPerSample(timespec* pTimestamp, int32_t* pValue);
 
+    /** @fn getBusAddr
+     * @brief Gets the digitizer's bus address.
+     */
     void getBusAddr(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getBusType
+     * @brief Gets the digitizer's type of connection.
+     */
     void getBusType(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getPCIeLinkRate
+     * @brief Gets the PCIe/PXIe generation if the digitizer is connected over this interface.
+     */
     void getPCIeLinkRate(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getPCIeLinkWid
+     * @brief Gets the PCIe/PXIe width if the digitizer is connected over this interface.
+     */
     void getPCIeLinkWid(timespec* pTimestamp, int32_t* pValue);
 
 private:
@@ -61,8 +141,19 @@ private:
     nds::PVDelegateIn<int32_t> m_pcieLinkWidPV;
 
 protected:
-    std::mutex m_adqDevMutex;  // protects adqDev library
+    /** @var m_adqDevMutex
+    * @brief Lock guard.
+    *
+    * It is used to protect ADQAPI library from simultaneous calling from different threads.
+    * For example, updating the temperatures (ADQDevice class) and data acquisition (ADQAIChannelGroup).
+    */
+    std::mutex m_adqDevMutex;
 
+    /** @var m_sampRateDecPV
+    * @brief PV fpr sample rate with decimation.
+    *
+    * Its value is updated when sample skip (ADQAIChannelGroup) is changed.
+    */
     nds::PVDelegateIn<double> m_sampRateDecPV;
 };
 

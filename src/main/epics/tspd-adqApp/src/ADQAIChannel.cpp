@@ -1,3 +1,9 @@
+//
+// Copyright (c) 2018 Cosylab d.d.
+// This software is distributed under the terms found
+// in file LICENSE.txt that is included with this distribution.
+//
+
 #include <cstdlib>
 #include <iostream>
 #include <sstream>
@@ -84,6 +90,19 @@ void ADQAIChannel::getDcBias(timespec* pTimestamp, int32_t* pValue)
     *pTimestamp = m_dcBiasPV.getTimestamp();
 }
 
+void ADQAIChannel::setChanDec(const timespec& pTimestamp, const int32_t& pValue)
+{
+    m_chanDec = pValue;
+    m_chanDecPV.getTimestamp() = pTimestamp;
+    m_chanDecChanged = true;
+}
+
+void ADQAIChannel::getChanDec(timespec* pTimestamp, int32_t* pValue)
+{
+    *pValue = m_chanDec;
+    *pTimestamp = m_chanDecPV.getTimestamp();
+}
+
 /* This function updates readback PVs according to changed each channel's parameter
  * and applies them to the device with ADQAPI functions.
  */
@@ -92,8 +111,10 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
     unsigned int status = 0;
-
     std::ostringstream textTmp;
+
+    int adqType = adqInterface->GetADQType();
+    std::string adqOption = adqInterface->GetCardOption();
 
     if (!calledFromDaqThread &&
         (m_stateMachine.getLocalState() != nds::state_t::on && m_stateMachine.getLocalState() != nds::state_t::stopping &&
@@ -106,9 +127,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
     {
         float inputRangeRb = 0;
         m_inputRangeChanged = false;
-
-        int adqType = adqInterface->GetADQType();
-        std::string adqOption = adqInterface->GetCardOption();
 
         if ((adqType == 714 || adqType == 14) && (adqOption.find("-VG") != std::string::npos))
         {
@@ -163,7 +181,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
         if (adqInterface->HasAdjustableBias())
         {
             status = adqInterface->SetAdjustableBias(m_channelNum + 1, m_dcBias);
-            sleep(1000);
+            SLEEP(1000);
 
             if (!status)
             {
@@ -184,6 +202,35 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
             textTmp << "INFO: Device doesn't support adjustable bias, CH" << m_channelNum;
             std::string textForPV(textTmp.str());
             ADQNDS_MSG_INFOLOG_PV(textForPV);
+        }
+    }
+
+    if (m_chanDecChanged)
+    {
+        m_chanDecChanged = false;
+        std::string adqOption = m_adqInterface->GetCardOption();
+
+        if ((adqType == 7) && (adqOption.find("-FWSDR") != std::string::npos))
+        {
+            if (m_chanDec < 0)
+            {
+                m_chanDec = 0;
+            }
+
+            status = m_adqInterface->SetChannelDecimation(m_channelNum, m_chanDec);
+            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleDecimation failed.");
+
+            if (status)
+            {
+                unsigned int tmp = 0;
+                status = m_adqInterface->GetChannelDecimation(m_channelNum, &tmp);
+                m_chanDec = tmp;
+                m_chanDecPV.push(now, m_chanDec);
+            }
+        }
+        else
+        {
+            ADQNDS_MSG_INFOLOG_PV("INFO: Sample channel decimation is not supported on this device.");
         }
     }
 }
