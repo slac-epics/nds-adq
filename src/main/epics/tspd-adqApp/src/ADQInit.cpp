@@ -110,7 +110,7 @@ ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds
         std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(parameters.at("ADQSN"), m_node, m_adqInterface);
         m_adqChanGrpPtr.push_back(adqChanGrp);
         
-        // Initialize requested device after declaration of all its PVs
+        // Initialize NDS device after declaration of all its PVs
         m_node.initialize(this, factory);
     }
     catch (const nds::NdsError& e)

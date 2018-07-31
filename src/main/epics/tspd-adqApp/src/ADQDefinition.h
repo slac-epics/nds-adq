@@ -57,6 +57,16 @@
  */
 #define DATA_MAX_ELEMENTS (4 * 1024 * 1024)
 
+ /** @def BUFFERSIZE_ADQ14
+ * @brief Buffersize for data acquisition (ADQ14).
+ */
+#define BUFFERSIZE_ADQ14 (512 * 1024)
+
+ /** @def BUFFERSIZE_ADQ7
+ * @brief Buffersize for data acquisition (ADQ7).
+ */
+#define BUFFERSIZE_ADQ7 (256 * 1024)
+
 /** @def CHANNEL_COUNT_MAX
  * @brief Maximum allowed amount of channels.
  */

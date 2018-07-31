@@ -24,6 +24,8 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
                                                                         std::placeholders::_1, std::placeholders::_2))),
     m_dcBiasPV(nds::PVDelegateIn<int32_t>("DCBias-RB", std::bind(&ADQAIChannel::getDcBias, this, std::placeholders::_1,
                                                                  std::placeholders::_2))),
+    m_chanDecPV(nds::PVDelegateIn<int32_t>("ChanDec-RB", std::bind(&ADQAIChannel::getChanDec, this,
+                                                                   std::placeholders::_1, std::placeholders::_2))),
     m_dataPV(nds::PVDelegateIn<std::vector<int32_t>>("Data", std::bind(&ADQAIChannel::getDataPV, this,
                                                                        std::placeholders::_1, std::placeholders::_2)))
 {
@@ -47,6 +49,15 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     m_node.addChild(node);
     m_dcBiasPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_dcBiasPV);
+
+    // PVs for Adjustable Bias
+    node = nds::PVDelegateOut<int32_t>("ChanDec",
+                                       std::bind(&ADQAIChannel::setChanDec, this, std::placeholders::_1, std::placeholders::_2),
+                                       std::bind(&ADQAIChannel::getChanDec, this, std::placeholders::_1, std::placeholders::_2));
+
+    m_node.addChild(node);
+    m_chanDecPV.setScanType(nds::scanType_t::interrupt);
+    m_node.addChild(m_chanDecPV);
 
     // PV for data
     m_dataPV.setScanType(nds::scanType_t::interrupt);
@@ -167,10 +178,16 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
             }
             else
             {
-                textTmp << "WARNING: Device doesn't support adjustable input range, CH" << m_channelNum;
+                textTmp << "INFO: Adjustable input range is not supported, CH" << m_channelNum;
                 std::string textForPV(textTmp.str());
-                ADQNDS_MSG_WARNLOG_PV(status, textForPV);
+                ADQNDS_MSG_INFOLOG_PV(textForPV);
             }
+        }
+        else
+        {
+            textTmp << "INFO: Adjustable input range is not supported, CH" << m_channelNum;
+            std::string textForPV(textTmp.str());
+            ADQNDS_MSG_INFOLOG_PV(textForPV);
         }
     }
 
@@ -208,7 +225,6 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
     if (m_chanDecChanged)
     {
         m_chanDecChanged = false;
-        std::string adqOption = m_adqInterface->GetCardOption();
 
         if ((adqType == 7) && (adqOption.find("-FWSDR") != std::string::npos))
         {

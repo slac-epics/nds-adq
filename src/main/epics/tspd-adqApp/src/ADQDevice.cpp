@@ -85,23 +85,23 @@ ADQDevice::ADQDevice(const std::string& name, nds::Node& parentNode, ADQInterfac
     m_node.addChild(m_cardOptionPV);
 
     // PVs for temperatures
-    m_tempLocalPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempLocalPV.setScanType(nds::scanType_t::interrupt);
     m_tempLocalPV.processAtInit(PINI);
     m_node.addChild(m_tempLocalPV);
 
-    m_tempAdcOnePV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempAdcOnePV.setScanType(nds::scanType_t::interrupt);
     m_tempAdcOnePV.processAtInit(PINI);
     m_node.addChild(m_tempAdcOnePV);
 
-    m_tempAdcTwoPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempAdcTwoPV.setScanType(nds::scanType_t::interrupt);
     m_tempAdcTwoPV.processAtInit(PINI);
     m_node.addChild(m_tempAdcTwoPV);
 
-    m_tempFpgaPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempFpgaPV.setScanType(nds::scanType_t::interrupt);
     m_tempFpgaPV.processAtInit(PINI);
     m_node.addChild(m_tempFpgaPV);
 
-    m_tempDiodPV.setScanType(nds::scanType_t::periodic, 1);
+    m_tempDiodPV.setScanType(nds::scanType_t::interrupt);
     m_tempDiodPV.processAtInit(PINI);
     m_node.addChild(m_tempDiodPV);
 

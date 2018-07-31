@@ -230,12 +230,12 @@
       <color name="IO Foreground" red="0" green="0" blue="0" />
     </foreground_color>
     <group_name></group_name>
-    <height>896</height>
+    <height>1</height>
     <macros>
       <include_parent_macros>true</include_parent_macros>
     </macros>
     <name>Linking Container Template_1</name>
-    <opi_file>adqdeviceMain.opi</opi_file>
+    <opi_file>components/adqdeviceMain.opi</opi_file>
     <resize_behaviour>1</resize_behaviour>
     <rules>
       <rule name="Clear GUI" prop_id="opi_file" out_exp="false">
@@ -246,7 +246,7 @@
       </rule>
       <rule name="Set GUI" prop_id="opi_file" out_exp="false">
         <exp bool_exp="true">
-          <value>adqdeviceMain.opi</value>
+          <value>components/adqdeviceMain.opi</value>
         </exp>
         <pv trig="true">loc://ADQSerialNumber</pv>
       </rule>
@@ -264,7 +264,7 @@
     <tooltip></tooltip>
     <visible>true</visible>
     <widget_type>Linking Container</widget_type>
-    <width>1833</width>
+    <width>1</width>
     <wuid>-7c6ac6a0:163723e06aa:-650b</wuid>
     <x>14</x>
     <y>94</y>

@@ -6,7 +6,7 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install)
 # databases, templates, substitutions like this
-DB += ADQDevice.template ADQAIGroupChannel.template ADQAIChannel.template ADQDevice.substitutions
+DB += ADQDevice.template ADQAIChannelGroup.template ADQAIChannel.template ADQDevice.substitutions
 
 include $(TOP)/configure/RULES
 #----------------------------------------

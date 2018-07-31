@@ -650,13 +650,6 @@ private:
     */
     short* m_daqDataBuffer[CHANNEL_COUNT_MAX];
 
-    /** @var m_daqRecordHeaders[CHANNEL_COUNT_MAX]
-    * @brief Record header buffer. 
-    *
-    * Used only for Continuous streaming data acquisition.
-    */
-    unsigned char* m_daqRecordHeaders[CHANNEL_COUNT_MAX];
-
     /** @var m_daqStreamHeaders[CHANNEL_COUNT_MAX]
     * @brief Record header buffer. 
     *

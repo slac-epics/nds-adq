@@ -148,7 +148,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     createPvEnum<int32_t>("LevelTrigEdge", m_levelTrigEdgePV, triggerEdgeList, &ADQAIChannelGroup::setLevelTrigEdge, &ADQAIChannelGroup::getLevelTrigEdge);
 
     // PV for level trigger channel
-    nds::enumerationStrings_t trigChanList = { "None", "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
+    nds::enumerationStrings_t trigChanList = { "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
     createPvEnum<int32_t>("LevelTrigChan", m_levelTrigChanPV, trigChanList, &ADQAIChannelGroup::setLevelTrigChan, &ADQAIChannelGroup::getLevelTrigChan);
 
     m_levelTrigChanMaskPV.setScanType(nds::scanType_t::interrupt);
@@ -1236,6 +1236,14 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                     if (status)
                         m_externTrigThresholdPV.push(now, m_externTrigThreshold);
                 }
+                if (m_adqType == 7)
+                {
+                    status = m_adqInterface->SetTriggerThresholdVoltage(m_trigMode + 1, m_externTrigThreshold);
+                    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetExtTrigThreshold failed.");
+
+                    if (status)
+                        m_externTrigThresholdPV.push(now, m_externTrigThreshold);
+                }
             }
             else
             {
@@ -1353,18 +1361,17 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             {
                 switch (m_levelTrigChan)
                 {
-                    case 0:   // None
-                        m_levelTrigChanMask = 0;
-                        break;
-                    case 1:   // ch A
+                    case 0:   // ch A
                         m_levelTrigChanMask = 1;
                         break;
-                    case 2:   // ch B
-                    case 3:   // ch C
-                    case 4:   // ch D
-                    case 5:   // ch A+B
-                    case 6:   // ch C+D
-                    case 7:   // ch A+B+C+D
+                    case 1:   // ch B
+                        m_levelTrigChanMask = 1;
+                        break;
+                    case 2:   // ch C
+                    case 3:   // ch D
+                    case 4:   // ch A+B
+                    case 5:   // ch C+D
+                    case 6:   // ch A+B+C+D
                         ADQNDS_MSG_INFOLOG_PV("INFO: Device has only one channel -> changed to channel A");
                         m_levelTrigChanMask = 1;
                         break;
@@ -1375,16 +1382,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             {
                 switch (m_levelTrigChan)
                 {
-                    case 0:   // None
-                        m_levelTrigChanMask = 0;
-                        break;
-                    case 1:   // ch A
+                    case 0:   // ch A
                         m_levelTrigChanMask = 1;
                         break;
-                    case 2:   // ch B
+                    case 1:   // ch B
                         m_levelTrigChanMask = 2;
                         break;
-                    case 3:   // ch A+B
+                    case 2:   // ch A+B
                         if (m_adqType == 7)
                         {
                             ADQNDS_MSG_INFOLOG_PV("INFO: ADQ7 allows only one channel to generate the trigger -> "
@@ -1396,10 +1400,10 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                             m_levelTrigChanMask = 3;
                         }
                         break;
-                    case 4:   // ch D
-                    case 5:   // ch A+B
-                    case 6:   // ch C+D
-                    case 7:   // ch A+B+C+D
+                    case 3:   // ch D
+                    case 4:   // ch A+B
+                    case 5:   // ch C+D
+                    case 6:   // ch A+B+C+D
                         ADQNDS_MSG_INFOLOG_PV("INFO: Device has only two channels -> changed to channel B");
                         m_levelTrigChanMask = 2;
                         break;
@@ -1410,28 +1414,25 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             {
                 switch (m_levelTrigChan)
                 {
-                    case 0:   // None
-                        m_levelTrigChanMask = 0;
-                        break;
-                    case 1:   // ch A
+                    case 0:   // ch A
                         m_levelTrigChanMask = 1;
                         break;
-                    case 2:   // ch B
+                    case 1:   // ch B
                         m_levelTrigChanMask = 2;
                         break;
-                    case 3:   // ch C
+                    case 2:   // ch C
                         m_levelTrigChanMask = 4;
                         break;
-                    case 4:   // ch D
+                    case 3:   // ch D
                         m_levelTrigChanMask = 8;
                         break;
-                    case 5:   // ch A+B
+                    case 4:   // ch A+B
                         m_levelTrigChanMask = 3;
                         break;
-                    case 6:   // ch C+D
+                    case 5:   // ch C+D
                         m_levelTrigChanMask = 12;
                         break;
-                    case 7:   // ch A+B+C+D
+                    case 6:   // ch A+B+C+D
                         m_levelTrigChanMask = 15;
                         break;
                 }
@@ -1455,6 +1456,13 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         {
             m_internTrigHighSampChanged = false;
             m_internTrigLowSampChanged = false;
+
+            if ((m_internTrigHighSamp < 4) || (m_internTrigLowSamp < 4))
+            {
+                m_internTrigHighSamp = 4;
+                m_internTrigLowSamp = 4;
+                ADQNDS_MSG_INFOLOG_PV("INFO: Sample length can't be less than 4.");
+            }
 
             status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, m_internTrigLowSamp);
             ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetInternalTriggerHighLow failed.");
@@ -1603,7 +1611,7 @@ bool ADQAIChannelGroup::allowChange(const nds::state_t currentLocal, const nds::
     return true;
 }
 
-/* Time snap of the start of the GetTransferBufferStatus loop in Triggered Streaming DAQ.
+/* Time snap of the starting time, used Triggered and Continuous Streaming.
  */
 static struct timespec tsref;
 void timerStart(void)
@@ -1615,8 +1623,7 @@ void timerStart(void)
     }
 }
 
-/* Returns time in ms that is spend since the timerStart. It is compared to the user defined timeout 
- * in the GetTransferBufferStatus loop in Triggered Streaming DAQ.
+/* Returns time in ms that is spend since the timerStart, used Triggered and Continuous Streaming.
  */
 unsigned int timerSpentTimeMs(void)
 {
@@ -1649,11 +1656,11 @@ void ADQAIChannelGroup::daqTrigStream()
 
     if (m_adqType == 714 || m_adqType == 14)
     {
-        bufferSize = 512 * 1024;
+        bufferSize = BUFFERSIZE_ADQ14;
     }
     if (m_adqType == 7)
     {
-        bufferSize = 256 * 1024;
+        bufferSize = BUFFERSIZE_ADQ7;
     }
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
@@ -1674,7 +1681,7 @@ void ADQAIChannelGroup::daqTrigStream()
         if (!((1 << chan) & m_chanMask))
             continue;
 
-        m_daqDataBuffer[chan] = (short int*)malloc((size_t)bufferSize);
+        m_daqDataBuffer[chan] = (short*)malloc((size_t)bufferSize);
         if (!m_daqDataBuffer[chan])
         {
             status = 0;
@@ -1709,6 +1716,9 @@ void ADQAIChannelGroup::daqTrigStream()
         status = m_adqInterface->TriggeredStreamingSetup(m_recordCnt, m_sampleCnt, m_preTrigSamp, m_trigHoldOffSamp, m_chanMask);
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: TriggeredStreamingSetup failed.");
 
+        status = m_adqInterface->SetStreamStatus(1);
+        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 1 (Stream enabled) failed.");
+
         status = m_adqInterface->SetTransferBuffers(CHANNEL_COUNT_MAX, bufferSize);
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetTransferBuffers failed.");
 
@@ -1720,24 +1730,12 @@ void ADQAIChannelGroup::daqTrigStream()
 
         if (m_trigMode == 0)
         {
-            status = m_adqInterface->DisarmTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DisarmTrigger failed.");
-
-            status = m_adqInterface->ArmTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ArmTrigger failed.");
-
             for (int i = 0; i < m_recordCnt; ++i)
             {
                 status = m_adqInterface->SWTrig();
                 ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
             }
         }
-
-        status = m_adqInterface->DisarmTrigger();
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DisarmTrigger failed.");
-
-        status = m_adqInterface->ArmTrigger();
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ArmTrigger failed.");
     }
 
     /* Data acquisition loop.
@@ -1761,7 +1759,6 @@ void ADQAIChannelGroup::daqTrigStream()
             }
 
             status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
-
             ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetTransferBufferStatus failed.");
 
             // Poll for the transfer buffer status as long as the timeout has not been
@@ -1773,7 +1770,6 @@ void ADQAIChannelGroup::daqTrigStream()
                 while (!buffersFilled && (timerSpentTimeMs() < (unsigned)m_timeout))
                 {
                     status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
-
                     ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetTransferBufferStatus failed.");
                     // Sleep to avoid loading the processor too much
                     SLEEP(10);
@@ -1785,7 +1781,6 @@ void ADQAIChannelGroup::daqTrigStream()
                     ADQNDS_MSG_INFOLOG_PV("INFO: Timeout, flushing DMA...");
 
                     status = m_adqInterface->FlushDMA();
-
                     ADQNDS_MSG_ERRLOG_PV(status, "ERROR: FlushDMA failed.");
                 }
 
@@ -1913,14 +1908,14 @@ void ADQAIChannelGroup::daqTrigStream()
 finish:
 {
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-    status = m_adqInterface->DisarmTrigger();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: DisarmTrigger failed.");
+
+    status = m_adqInterface->SetStreamStatus(0);
+    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
 
     status = m_adqInterface->StopStreaming();
     ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
 }
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
-    commitChanges(true);
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -1949,6 +1944,8 @@ finish:
     {
         // We are probably already in "stopping" state, no need to panic...
     }
+
+    commitChanges(true);
 }
 
 /* Data acquisition method for Multi-Record
@@ -2052,7 +2049,6 @@ finish:
 }
 
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
-    commitChanges(true);
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -2071,6 +2067,8 @@ finish:
     {
         // We are probably already in "stopping" state, no need to panic...
     }
+
+    commitChanges(true);
 }
 
 /* Data acquisition method for continuous streaming
@@ -2079,33 +2077,31 @@ void ADQAIChannelGroup::daqContinStream()
 {
     int status;
     unsigned int bufferSize, buffersFilled;
-    time_t start_time, curr_time;
     double elapsedSeconds;
     int bufferStatusLoops;
     unsigned int samplesAdded[CHANNEL_COUNT_MAX];
     unsigned int headersAdded[CHANNEL_COUNT_MAX];
     unsigned int headerStatus[CHANNEL_COUNT_MAX];
     unsigned int samplesAddedTotal;
-    uint64_t bytesParsedTotal;
     unsigned int streamCompleted = 0;
 
     if (m_adqType == 714 || m_adqType == 14)
     {
-        bufferSize = 512 * 1024;
+        bufferSize = BUFFERSIZE_ADQ14;
     }
     if (m_adqType == 7)
     {
-        bufferSize = 256 * 1024;
+        bufferSize = BUFFERSIZE_ADQ7;
     }
 
     for (unsigned int chan = 0; chan < m_chanCnt; chan++)
     {
         m_daqDataBuffer[chan] = NULL;
-        m_daqRecordHeaders[chan] = NULL;
+        m_daqStreamHeaders[chan] = NULL;
         if (m_chanMask & (1 << chan))
         {
-            m_daqDataBuffer[chan] = (short*)malloc(bufferSize * sizeof(char));
-            m_daqRecordHeaders[chan] = (unsigned char*)malloc(10 * sizeof(uint32_t));
+            m_daqDataBuffer[chan] = (short*)malloc((size_t)bufferSize);
+            m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
         }
     }
 
@@ -2120,20 +2116,14 @@ void ADQAIChannelGroup::daqContinStream()
 
         // Start streaming
         samplesAddedTotal = 0;
-        bytesParsedTotal = 0;
 
         status = m_adqInterface->StartStreaming();
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
 
-        time(&start_time);
+        timerStart();
 
         if (m_trigMode == 0)
         {
-            status = m_adqInterface->DisarmTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DisarmTrigger failed.");
-
-            status = m_adqInterface->ArmTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ArmTrigger failed.");
 
             for (int i = 0; i < m_recordCnt; ++i)
             {
@@ -2141,16 +2131,7 @@ void ADQAIChannelGroup::daqContinStream()
                 ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
             }
         }
-        else
-        {
-            status = m_adqInterface->DisarmTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DisarmTrigger failed.");
 
-            status = m_adqInterface->ArmTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ArmTrigger failed.");
-        }
-
-        time(&curr_time);
         while (!streamCompleted)
         {
             bufferStatusLoops = 0;
@@ -2186,7 +2167,7 @@ void ADQAIChannelGroup::daqContinStream()
             {
                 ADQNDS_MSG_INFOLOG_PV("INFO: Receiving data...");
                 status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer,
-                                                          (void**)m_daqRecordHeaders,
+                                                          (void**)m_daqStreamHeaders,
                                                           m_chanMask,
                                                           samplesAdded,
                                                           headersAdded,
@@ -2198,8 +2179,6 @@ void ADQAIChannelGroup::daqContinStream()
                     samplesAddedTotal += samplesAdded[chan];
                 }
 
-                bytesParsedTotal += (uint64_t)bufferSize;
-
                 // Read data from each channel's buffer
                 for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
                 {
@@ -2208,8 +2187,7 @@ void ADQAIChannelGroup::daqContinStream()
                 }
             }
 
-            time(&curr_time);
-            elapsedSeconds = difftime(curr_time, start_time);
+            elapsedSeconds = timerSpentTimeMs() / 1000;
 
             if (elapsedSeconds > m_streamTime)
             {
@@ -2229,14 +2207,11 @@ void ADQAIChannelGroup::daqContinStream()
 finish:
 {
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-    status = m_adqInterface->DisarmTrigger();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: DisarmTrigger failed.");
     status = m_adqInterface->StopStreaming();
     ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
 }
 
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
-    commitChanges(true);
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -2245,10 +2220,10 @@ finish:
             free(m_daqDataBuffer[chan]);
             m_daqDataBuffer[chan] = NULL;
         }
-        if (m_daqRecordHeaders[chan])
+        if (m_daqStreamHeaders[chan])
         {
-            free(m_daqRecordHeaders[chan]);
-            m_daqRecordHeaders[chan] = NULL;
+            free(m_daqStreamHeaders[chan]);
+            m_daqStreamHeaders[chan] = NULL;
         }
     }
 
@@ -2260,6 +2235,8 @@ finish:
     {
         // We are probably already in "stopping" state, no need to panic...
     }
+
+    commitChanges(true);
 }
 
 /* Data acquisition method for raw streaming.
@@ -2273,11 +2250,11 @@ void ADQAIChannelGroup::daqRawStream()
 
     if (m_adqType == 714 || m_adqType == 14)
     {
-        bufferSize = 64 * 1024;
+        bufferSize = BUFFERSIZE_ADQ14;
     }
     if (m_adqType == 7)
     {
-        bufferSize = 512 * 1024;
+        bufferSize = BUFFERSIZE_ADQ7;
     }
 
     {
@@ -2338,8 +2315,7 @@ void ADQAIChannelGroup::daqRawStream()
             }
         }
 
-        // Buffer all data in RAM before writing to disk, if streaming to disk is need a high performance
-        // procedure could be implemented here.
+        // Buffer all data in RAM before writing to disk
         // Data format is set to 16 bits, so buffer size is Samples*2 bytes
         memcpy((void*)&m_daqRawDataBuffer[bufferSize - m_sampleCntCollect],
                m_adqInterface->GetPtrStream(),
@@ -2360,21 +2336,17 @@ finish:
 
     // Reset settings from Raw Streaming to normal streaming
     status = m_adqInterface->SetStreamStatus(0);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 1 (Stream enabled) failed.");
+    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
     status = m_adqInterface->SetStreamConfig(2, 0);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 2-1 (Raw without headers) failed.");
+    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 2-1 (With headers) failed.");
     status = m_adqInterface->SetStreamConfig(3, 0);
     ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 3-x (channel mask) failed.");
 
     status = m_adqInterface->StopStreaming();
     ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
-
-    status = m_adqInterface->DisarmTrigger();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: DisarmTrigger failed.");
 }
 
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
-    commitChanges(true);
 
     if (m_daqRawDataBuffer)
     {
@@ -2390,6 +2362,8 @@ finish:
     {
         // We are probably already in "stopping", no need to panic...
     }
+
+    commitChanges(true);
 }
 
 ADQAIChannelGroup::~ADQAIChannelGroup()
@@ -2407,11 +2381,6 @@ ADQAIChannelGroup::~ADQAIChannelGroup()
         {
             free(m_daqStreamHeaders[chan]);
             m_daqStreamHeaders[chan] = NULL;
-        }
-        if (m_daqRecordHeaders[chan])
-        {
-            free(m_daqRecordHeaders[chan]);
-            m_daqRecordHeaders[chan] = NULL;
         }
         if (m_daqLeftoverSamples[chan])
         {
