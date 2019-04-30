@@ -15,7 +15,7 @@ adq_test_registerRecordDeviceDriver pdbbase
 drvAsynIPPortConfigure("$(ROOT)","$(ADQSN)")
 
 ## Load record instances
-dbLoadTemplate("db/ADQDevice.substitutions", "PREFIX = $(ROOT), ADQSN = $(ADQSN)")
+dbLoadRecords("db/ADQDevice.db", "PREFIX = $(ROOT), ADQSN = $(ADQSN)")
 
 ## Load library of ADQ module
 ndsLoadDriver("${ADQ_LIB}/libtspd-adq.so")
