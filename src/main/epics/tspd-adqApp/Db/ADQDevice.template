@@ -13,7 +13,7 @@
 record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODNAME") {
     field(DESC, "Product name of the device")
     field(FTVL, "CHAR")
-    field(NELM, 32)
+    field(NELM, "${INFO_NELM}")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
@@ -21,7 +21,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODNAME") {
 record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODSERIAL") {
     field(DESC, "Serial number of the device")
     field(FTVL, "CHAR")
-    field(NELM, 32)
+    field(NELM, "${INFO_NELM}")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
@@ -41,7 +41,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:PRODTYPE") {
 record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODOPT") {
     field(DESC, "Option of the device")
     field(FTVL, "CHAR")
-    field(NELM, 32)
+    field(NELM, "${INFO_NELM}")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }

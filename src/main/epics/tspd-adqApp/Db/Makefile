@@ -6,7 +6,7 @@ include $(TOP)/configure/CONFIG
 #----------------------------------------------------
 # Create and install (or just install)
 # databases, templates, substitutions like this
-DB += ADQDevice.db
+DB += tspd-adq.db
 
 include $(TOP)/configure/RULES
 #----------------------------------------
