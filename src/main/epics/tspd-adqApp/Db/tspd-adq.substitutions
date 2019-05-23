@@ -1,20 +1,20 @@
 file ADQDevice.template 
 {
-    pattern { INFO,  INFO_NELM }
-            { INFO,  32        }
+    pattern { INFO,  INFO_NELM, INFO_NODE }
+            { INFO,  32,        Info      }
 }
 
 file ADQAIChannelGroup.template 
 {
-    pattern { GRP }
-            { COM }
+    pattern { GRP, GRP_NODE }
+            { COM, ChGrp    }
 }
 
 file ADQAIChannel.template 
 {
-    pattern { GRP,  CH  }
-            { COM,  CH0 }
-            { COM,  CH1 }
-            { COM,  CH2 }
-            { COM,  CH3 }
+    pattern { GRP,  GRP_NODE, NUM,  CH,        CH_NODE  }
+            { COM,  ChGrp,    0,    CH$(NUM),  Ch$(NUM) }
+            { COM,  ChGrp,    1,    CH$(NUM),  Ch$(NUM) }
+            { COM,  ChGrp,    2,    CH$(NUM),  Ch$(NUM) }
+            { COM,  ChGrp,    3,    CH$(NUM),  Ch$(NUM) }
 }

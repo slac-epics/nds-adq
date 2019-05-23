@@ -18,29 +18,39 @@ record(ao, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE") {
     field(DESC, "${CH} input range")
     field(EGU, "mVpp")
     field(SCAN, "Passive")
+    field(DTYP, "asynFloat64")
+    field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-InputRange")
 }
 
 record(ai, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE-RB") {
     field(DESC, "${CH} input range Rdbk")
     field(EGU, "mVpp")
     field(SCAN, "I/O Intr")
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-InputRange-RB")
 }
 
 record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DCBIAS") {
     field(DESC, "${CH} Adjusted BIAS")
     field(SCAN, "Passive")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-DCBias")
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DCBIAS-RB") {
     field(DESC, "${CH} Adjusted BIAS Rdbk")
     field(SCAN, "I/O Intr")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-DCBias-RB")
 }
 
 record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
     field(DESC, "Received data")
-    field(FTVL, "SHORT")
+    field(FTVL, "LONG")
     field(NELM, "30000000")
     field(SCAN, "I/O Intr")
+    field(DTYP, "asynInt32ArrayIn")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-Data")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #
@@ -50,7 +60,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
 # # # # # # # # # # # # # # # # # # # # # #
 
 record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
-    field(DESC, "Set local state CH")
+    field(DESC, "Set local state ${CH}")
     field(SCAN, "Passive")
     field(ZRVL, 0)
     field(ZRST, "UNKNOWN")
@@ -70,10 +80,12 @@ record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
     field(SVST, "RUNNING")
     field(EIVL, 8)
     field(EIST, "FAULT")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-StateMachine-setState")
 }
 
 record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:GETSTATE") {
-    field(DESC, "Get local state CH")
+    field(DESC, "Get local state ${CH}")
     field(SCAN, "I/O Intr")
     field(ZRVL, 0)
     field(ZRST, "UNKNOWN")
@@ -94,4 +106,6 @@ record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:GETSTATE") {
     field(EIVL, 8)
     field(EIST, "FAULT")
     field(EISV, "MAJOR")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-StateMachine-getState")
 }
