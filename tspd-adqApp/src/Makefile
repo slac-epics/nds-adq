@@ -9,9 +9,6 @@ include $(TOP)/configure/CONFIG
 # Name of the device library
 LIBRARY_IOC += tspd-adq
 
-# install tspd-adq.dbd into <top>/dbd
-DBD += tspd-adq.dbd
-
 # We enable the c++11 flag, plus we define the NDS3_DLL preprocessor macro.
 USR_CXXFLAGS = -std=c++11 -Wall -Wextra -Werror -pedantic -DNDS3_DLL -pthread -DLINUX
 
