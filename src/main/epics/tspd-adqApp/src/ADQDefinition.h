@@ -85,12 +85,12 @@
 /** @def GROUP_CHAN_DEVICE
  * @brief Append the string to ADQAIChannelGroup node name.
  */
-#define GROUP_CHAN_DEVICE ":COM"
+#define GROUP_CHAN_DEVICE "-ChGrp"
 
 /** @def INFO_DEVICE
  * @brief Append the string to ADQDevice node name.
  */
-#define INFO_DEVICE ":INFO"
+#define INFO_DEVICE "-Info"
 
 /** @def SLEEP(interval)
  * @brief Macro for sleeping for \a 1000*interval microseconds.
