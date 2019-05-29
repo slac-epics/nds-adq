@@ -725,6 +725,12 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 m_daqMode = 1;
             }
         }
+		
+		if (m_daqMode == 3) // Raw streaming -> check channel mask, only one channel can be active
+		{
+			m_chanActiveChanged = true;
+		}
+		
         m_daqModePV.push(now, m_daqMode);
 
         // Trigger sample and records numbers to update
