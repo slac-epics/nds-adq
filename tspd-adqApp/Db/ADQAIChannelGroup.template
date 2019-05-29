@@ -21,6 +21,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOGMSG") {
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt8ArrayIn")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) LogMsg")
+	field(PINI, "YES")
 }
 
 record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:DAQMODE") {
