@@ -96,12 +96,11 @@
     </foreground_color>
     <height>38</height>
     <items>
-      <s>ADQ-06215</s>
-      <s>ADQ-06302</s>
+      <s>ADQ-06025</s>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>Device prefix combo</name>
-    <pv_name>loc://ADQSerialNumber("ADQ-06215")</pv_name>
+    <pv_name>loc://ADQSerialNumber("ADQ-06025")</pv_name>
     <pv_value />
     <rules />
     <scale_options>
