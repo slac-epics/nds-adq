@@ -725,12 +725,12 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                 m_daqMode = 1;
             }
         }
-		
-		if (m_daqMode == 3) // Raw streaming -> check channel mask, only one channel can be active
-		{
-			m_chanActiveChanged = true;
-		}
-		
+        
+        if (m_daqMode == 3) // Raw streaming -> check channel mask, only one channel can be active
+        {
+            m_chanActiveChanged = true;
+        }
+        
         m_daqModePV.push(now, m_daqMode);
 
         // Trigger sample and records numbers to update
@@ -1916,7 +1916,7 @@ finish:
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
 
     status = m_adqInterface->SetStreamStatus(0);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
 
     status = m_adqInterface->StopStreaming();
     ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
@@ -2342,11 +2342,11 @@ finish:
 
     // Reset settings from Raw Streaming to normal streaming
     status = m_adqInterface->SetStreamStatus(0);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
     status = m_adqInterface->SetStreamConfig(2, 0);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 2-1 (With headers) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamConfig to 2-1 (With headers) failed.");
     status = m_adqInterface->SetStreamConfig(3, 0);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 3-x (channel mask) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamConfig to 3-x (channel mask) failed.");
 
     status = m_adqInterface->StopStreaming();
     ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
