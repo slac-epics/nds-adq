@@ -2085,6 +2085,7 @@ void ADQAIChannelGroup::daqContinStream()
     unsigned int bufferSize, buffersFilled;
     double elapsedSeconds;
     int bufferStatusLoops;
+	time_t start_time, curr_time;
     unsigned int samplesAdded[CHANNEL_COUNT_MAX];
     unsigned int headersAdded[CHANNEL_COUNT_MAX];
     unsigned int headerStatus[CHANNEL_COUNT_MAX];
@@ -2106,7 +2107,7 @@ void ADQAIChannelGroup::daqContinStream()
         m_daqStreamHeaders[chan] = NULL;
         if (m_chanMask & (1 << chan))
         {
-            m_daqDataBuffer[chan] = (short*)malloc((size_t)bufferSize);
+            m_daqDataBuffer[chan] = (short*)malloc((size_t));
             m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
         }
     }
@@ -2126,18 +2127,19 @@ void ADQAIChannelGroup::daqContinStream()
         status = m_adqInterface->StartStreaming();
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
 
-        timerStart();
-
+        //timerStart();
+		time(&start_time);
+		std::cout << "Start time: " << ctime(&start_time) << std::endl;
+		
         if (m_trigMode == 0)
         {
-
-            for (int i = 0; i < m_recordCnt; ++i)
-            {
-                status = m_adqInterface->SWTrig();
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
-            }
+			status = m_adqInterface->SWTrig();
+            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
         }
-
+		
+		time(&curr_time);
+		std::cout << "Before WHILE: " << ctime(&curr_time) << std::endl;
+		
         while (!streamCompleted)
         {
             bufferStatusLoops = 0;
@@ -2192,8 +2194,12 @@ void ADQAIChannelGroup::daqContinStream()
                     m_AIChannelsPtr[chan]->readData(m_daqDataBuffer[chan], sampleCnt);
                 }
             }
-
-            elapsedSeconds = timerSpentTimeMs() / 1000;
+			
+			time(&curr_time);
+			
+			elapsedSeconds = difftime(curr_time, start_time);
+			
+            //elapsedSeconds = timerSpentTimeMs() / 1000;
 
             if (elapsedSeconds > m_streamTime)
             {
@@ -2208,6 +2214,8 @@ void ADQAIChannelGroup::daqContinStream()
                 ADQNDS_MSG_INFOLOG_PV("ERROR: GetStreamOverflow detected.");
             }
         }
+		
+		std::cout << "Inside WHILE: " << ctime(&curr_time) << std::endl;
     }
 
 finish:
