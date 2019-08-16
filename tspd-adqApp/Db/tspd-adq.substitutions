@@ -12,9 +12,15 @@ file ADQAIChannelGroup.template
 
 file ADQAIChannel.template 
 {
-    pattern { GRP,  GRP_NODE, NUM,  CH,        CH_NODE  }
-            { COM,  ChGrp,    0,    CH$(NUM),  Ch$(NUM) }
-            { COM,  ChGrp,    1,    CH$(NUM),  Ch$(NUM) }
-            { COM,  ChGrp,    2,    CH$(NUM),  Ch$(NUM) }
-            { COM,  ChGrp,    3,    CH$(NUM),  Ch$(NUM) }
+    pattern { GRP,  GRP_NODE, NUM,  CH,  CH_NODE  }
+            { COM,  ChGrp,    0,    A,   Ch$(NUM) }
+            { COM,  ChGrp,    1,    B,   Ch$(NUM) }
+            { COM,  ChGrp,    2,    C,   Ch$(NUM) }
+            { COM,  ChGrp,    3,    D,   Ch$(NUM) }
+}
+
+file ADQMessageLog.template 
+{
+    pattern { GRP, GRP_NODE }
+            { COM, ChGrp    }
 }

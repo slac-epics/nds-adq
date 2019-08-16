@@ -1,0 +1,64 @@
+##
+## Copyright (c) 2018 Cosylab d.d.
+## This software is distributed under the terms found
+## in file LICENSE.txt that is included with this distribution.
+##
+
+# # # # # # # # # # # # # # # # # # # # # #
+#        Message logging for ADQ          #
+# # # # # # # # # # # # # # # # # # # # # #
+
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOG") {
+    field(DESC, "Message log")
+    field(FTVL, "CHAR")
+    field(NELM, "512")
+    field(SCAN, "I/O Intr")
+    field(DTYP, "asynInt8ArrayIn")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) LogMsg")
+    field(PINI, "YES")
+	field(FLNK, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG05")
+}
+
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG01")
+{
+    field(DESC, "Message log history")
+    field(FTVL, "CHAR")
+    field(NELM, "512")
+    field(INP, "${PREFIX}-${ADQSN}:${GRP}:LOG")
+}
+
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG02")
+{
+    field(DESC, "Message log history")
+    field(FTVL, "CHAR")
+    field(NELM, "512")
+    field(FLNK, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG01")	
+    field(INP, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG01")	
+}
+
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG03")
+{
+    field(DESC, "Message log history")
+    field(FTVL, "CHAR")
+    field(NELM, "512")
+    field(FLNK, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG02")	
+    field(INP, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG02")	
+}
+
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG04")
+{
+    field(DESC, "Message log history")
+    field(FTVL, "CHAR")
+    field(NELM, "512")
+    field(FLNK, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG03")	
+    field(INP, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG03")	
+}
+
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG05")
+{
+    field(DESC, "Message log history")
+    field(FTVL, "CHAR")
+    field(NELM, "512")
+    field(FLNK, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG04")	
+    field(INP, "${PREFIX}-${ADQSN}:${GRP}:LOG:MSG04")	
+}

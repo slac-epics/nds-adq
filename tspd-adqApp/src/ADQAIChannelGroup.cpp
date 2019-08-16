@@ -2085,7 +2085,7 @@ void ADQAIChannelGroup::daqContinStream()
     unsigned int bufferSize, buffersFilled;
     double elapsedSeconds;
     int bufferStatusLoops;
-	time_t start_time, curr_time;
+    //time_t start_time, curr_time;
     unsigned int samplesAdded[CHANNEL_COUNT_MAX];
     unsigned int headersAdded[CHANNEL_COUNT_MAX];
     unsigned int headerStatus[CHANNEL_COUNT_MAX];
@@ -2107,8 +2107,10 @@ void ADQAIChannelGroup::daqContinStream()
         m_daqStreamHeaders[chan] = NULL;
         if (m_chanMask & (1 << chan))
         {
-            m_daqDataBuffer[chan] = (short*)malloc((size_t));
-            m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
+            //m_daqDataBuffer[chan] = (short*)malloc((size_t)bufferSize);
+            //m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
+            m_daqDataBuffer[chan] = (short*)malloc(bufferSize*sizeof(char));
+            m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc(10*sizeof(uint32_t));
         }
     }
 
@@ -2120,6 +2122,9 @@ void ADQAIChannelGroup::daqContinStream()
 
         status = m_adqInterface->ContinuousStreamingSetup(m_chanMask);
         ADQNDS_MSG_WARNLOG_PV(status, "WARNING: ContinuousStreamingSetup failed.");
+        
+        status = m_adqInterface->SetTransferBuffers(CHANNEL_COUNT_MAX, bufferSize);
+        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetTransferBuffers failed.");
 
         // Start streaming
         samplesAddedTotal = 0;
@@ -2127,19 +2132,19 @@ void ADQAIChannelGroup::daqContinStream()
         status = m_adqInterface->StartStreaming();
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
 
-        //timerStart();
-		time(&start_time);
-		std::cout << "Start time: " << ctime(&start_time) << std::endl;
-		
+        timerStart();
+        //time(&start_time);
+        //std::cout << "Start time: " << ctime(&start_time) << std::endl;
+        
         if (m_trigMode == 0)
         {
-			status = m_adqInterface->SWTrig();
+            status = m_adqInterface->SWTrig();
             ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
         }
-		
-		time(&curr_time);
-		std::cout << "Before WHILE: " << ctime(&curr_time) << std::endl;
-		
+        
+        //time(&curr_time);
+        //std::cout << "Before WHILE: " << ctime(&curr_time) << std::endl;
+        
         while (!streamCompleted)
         {
             bufferStatusLoops = 0;
@@ -2194,12 +2199,11 @@ void ADQAIChannelGroup::daqContinStream()
                     m_AIChannelsPtr[chan]->readData(m_daqDataBuffer[chan], sampleCnt);
                 }
             }
-			
-			time(&curr_time);
-			
-			elapsedSeconds = difftime(curr_time, start_time);
-			
-            //elapsedSeconds = timerSpentTimeMs() / 1000;
+            
+            //time(&curr_time);
+            //elapsedSeconds = difftime(curr_time, start_time);
+            
+            elapsedSeconds = timerSpentTimeMs() / 1000;
 
             if (elapsedSeconds > m_streamTime)
             {
@@ -2214,8 +2218,9 @@ void ADQAIChannelGroup::daqContinStream()
                 ADQNDS_MSG_INFOLOG_PV("ERROR: GetStreamOverflow detected.");
             }
         }
-		
-		std::cout << "Inside WHILE: " << ctime(&curr_time) << std::endl;
+        
+        //std::cout << "Inside WHILE: " << ctime(&curr_time) << std::endl;
+        std::cout << "Inside WHILE: elapsedSeconds = " << elapsedSeconds << std::endl;
     }
 
 finish:
