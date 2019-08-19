@@ -1,4 +1,4 @@
-file ADQDevice.template 
+file ADQInfo.template 
 {
     pattern { INFO,  INFO_NELM, INFO_NODE }
             { INFO,  32,        Info      }

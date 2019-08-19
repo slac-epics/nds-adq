@@ -9,7 +9,7 @@
 
 #include "ADQAIChannel.h"
 #include "ADQDefinition.h"
-#include "ADQDevice.h"
+#include "ADQInfo.h"
 
 #include <mutex>
 #include <nds3/nds.h>
@@ -84,14 +84,14 @@ typedef struct
  * Data acquisition is handled in this class. The state machine of the device is defined here.
  * Each digitizer's channel gets a representation by calling ADQCHannel constructor for N amount of physical channels.
  */
-class ADQAIChannelGroup : public ADQDevice
+class ADQAIChannelGroup : public ADQInfo
 {
 public:
     /** @fn ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
      * @brief ADQAIChannelGroup class constructor.
      * @param name a name with which this class will register its child node.
      * @param parentNode a name of a parent node to which this class' node is a child.
-     * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+     * @param adqInterface a pointer to the ADQ API interface created in the ADQDevice class.
      */
     ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
     virtual ~ADQAIChannelGroup();

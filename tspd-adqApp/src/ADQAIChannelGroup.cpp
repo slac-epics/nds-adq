@@ -21,10 +21,10 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQDefinition.h"
 #include "ADQDevice.h"
-#include "ADQInit.h"
+#include "ADQInfo.h"
 
 ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface) :
-    ADQDevice(name, parentNode, adqInterface), 
+    ADQInfo(name, parentNode, adqInterface), 
     m_node(nds::Port(name + GROUP_CHAN_DEVICE, nds::nodeType_t::generic)),
     m_adqInterface(adqInterface), 
     m_logMsgPV(createPvRb<std::string>("LogMsg", &ADQAIChannelGroup::getLogMsg)),
@@ -1617,7 +1617,7 @@ bool ADQAIChannelGroup::allowChange(const nds::state_t currentLocal, const nds::
     return true;
 }
 
-/* Time snap of the starting time, used Triggered and Continuous Streaming.
+/* Time snap of the starting time, used in Triggered and Continuous Streaming.
  */
 static struct timespec tsref;
 void timerStart(void)
@@ -1629,7 +1629,7 @@ void timerStart(void)
     }
 }
 
-/* Returns time in ms that is spend since the timerStart, used Triggered and Continuous Streaming.
+/* Returns time in ms that is spend since the timerStart, used in Triggered and Continuous Streaming.
  */
 unsigned int timerSpentTimeMs(void)
 {
@@ -1761,7 +1761,7 @@ void ADQAIChannelGroup::daqTrigStream()
             if (status)
             {
                 status = 0;
-                ADQNDS_MSG_ERRLOG_PV(status, "WARNING: Streaming overflow detected.");
+                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: Streaming overflow detected.");
             }
 
             status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
@@ -1916,10 +1916,10 @@ finish:
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
 
     status = m_adqInterface->SetStreamStatus(0);
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamStatus to 0 (Stream disabled) failed.");
 
     status = m_adqInterface->StopStreaming();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
 }
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
 
@@ -2030,7 +2030,7 @@ void ADQAIChannelGroup::daqMultiRecord()
         if (status)
         {
             status = 0;
-            ADQNDS_MSG_ERRLOG_PV(status, "WARNING: GetStreamOverflow detected.");
+            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetStreamOverflow detected.");
         }
     }
 
@@ -2050,7 +2050,7 @@ finish:
 {
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
     status = m_adqInterface->DisarmTrigger();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: DisarmTrigger failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DisarmTrigger failed.");
     m_adqInterface->MultiRecordClose();
 }
 
@@ -2107,8 +2107,6 @@ void ADQAIChannelGroup::daqContinStream()
         m_daqStreamHeaders[chan] = NULL;
         if (m_chanMask & (1 << chan))
         {
-            //m_daqDataBuffer[chan] = (short*)malloc((size_t)bufferSize);
-            //m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc((size_t)bufferSize);
             m_daqDataBuffer[chan] = (short*)malloc(bufferSize*sizeof(char));
             m_daqStreamHeaders[chan] = (streamingHeader_t*)malloc(10*sizeof(uint32_t));
         }
@@ -2121,7 +2119,7 @@ void ADQAIChannelGroup::daqContinStream()
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StopStreaming failed.");
 
         status = m_adqInterface->ContinuousStreamingSetup(m_chanMask);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: ContinuousStreamingSetup failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ContinuousStreamingSetup failed.");
         
         status = m_adqInterface->SetTransferBuffers(CHANNEL_COUNT_MAX, bufferSize);
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetTransferBuffers failed.");
@@ -2133,17 +2131,12 @@ void ADQAIChannelGroup::daqContinStream()
         ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
 
         timerStart();
-        //time(&start_time);
-        //std::cout << "Start time: " << ctime(&start_time) << std::endl;
         
         if (m_trigMode == 0)
         {
             status = m_adqInterface->SWTrig();
             ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
         }
-        
-        //time(&curr_time);
-        //std::cout << "Before WHILE: " << ctime(&curr_time) << std::endl;
         
         while (!streamCompleted)
         {
@@ -2200,9 +2193,6 @@ void ADQAIChannelGroup::daqContinStream()
                 }
             }
             
-            //time(&curr_time);
-            //elapsedSeconds = difftime(curr_time, start_time);
-            
             elapsedSeconds = timerSpentTimeMs() / 1000;
 
             if (elapsedSeconds > m_streamTime)
@@ -2218,16 +2208,13 @@ void ADQAIChannelGroup::daqContinStream()
                 ADQNDS_MSG_INFOLOG_PV("ERROR: GetStreamOverflow detected.");
             }
         }
-        
-        //std::cout << "Inside WHILE: " << ctime(&curr_time) << std::endl;
-        std::cout << "Inside WHILE: elapsedSeconds = " << elapsedSeconds << std::endl;
     }
 
 finish:
 {
     std::lock_guard<std::mutex> lock(m_adqDevMutex);
     status = m_adqInterface->StopStreaming();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
 }
 
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
@@ -2355,14 +2342,14 @@ finish:
 
     // Reset settings from Raw Streaming to normal streaming
     status = m_adqInterface->SetStreamStatus(0);
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamStatus to 0 (Stream disabled) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamStatus to 0 (Stream disabled) failed.");
     status = m_adqInterface->SetStreamConfig(2, 0);
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamConfig to 2-1 (With headers) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamConfig to 2-1 (With headers) failed.");
     status = m_adqInterface->SetStreamConfig(3, 0);
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetStreamConfig to 3-x (channel mask) failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamConfig to 3-x (channel mask) failed.");
 
     status = m_adqInterface->StopStreaming();
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: StopStreaming failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
 }
 
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");

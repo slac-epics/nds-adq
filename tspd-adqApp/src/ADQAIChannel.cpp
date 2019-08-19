@@ -16,7 +16,7 @@
 #include "ADQAIChannelGroup.h"
 #include "ADQDefinition.h"
 #include "ADQDevice.h"
-#include "ADQInit.h"
+#include "ADQInfo.h"
 
 ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum) :
     m_channelNum(channelNum),

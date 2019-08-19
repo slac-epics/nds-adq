@@ -16,7 +16,7 @@ USR_CXXFLAGS = -std=c++11 -Wall -Wextra -Werror -pedantic -DNDS3_DLL -pthread -D
 LIBS = -lnds3 -ladq
 
 # tspd-adq_registerRecordDeviceDriver.cpp derives from tspd-adq.dbd
-tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQInit.cpp ADQDevice.cpp
+tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQInfo.cpp ADQDevice.cpp
 
 #=============================
 # Include makefile snippets to add support for additional modules

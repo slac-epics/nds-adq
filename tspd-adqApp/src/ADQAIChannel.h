@@ -80,7 +80,7 @@ public:
     /** @fn commitChanges
      * @brief This method processes changes are applied to channel specific parameters.
      * @param calledFromDaqThread a flag that prevents this function to be called when set to false.
-     * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+     * @param adqInterface a pointer to the ADQ API interface created in the ADQDevice class.
      * @param m_logMsgPV a PV from ADQAIGroupChannel that receives any log messages.
      */
     void commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> m_logMsgPV);
