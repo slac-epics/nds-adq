@@ -18,10 +18,10 @@
 #include "ADQAIChannel.h"
 #include "ADQAIChannelGroup.h"
 #include "ADQDefinition.h"
-#include "ADQInit.h"
+#include "ADQInfo.h"
 #include "ADQDevice.h"
 
-ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
+ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
     m_node(deviceName)
 {
     unsigned int status;
@@ -126,7 +126,7 @@ ADQInit::ADQInit(nds::Factory& factory, const std::string& deviceName, const nds
     }
 }
 
-ADQInit::~ADQInit()
+ADQDevice::~ADQDevice()
 {
     if (m_adqCtrlUnit)
     {
@@ -139,4 +139,4 @@ ADQInit::~ADQInit()
 /* This macro defines the driver name and the name of the class that implements the driver.
  * Name is provided by the shared module for other NDS3 functions (e.g. ndsCreateDevice).
  */
-NDS_DEFINE_DRIVER(tspd_adq, ADQInit)
+NDS_DEFINE_DRIVER(tspd_adq, ADQDevice)

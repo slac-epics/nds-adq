@@ -19,7 +19,6 @@ dbLoadRecords("db/tspd-adq.db", "PREFIX = $(ROOT), ADQSN = $(ADQSN)")
 
 ## Load library of ADQ module
 ndsLoadDriver("${ADQ_LIB}/libtspd-adq.so")
-ndsLoadNamingRules ("${ADQ_SRC}/ADQDeviceNamingRules.ini")
 
 ## Create device with parameters: driver name (from NDS_DEFINE_DRIVER, not .SO name), rootNode, digitizer's serial number
 ndsCreateDevice(tspd_adq, "$(ROOT)", "ADQSN=$(ADQSN)")

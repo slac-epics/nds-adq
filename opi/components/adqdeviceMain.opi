@@ -657,14 +657,14 @@ $(pv_value)</tooltip>
     </foreground_color>
     <height>35</height>
     <items>
-      <s>CH0</s>
-      <s>CH1</s>
-      <s>CH2</s>
-      <s>CH3</s>
+      <s>A</s>
+      <s>B</s>
+      <s>C</s>
+      <s>D</s>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>channel_name</name>
-    <pv_name>loc://ADQChannel("CH0")</pv_name>
+    <pv_name>loc://ADQChannel("A")</pv_name>
     <pv_value />
     <rules />
     <scale_options>

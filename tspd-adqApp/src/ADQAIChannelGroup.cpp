@@ -1745,8 +1745,7 @@ void ADQAIChannelGroup::daqTrigStream()
     }
 
     /* Data acquisition loop.
-     * During infinite data collection each record is sent to data PV.
-     * When number of records is limited, the whole buffer is sent to data PV.
+     * During data collection each record is sent to data PV separately.
      */
     do
     {
@@ -1757,11 +1756,10 @@ void ADQAIChannelGroup::daqTrigStream()
             buffersFilled = 0;
 
             status = m_adqInterface->GetStreamOverflow();
-
             if (status)
             {
                 status = 0;
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: Streaming overflow detected.");
+                ADQNDS_MSG_ERRLOG_PV(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
             }
 
             status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
@@ -2030,7 +2028,7 @@ void ADQAIChannelGroup::daqMultiRecord()
         if (status)
         {
             status = 0;
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetStreamOverflow detected.");
+            ADQNDS_MSG_ERRLOG_PV(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
         }
     }
 
@@ -2204,8 +2202,7 @@ void ADQAIChannelGroup::daqContinStream()
             status = m_adqInterface->GetStreamOverflow();
             if (status)
             {
-                streamCompleted = 1;
-                ADQNDS_MSG_INFOLOG_PV("ERROR: GetStreamOverflow detected.");
+                ADQNDS_MSG_ERRLOG_PV(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
             }
         }
     }
@@ -2317,7 +2314,7 @@ void ADQAIChannelGroup::daqRawStream()
             if (status)
             {
                 status = 0;
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: Streaming overflow detected.");
+                ADQNDS_MSG_ERRLOG_PV(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
             }
         }
 
