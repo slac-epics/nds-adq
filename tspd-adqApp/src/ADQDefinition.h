@@ -99,7 +99,7 @@
 #define SLEEP(interval) usleep(1000 * interval)
 
 /** @def MIN(a, b)
- * @brief A macro that returns the minumim of \a a and \a b.
+ * @brief A macro that returns the minimum of \a a and \a b.
  */
 #define MIN(a, b) ((a) > (b) ? (b) : (a))
 
@@ -121,13 +121,13 @@
         ndsInfoStream(m_node) << std::string(text) << std::endl; \
     } while (0)
 
-/** @def ADQNDS_MSG_ERRLOG_PV
- * @brief Macro for informing the user about occured major failures and
+/** @def ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH
+ * @brief Macro for informing the user about occurred major failures and
  * stopping data acquisition. Used in ADQAIChannelGroup methods.
  * @param status status of the function that calls this macro.
  * @param text input information message.
  */
-#define ADQNDS_MSG_ERRLOG_PV(status, text)                            \
+#define ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, text)                \
     do                                                                \
     {                                                                 \
         if (!status)                                                  \
