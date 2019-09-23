@@ -127,13 +127,12 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
 }
 
 ADQDevice::~ADQDevice()
-{
+{     
     if (m_adqCtrlUnit)
     {
-        DeleteADQControlUnit(m_adqCtrlUnit);
-        ndsInfoStream(m_node) << "ADQ Control Unit was deleted." << std::endl;
+        //ndsInfoStream(m_node) << "Closing connection to ADQ device..." << std::endl;  
+        //DeleteADQControlUnit(m_adqCtrlUnit);
     }
-    ndsInfoStream(m_node) << "ADQ Device class was destructed." << std::endl;
 }
 
 /* This macro defines the driver name and the name of the class that implements the driver.

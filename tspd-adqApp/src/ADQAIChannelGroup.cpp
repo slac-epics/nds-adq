@@ -878,6 +878,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
                                           "D.");
                     m_chanMask = 0x8;
                     m_chanInt = 8;
+                    m_chanActive = 3;
                 }
             }
         }
@@ -1573,6 +1574,8 @@ void ADQAIChannelGroup::onStart()
     }
 
     m_stopDaq = false;
+    
+    ADQNDS_MSG_INFOLOG_PV("INFO: Starting the acquisition...");
 
     if (m_daqMode == 0)
         m_daqThread = m_node.runInThread("DAQ-MultiRecord", std::bind(&ADQAIChannelGroup::daqMultiRecord, this));
@@ -1787,14 +1790,14 @@ void ADQAIChannelGroup::daqTrigStream()
                     status = m_adqInterface->FlushDMA();
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: FlushDMA failed.");
                 }
-
-                if (m_stateMachine.getLocalState() == nds::state_t::stopping)
-                {
-                    ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
-                    goto finish;
-                }
             }
-
+            
+            if (m_stateMachine.getLocalState() == nds::state_t::stopping)
+            {
+                ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
+                goto finish;
+            }
+            
             ADQNDS_MSG_INFOLOG_PV("INFO: Receiving data...");
             status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer, (void**)m_daqStreamHeaders, m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetDataStreaming failed.");
@@ -1958,7 +1961,7 @@ void ADQAIChannelGroup::daqMultiRecord()
 {
     int trigged, status;
     void* daqVoidBuffers[CHANNEL_COUNT_MAX];
-    unsigned int streamCompleted = 0;
+    //unsigned int streamCompleted = 0;
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -1985,8 +1988,8 @@ void ADQAIChannelGroup::daqMultiRecord()
         }
     }
 
-    while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
-    {
+    //while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
+    //{
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
@@ -2000,6 +2003,8 @@ void ADQAIChannelGroup::daqMultiRecord()
 
             status = m_adqInterface->ArmTrigger();
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: ArmTrigger failed.");
+            
+            ADQNDS_MSG_INFOLOG_PV("Triggering...");
 
             if (m_trigMode == 0)   // SW trigger
             {
@@ -2020,7 +2025,13 @@ void ADQAIChannelGroup::daqMultiRecord()
                     trigged = m_adqInterface->GetAcquiredAll();
                 } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
             }
-
+            
+            if (m_stateMachine.getLocalState() == nds::state_t::stopping)
+            {
+                ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
+                goto finish;
+            }
+            
             std::ostringstream textTmp;
             unsigned int acqRecTotal = m_adqInterface->GetAcquiredRecords();
             textTmp << "INFO: GetAcquiredRecords: " << acqRecTotal;
@@ -2047,8 +2058,8 @@ void ADQAIChannelGroup::daqMultiRecord()
             m_AIChannelsPtr[chan]->readData((short*)daqVoidBuffers[chan], m_sampleCntTotal);
         }
         
-        streamCompleted = 1;
-    }
+        //streamCompleted = 1;
+    //}
 
 finish:
     {
@@ -2115,7 +2126,7 @@ void ADQAIChannelGroup::daqContinStream()
         }
     }
 
-    while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
+    //while (!(m_stateMachine.getLocalState() == nds::state_t::on) && !streamCompleted)
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
         status = m_adqInterface->StopStreaming();
@@ -2141,13 +2152,13 @@ void ADQAIChannelGroup::daqContinStream()
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
         }
         
-        while (!streamCompleted)
+        while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
         {
             bufferStatusLoops = 0;
             buffersFilled = 0;
 
             while (buffersFilled == 0 && status)
-            {
+            {                
                 status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
                 ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
 
@@ -2376,7 +2387,17 @@ finish:
 
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
-    ndsInfoStream(m_node) << "Buffers freed." << std::endl;
+    ndsInfoStream(m_node) << "Stopping the application..." << std::endl;
+    
+    if (m_stateMachine.getLocalState() == nds::state_t::running)
+    {     
+        ndsInfoStream(m_node) << "Stopping the acquisition..." << std::endl;
+        
+        //m_stateMachine.setState(nds::state_t::on);
+        onStop();
+    }
+    
+    ndsInfoStream(m_node) << "Freeing buffers..." << std::endl;
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -2402,4 +2423,8 @@ ADQAIChannelGroup::~ADQAIChannelGroup()
         free(m_daqRawDataBuffer);
         m_daqRawDataBuffer = NULL;
     }
+    
+    ndsInfoStream(m_node) << "Setting ADQ device to initial state..." << std::endl;
+    m_adqInterface->ResetDevice(2);
+    m_adqInterface->ResetDevice(8);
 }
