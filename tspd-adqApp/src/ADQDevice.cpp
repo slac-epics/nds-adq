@@ -107,7 +107,7 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             throw nds::NdsError("Device didn't start normally (IsStartedOK).");
         }
 
-        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(parameters.at("ADQSN"), m_node, m_adqInterface);
+        std::shared_ptr<ADQAIChannelGroup> adqChanGrp = std::make_shared<ADQAIChannelGroup>(parameters.at("ADQSN"), m_node, m_adqInterface, m_adqCtrlUnit);
         m_adqChanGrpPtr.push_back(adqChanGrp);
         
         // Initialize NDS device after declaration of all its PVs
@@ -128,11 +128,6 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
 
 ADQDevice::~ADQDevice()
 {     
-    if (m_adqCtrlUnit)
-    {
-        //ndsInfoStream(m_node) << "Closing connection to ADQ device..." << std::endl;  
-        //DeleteADQControlUnit(m_adqCtrlUnit);
-    }
 }
 
 /* This macro defines the driver name and the name of the class that implements the driver.

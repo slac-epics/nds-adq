@@ -93,7 +93,7 @@ public:
      * @param parentNode a name of a parent node to which this class' node is a child.
      * @param adqInterface a pointer to the ADQ API interface created in the ADQDevice class.
      */
-    ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
+    ADQAIChannelGroup(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface, void* adqCtrlUnit);
     virtual ~ADQAIChannelGroup();
 
     /** @var m_node

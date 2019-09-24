@@ -301,8 +301,7 @@ void ADQAIChannel::readData(short* rawData, int32_t sampleCnt)
 
     if (m_stateMachine.getLocalState() != nds::state_t::running)
     {
-        // Print the warning message the first time this function is inappropriately called                            !!!!!!!!!!!!!!!!!!!
-        //// urojec L3: this comment is a little bit confusing. It can mean more things
+        // Print the warning message, if readData is called during the incorrect ndsState
         if (m_firstReadout)
         {
             m_firstReadout = false;

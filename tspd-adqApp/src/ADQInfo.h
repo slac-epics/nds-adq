@@ -26,7 +26,7 @@ public:
      * @param parentNode a name of a parent node to which this class' node is a child.
      * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
      */
-    ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface);
+    ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface, void* adqCtrlUnit);
     virtual ~ADQInfo();
 
     /** @var m_node
@@ -121,6 +121,8 @@ public:
 
 private:
     ADQInterface* m_adqInterface;
+
+    void* m_adqCtrlUnit;
 
     std::string m_productName;
     nds::PVDelegateIn<std::string> m_productNamePV;

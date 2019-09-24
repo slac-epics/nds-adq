@@ -20,9 +20,10 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 
-ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface) :
+ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface, void* adqCtrlUnit) :
     m_node(nds::Port(name + INFO_DEVICE, nds::nodeType_t::generic)), 
     m_adqInterface(adqInterface),
+    m_adqCtrlUnit(adqCtrlUnit),
     m_productNamePV(nds::PVDelegateIn<std::string>("ProdName", std::bind(&ADQInfo::getProductName, this,
                                                                          std::placeholders::_1, std::placeholders::_2))),
     m_serialNumberPV(nds::PVDelegateIn<std::string>("ProdSerial", std::bind(&ADQInfo::getSerialNumber, this,
@@ -298,4 +299,10 @@ void ADQInfo::getPCIeLinkWid(timespec* pTimestamp, int32_t* pValue)
 
 ADQInfo::~ADQInfo()
 {
+    ndsInfoStream(m_node) << "Setting ADQ device to initial state..." << std::endl;
+    m_adqInterface->ResetDevice(2);
+    m_adqInterface->ResetDevice(8);
+    
+    ndsInfoStream(m_node) << "Closing connection to ADQ device..." << std::endl;  
+    DeleteADQControlUnit(m_adqCtrlUnit);   
 }
