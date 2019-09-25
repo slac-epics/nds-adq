@@ -2038,15 +2038,12 @@ void ADQAIChannelGroup::daqMultiRecord()
         else
         {
             do
-            {
-                if (m_stateMachine.getLocalState() == nds::state_t::stopping)
-                {
-                    ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
-                    goto finish;
-                }
-                
+            //while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+            {    
                 std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                trigged = m_adqInterface->GetAcquiredAll();
+                //trigged = m_adqInterface->GetAcquiredAll();
+                trigged = 0;
+            
             } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
             
