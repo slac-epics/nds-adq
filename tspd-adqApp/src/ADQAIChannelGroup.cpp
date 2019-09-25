@@ -2142,25 +2142,29 @@ void ADQAIChannelGroup::daqContinStream()
 
         status = m_adqInterface->StartStreaming();
         ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: StartStreaming failed.");
-
+    }
         timerStart();
-        
+    {   
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
         if (m_trigMode == 0)
         {
             status = m_adqInterface->SWTrig();
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
         }
-        
+    }    
         while (!streamCompleted)
         {
             bufferStatusLoops = 0;
             buffersFilled = 0;
 
             while (buffersFilled == 0 && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
-            {                       
-                status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
-                ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
-
+            {    
+                {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
+                    ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
+                }
+                
                 if (buffersFilled == 0)
                 {
                     SLEEP(10);
@@ -2170,8 +2174,11 @@ void ADQAIChannelGroup::daqContinStream()
                     {
                         // If the DMA transfer is taking too long, we should flush the DMA buffer before it times out. The timeout defaults to 60 seconds.
                         ADQNDS_MSG_INFOLOG_PV("INFO: Timeout, flushing DMA...");
-                        status = m_adqInterface->FlushDMA();
-                        ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: FlushDMA failed.");
+                        {
+                            std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                            status = m_adqInterface->FlushDMA();
+                            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: FlushDMA failed.");
+                        }
                     }
                 }
             }
@@ -2185,13 +2192,16 @@ void ADQAIChannelGroup::daqContinStream()
             for (unsigned int buf = 0; buf < buffersFilled; buf++)
             {
                 ADQNDS_MSG_INFOLOG_PV("INFO: Receiving data...");
-                status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer,
-                                                          (void**)m_daqStreamHeaders,
-                                                          m_chanMask,
-                                                          samplesAdded,
-                                                          headersAdded,
-                                                          headerStatus);
-                ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetDataStreaming failed.");
+                {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer,
+                                                            (void**)m_daqStreamHeaders,
+                                                            m_chanMask,
+                                                            samplesAdded,
+                                                            headersAdded,
+                                                            headerStatus);
+                    ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetDataStreaming failed.");
+                }
 
                 for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
                 {
@@ -2214,13 +2224,16 @@ void ADQAIChannelGroup::daqContinStream()
                 ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished due to achieved target stream time.");
             }
 
-            status = m_adqInterface->GetStreamOverflow();
+            {
+                std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                status = m_adqInterface->GetStreamOverflow();
+            }
+            
             if (status)
             {
                 ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
             }
         }
-    }
 
 finish:
     {
@@ -2387,26 +2400,6 @@ finish:
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
     ndsInfoStream(m_node) << "Stopping the application..." << std::endl;
-    
-    if (m_stateMachine.getLocalState() == nds::state_t::running)
-    {     
-        ndsInfoStream(m_node) << "Stopping the acquisition..." << std::endl;
-        //m_stopDaq = true;
-        //m_stateMachine.setState(nds::state_t::on);
-        
-        //int status = m_adqInterface->StopStreaming();
-        //ndsInfoStream(m_node) << status << " StopStreaming" << std::endl;
-        
-        //m_stateMachine.setState(nds::state_t::on);
-        //SLEEP(200);
-        //m_daqThread.join();
-
-        //for (auto const& channel : m_AIChannelsPtr)
-        //{
-        //    channel->setState(nds::state_t::on);
-        //}
-        //m_stateMachine.setState(nds::state_t::on);
-    }
     
     ndsInfoStream(m_node) << "Freeing buffers..." << std::endl;
 

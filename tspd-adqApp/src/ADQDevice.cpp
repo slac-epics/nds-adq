@@ -39,7 +39,7 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
         }
 
         // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq')
-        ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
+        //ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
 
         // Check revisions
         const int adqApiRev = ADQAPI_GetRevision();
