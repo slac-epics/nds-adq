@@ -1750,6 +1750,7 @@ void ADQAIChannelGroup::daqTrigStream()
     /* Data acquisition loop.
      * During data collection each record is sent to data PV separately.
      */
+    ADQNDS_MSG_INFOLOG_PV("INFO: Receiving data...");
     do
     {
         // Mutex is used to save digitizer's API library from interruptions during infinite collection
@@ -1759,15 +1760,18 @@ void ADQAIChannelGroup::daqTrigStream()
             buffersFilled = 0;
 
             status = m_adqInterface->GetStreamOverflow();
+        }
             if (status)
             {
                 status = 0;
                 ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
             }
-
+        
+        {
+            std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
-
+        }
             // Poll for the transfer buffer status as long as the timeout has not been
             // reached and no buffers have been filled.
             while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !buffersFilled)
@@ -1776,7 +1780,11 @@ void ADQAIChannelGroup::daqTrigStream()
                 timerStart();
                 while (!buffersFilled && (timerSpentTimeMs() < (unsigned)m_timeout) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
                 {
-                    status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
+                    {
+                        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                        status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
+                    }
+                    
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
                     // Sleep to avoid loading the processor too much
                     SLEEP(10);
@@ -1785,9 +1793,11 @@ void ADQAIChannelGroup::daqTrigStream()
                 // Timeout reached, flush the transfer buffer to receive data
                 if (!buffersFilled)
                 {
-                    ADQNDS_MSG_INFOLOG_PV("INFO: Timeout, flushing DMA...");
-
-                    status = m_adqInterface->FlushDMA();
+                    {
+                        std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                        status = m_adqInterface->FlushDMA();
+                    }
+                    
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: FlushDMA failed.");
                 }
             }
@@ -1798,11 +1808,12 @@ void ADQAIChannelGroup::daqTrigStream()
                 goto finish;
             }
             
-            ADQNDS_MSG_INFOLOG_PV("INFO: Receiving data...");
-            status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer, (void**)m_daqStreamHeaders, m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
+            {
+                std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                status = m_adqInterface->GetDataStreaming((void**)m_daqDataBuffer, (void**)m_daqStreamHeaders, m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
+            }
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetDataStreaming failed.");
-        }
-
+        
         // Go through each channel's m_daqDataBuffer data: check on incomplete records, add samples of incomplete records to the next records
         for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
         {
@@ -1913,15 +1924,16 @@ void ADQAIChannelGroup::daqTrigStream()
     } while (!recordsInTotalCheck && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
 
 finish:
-{
-    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+    {
+        std::lock_guard<std::mutex> lock(m_adqDevMutex);
 
-    status = m_adqInterface->SetStreamStatus(0);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamStatus to 0 (Stream disabled) failed.");
+        status = m_adqInterface->SetStreamStatus(0);
+        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamStatus to 0 (Stream disabled) failed.");
 
-    status = m_adqInterface->StopStreaming();
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
-}
+        status = m_adqInterface->StopStreaming();
+        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
+    }
+    
     ADQNDS_MSG_INFOLOG_PV("INFO: Acquisition finished.");
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
@@ -1961,7 +1973,7 @@ void ADQAIChannelGroup::daqMultiRecord()
 {
     int trigged, status;
     void* daqVoidBuffers[CHANNEL_COUNT_MAX];
-    unsigned int streamCompleted = 0;
+    ///unsigned int streamCompleted = 0;
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -1988,40 +2000,52 @@ void ADQAIChannelGroup::daqMultiRecord()
         }
     }
 
-    while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
-    {
-    {
-        std::lock_guard<std::mutex> lock(m_adqDevMutex);
-        status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
-        ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: MultiRecordSetChannelMask failed.");
+    //while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
+    //{
+        {
+            std::lock_guard<std::mutex> lock(m_adqDevMutex);
+            status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
+            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: MultiRecordSetChannelMask failed.");
 
-        status = m_adqInterface->MultiRecordSetup(m_recordCnt, m_sampleCnt);
-        ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: MultiRecordSetup failed.");
+            status = m_adqInterface->MultiRecordSetup(m_recordCnt, m_sampleCnt);
+            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: MultiRecordSetup failed.");
 
-        status = m_adqInterface->DisarmTrigger();
-        ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: DisarmTrigger failed.");
+            status = m_adqInterface->DisarmTrigger();
+            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: DisarmTrigger failed.");
 
-        status = m_adqInterface->ArmTrigger();
-        ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: ArmTrigger failed.");
-            
-        ADQNDS_MSG_INFOLOG_PV("Triggering...");
+            status = m_adqInterface->ArmTrigger();
+            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: ArmTrigger failed.");
+        }    
+            ADQNDS_MSG_INFOLOG_PV("Triggering...");
 
         if (m_trigMode == 0)   // SW trigger
         {
             do
             {
-                trigged = m_adqInterface->GetAcquiredAll();
+                {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    trigged = m_adqInterface->GetAcquiredAll();
+                }
+                
                 for (int i = 0; i < m_recordCnt; ++i)
                 {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
                     status = m_adqInterface->SWTrig();
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
                 }
-            } while (trigged == 0);
+            } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
         else
         {
             do
             {
+                if (m_stateMachine.getLocalState() == nds::state_t::stopping)
+                {
+                    ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
+                    goto finish;
+                }
+                
+                std::lock_guard<std::mutex> lock(m_adqDevMutex);
                 trigged = m_adqInterface->GetAcquiredAll();
             } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
@@ -2031,20 +2055,27 @@ void ADQAIChannelGroup::daqMultiRecord()
             ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
             goto finish;
         }
-            
+        
+        {
+            std::lock_guard<std::mutex> lock(m_adqDevMutex);
             std::ostringstream textTmp;
             unsigned int acqRecTotal = m_adqInterface->GetAcquiredRecords();
             textTmp << "INFO: GetAcquiredRecords: " << acqRecTotal;
             std::string textForPV(textTmp.str());
             ADQNDS_MSG_INFOLOG_PV(textForPV);
-
-        status = m_adqInterface->GetStreamOverflow();
+        }
+        
+        {
+            std::lock_guard<std::mutex> lock(m_adqDevMutex);
+            status = m_adqInterface->GetStreamOverflow();
+        }
+        
         if (status)
         {
             status = 0;
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
         }
-    }
+    //}
 
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
@@ -2058,8 +2089,7 @@ void ADQAIChannelGroup::daqMultiRecord()
         m_AIChannelsPtr[chan]->readData((short*)daqVoidBuffers[chan], m_sampleCntTotal);
     }
     
-    streamCompleted = 1;
-    }
+    //streamCompleted = 1;
     
 finish:
     {
