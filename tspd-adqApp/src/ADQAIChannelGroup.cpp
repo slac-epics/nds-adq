@@ -1774,7 +1774,7 @@ void ADQAIChannelGroup::daqTrigStream()
             {
                 // Mark the loop start
                 timerStart();
-                while (!buffersFilled && (timerSpentTimeMs() < (unsigned)m_timeout))
+                while (!buffersFilled && (timerSpentTimeMs() < (unsigned)m_timeout) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
                 {
                     status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
@@ -2156,14 +2156,8 @@ void ADQAIChannelGroup::daqContinStream()
             bufferStatusLoops = 0;
             buffersFilled = 0;
 
-            while (buffersFilled == 0 && status)
+            while (buffersFilled == 0 && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
             {                       
-                if (m_stateMachine.getLocalState() == nds::state_t::stopping)
-                {
-                    ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
-                    goto finish;
-                }
-                
                 status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
                 ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetTransferBufferStatus failed.");
 
@@ -2180,6 +2174,12 @@ void ADQAIChannelGroup::daqContinStream()
                         ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: FlushDMA failed.");
                     }
                 }
+            }
+            
+            if (m_stateMachine.getLocalState() == nds::state_t::stopping)
+            {
+                ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
+                goto finish;
             }
 
             for (unsigned int buf = 0; buf < buffersFilled; buf++)
@@ -2391,12 +2391,14 @@ ADQAIChannelGroup::~ADQAIChannelGroup()
     if (m_stateMachine.getLocalState() == nds::state_t::running)
     {     
         ndsInfoStream(m_node) << "Stopping the acquisition..." << std::endl;
+        //m_stopDaq = true;
         //m_stateMachine.setState(nds::state_t::on);
         
         //int status = m_adqInterface->StopStreaming();
         //ndsInfoStream(m_node) << status << " StopStreaming" << std::endl;
         
         //m_stateMachine.setState(nds::state_t::on);
+        //SLEEP(200);
         //m_daqThread.join();
 
         //for (auto const& channel : m_AIChannelsPtr)
@@ -2404,7 +2406,6 @@ ADQAIChannelGroup::~ADQAIChannelGroup()
         //    channel->setState(nds::state_t::on);
         //}
         //m_stateMachine.setState(nds::state_t::on);
-        onStop();
     }
     
     ndsInfoStream(m_node) << "Freeing buffers..." << std::endl;
