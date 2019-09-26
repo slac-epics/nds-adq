@@ -1464,11 +1464,16 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             m_internTrigHighSampChanged = false;
             m_internTrigLowSampChanged = false;
 
-            if ((m_internTrigHighSamp < 4) || (m_internTrigLowSamp < 4))
+            if (m_internTrigHighSamp < 4)
             {
                 m_internTrigHighSamp = 4;
+                ADQNDS_MSG_INFOLOG_PV("INFO: Length of high samples can't be less than 4.");
+            }
+            
+            if (m_internTrigLowSamp < 4)
+            {
                 m_internTrigLowSamp = 4;
-                ADQNDS_MSG_INFOLOG_PV("INFO: Sample length can't be less than 4.");
+                ADQNDS_MSG_INFOLOG_PV("INFO: Length of low samples can't be less than 4.");
             }
 
             status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, m_internTrigLowSamp);
@@ -1971,9 +1976,10 @@ finish:
 */
 void ADQAIChannelGroup::daqMultiRecord()
 {
-    int trigged, status;
+    int status;
     void* daqVoidBuffers[CHANNEL_COUNT_MAX];
-    ///unsigned int streamCompleted = 0;
+    //unsigned int streamCompleted = 0;
+    trigged = 0;
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -2000,8 +2006,6 @@ void ADQAIChannelGroup::daqMultiRecord()
         }
     }
 
-    //while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !streamCompleted)
-    //{
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
@@ -2017,7 +2021,7 @@ void ADQAIChannelGroup::daqMultiRecord()
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: ArmTrigger failed.");
         }    
             ADQNDS_MSG_INFOLOG_PV("Triggering...");
-
+/*
         if (m_trigMode == 0)   // SW trigger
         {
             do
@@ -2033,7 +2037,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                     status = m_adqInterface->SWTrig();
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
                 }
-            } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
+            } while (trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
         else
         {
@@ -2043,16 +2047,50 @@ void ADQAIChannelGroup::daqMultiRecord()
                 std::lock_guard<std::mutex> lock(m_adqDevMutex);
                 //trigged = m_adqInterface->GetAcquiredAll();
                 trigged = 0;
+                
+                if (m_stateMachine.getLocalState() == nds::state_t::stopping)
+                {
+                    ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
+                    goto finish;
+                }
             
-            } while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping));
+            } while (trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
-            
+*/        
+        //do
+        while (trigged == 0) //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+        { 
+            if (m_trigMode == 0)   // SW trigger
+            {
+                {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    trigged = m_adqInterface->GetAcquiredAll();
+                }
+                
+                for (int i = 0; i < m_recordCnt; ++i)
+                {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    status = m_adqInterface->SWTrig();
+                    ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
+                }
+            }
+            else
+            {
+                {    
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    trigged = m_adqInterface->GetAcquiredAll();
+                    //trigged = 0;
+                } 
+            }
+           
+        } //while (trigged == 0);
+        
         if (m_stateMachine.getLocalState() == nds::state_t::stopping)
         {
             ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
             goto finish;
         }
-        
+    
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             std::ostringstream textTmp;
@@ -2072,21 +2110,18 @@ void ADQAIChannelGroup::daqMultiRecord()
             status = 0;
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "WARNING: Streaming overflow detected. Stopping the data acquisition.");
         }
-    //}
 
-    {
-        std::lock_guard<std::mutex> lock(m_adqDevMutex);
-        status = m_adqInterface->GetData(daqVoidBuffers, m_sampleCntTotal, sizeof(short), 0, m_recordCntCollect, m_chanMask, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
-        ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetData failed.");
-    }
+        {
+            std::lock_guard<std::mutex> lock(m_adqDevMutex);
+            status = m_adqInterface->GetData(daqVoidBuffers, m_sampleCntTotal, sizeof(short), 0, m_recordCntCollect, m_chanMask, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
+            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: GetData failed.");
+        }
 
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        // Read buffers by each channel and send them to DATA PVs
-        m_AIChannelsPtr[chan]->readData((short*)daqVoidBuffers[chan], m_sampleCntTotal);
-    }
-    
-    //streamCompleted = 1;
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+        {
+            // Read buffers by each channel and send them to DATA PVs
+            m_AIChannelsPtr[chan]->readData((short*)daqVoidBuffers[chan], m_sampleCntTotal);
+        }
     
 finish:
     {
@@ -2427,9 +2462,15 @@ finish:
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
     ndsInfoStream(m_node) << "Stopping the application..." << std::endl;
+        
+    if (m_daqMode = 0)
+    {
+        trigged = 1;
+    }
+
     
     ndsInfoStream(m_node) << "Freeing buffers..." << std::endl;
-
+    
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
         if (m_daqDataBuffer[chan])
