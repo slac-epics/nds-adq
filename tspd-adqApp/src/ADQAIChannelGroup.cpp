@@ -1979,7 +1979,7 @@ void ADQAIChannelGroup::daqMultiRecord()
     int status;
     void* daqVoidBuffers[CHANNEL_COUNT_MAX];
     //unsigned int streamCompleted = 0;
-    trigged = 0;
+    m_trigged = 0;
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
@@ -2028,7 +2028,7 @@ void ADQAIChannelGroup::daqMultiRecord()
             {
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    trigged = m_adqInterface->GetAcquiredAll();
+                    m_trigged = m_adqInterface->GetAcquiredAll();
                 }
                 
                 for (int i = 0; i < m_recordCnt; ++i)
@@ -2037,16 +2037,16 @@ void ADQAIChannelGroup::daqMultiRecord()
                     status = m_adqInterface->SWTrig();
                     ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
                 }
-            } while (trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
+            } while (m_trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
         else
         {
             do
-            //while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+            //while ((m_trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
             {    
                 std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                //trigged = m_adqInterface->GetAcquiredAll();
-                trigged = 0;
+                //m_trigged = m_adqInterface->GetAcquiredAll();
+                m_trigged = 0;
                 
                 if (m_stateMachine.getLocalState() == nds::state_t::stopping)
                 {
@@ -2054,17 +2054,17 @@ void ADQAIChannelGroup::daqMultiRecord()
                     goto finish;
                 }
             
-            } while (trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
+            } while (m_trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
         }
 */        
         //do
-        while (trigged == 0) //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+        while (m_trigged == 0) //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping))
         { 
             if (m_trigMode == 0)   // SW trigger
             {
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    trigged = m_adqInterface->GetAcquiredAll();
+                    m_trigged = m_adqInterface->GetAcquiredAll();
                 }
                 
                 for (int i = 0; i < m_recordCnt; ++i)
@@ -2078,12 +2078,12 @@ void ADQAIChannelGroup::daqMultiRecord()
             {
                 {    
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    trigged = m_adqInterface->GetAcquiredAll();
-                    //trigged = 0;
+                    m_trigged = m_adqInterface->GetAcquiredAll();
+                    //m_trigged = 0;
                 } 
             }
            
-        } //while (trigged == 0);
+        } //while (m_trigged == 0);
         
         if (m_stateMachine.getLocalState() == nds::state_t::stopping)
         {
@@ -2463,9 +2463,10 @@ ADQAIChannelGroup::~ADQAIChannelGroup()
 {
     ndsInfoStream(m_node) << "Stopping the application..." << std::endl;
         
-    if (m_daqMode = 0)
+    if ((m_daqMode = 0) && (m_stateMachine.getLocalState() == nds::state_t::running))
     {
-        trigged = 1;
+        ndsInfoStream(m_node) << "Stopping the acquisition..." << std::endl;
+        m_trigged = 1;
     }
 
     

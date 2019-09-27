@@ -508,7 +508,7 @@ public:
 
 private:
     ADQInterface* m_adqInterface;
-    int trigged;
+    int m_trigged;
 
     unsigned int m_chanCnt;
     int m_adqType;
