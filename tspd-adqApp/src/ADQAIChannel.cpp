@@ -246,7 +246,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
         }
         else
         {
-            ADQNDS_MSG_INFOLOG_PV("INFO: Sample channel decimation is not supported on this device.");
+            ADQNDS_MSG_INFOLOG_PV("INFO: Sample channel decimation is available for devices with -FWSDR option only.");
         }
     }
 }

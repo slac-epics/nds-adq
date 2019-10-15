@@ -302,6 +302,7 @@ ADQInfo::~ADQInfo()
     ndsInfoStream(m_node) << "Setting ADQ device to initial state..." << std::endl;
     m_adqInterface->ResetDevice(2);
     m_adqInterface->ResetDevice(8);
+    //m_adqInterface->ResetDevice(16);
     
     ndsInfoStream(m_node) << "Closing connection to ADQ device..." << std::endl;  
     DeleteADQControlUnit(m_adqCtrlUnit);   

@@ -20,6 +20,7 @@ record(ao, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE") {
     field(SCAN, "Passive")
     field(DTYP, "asynFloat64")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-InputRange")
+    field(PINI, "YES")
 }
 
 record(ai, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE-RB") {
@@ -36,6 +37,7 @@ record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DCBIAS") {
     field(SCAN, "Passive")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-DCBias")
+    field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DCBIAS-RB") {
@@ -51,6 +53,7 @@ record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:CHANDEC") {
     field(SCAN, "Passive")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-ChanDec")
+    field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:CHANDEC-RB") {
@@ -68,6 +71,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32ArrayIn")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-Data")
+    field(PINI, "YES")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #
@@ -99,6 +103,7 @@ record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
     field(EIST, "FAULT")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-StateMachine-setState")
+    field(PINI, "YES")
 }
 
 record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:GETSTATE") {

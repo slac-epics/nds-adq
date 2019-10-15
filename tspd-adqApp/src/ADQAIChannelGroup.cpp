@@ -14,6 +14,8 @@
 #include <typeinfo>
 #include <unistd.h>
 
+#include <atomic>
+
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
@@ -41,7 +43,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_sampleCntPV(createPvRb<int32_t>("SampCnt-RB", &ADQAIChannelGroup::getSampleCnt)),
     m_sampleCntMaxPV(createPvRb<int32_t>("SampCntMax-RB", &ADQAIChannelGroup::getSampleCntMax)),
     m_sampleCntTotalPV(createPvRb<int32_t>("SampCntTotal-RB", &ADQAIChannelGroup::getSamplesTotal)),
-    m_sampleSkipPV(createPvRb<int32_t>("SampSkip-RB", &ADQAIChannelGroup::getSampleSkip)),
     m_sampleDecPV(createPvRb<int32_t>("SampDec-RB", &ADQAIChannelGroup::getSampleDec)),
     m_preTrigSampPV(createPvRb<int32_t>("PreTrigSamp-RB", &ADQAIChannelGroup::getPreTrigSamp)),
     m_trigHoldOffSampPV(createPvRb<int32_t>("TrigHoldOffSamp-RB", &ADQAIChannelGroup::getTrigHoldOffSamp)),
@@ -79,6 +80,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     // PV for error/warning/info messages
     m_logMsgPV.setScanType(nds::scanType_t::interrupt);
     m_logMsgPV.setMaxElements(512);
+    m_logMsgPV.processAtInit(PINI);
     m_node.addChild(m_logMsgPV);
 
     // PV for data acquisition modes
@@ -106,6 +108,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     createPvEnum<int32_t>("ChanActive", m_chanActivePV, chanMaskList, &ADQAIChannelGroup::setChanActive, &ADQAIChannelGroup::getChanActive);
 
     m_chanMaskPV.setScanType(nds::scanType_t::interrupt);
+    m_chanMaskPV.processAtInit(PINI);
     m_node.addChild(m_chanMaskPV);
 
     // PVs for DBS setup
@@ -127,7 +130,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_sampleCntTotalPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_sampleCntTotalPV);
 
-    createPv<int32_t>("SampSkip", m_sampleSkipPV, &ADQAIChannelGroup::setSampleSkip, &ADQAIChannelGroup::getSampleSkip);
+    //createPv<int32_t>("SampSkip", m_sampleSkipPV, &ADQAIChannelGroup::setSampleSkip, &ADQAIChannelGroup::getSampleSkip);
     createPv<int32_t>("SampDec", m_sampleDecPV, &ADQAIChannelGroup::setSampleDec, &ADQAIChannelGroup::getSampleDec);
     createPv<int32_t>("PreTrigSamp", m_preTrigSampPV, &ADQAIChannelGroup::setPreTrigSamp, &ADQAIChannelGroup::getPreTrigSamp);
     createPv<int32_t>("TrigHoldOffSamp", m_trigHoldOffSampPV, &ADQAIChannelGroup::setTrigHoldOffSamp, &ADQAIChannelGroup::getTrigHoldOffSamp);
@@ -212,6 +215,7 @@ void ADQAIChannelGroup::createPv(const std::string& name, nds::PVDelegateIn<T>& 
                                std::bind(getter, this, std::placeholders::_1, std::placeholders::_2));
     m_node.addChild(node);
     pvRb.setScanType(nds::scanType_t::interrupt);
+    pvRb.processAtInit(PINI);
     m_node.addChild(pvRb);
 }
 
@@ -229,6 +233,7 @@ void ADQAIChannelGroup::createPvEnum(const std::string& name, nds::PVDelegateIn<
     m_node.addChild(node);
     pvRb.setScanType(nds::scanType_t::interrupt);
     pvRb.setEnumeration(enumList);
+    pvRb.processAtInit(PINI);
     m_node.addChild(pvRb);
 }
 
@@ -406,7 +411,7 @@ void ADQAIChannelGroup::getSamplesTotal(timespec* pTimestamp, int32_t* pValue)
     *pTimestamp = m_sampleCntTotalPV.getTimestamp();
 }
 
-void ADQAIChannelGroup::setSampleSkip(const timespec& pTimestamp, const int32_t& pValue)
+/*void ADQAIChannelGroup::setSampleSkip(const timespec& pTimestamp, const int32_t& pValue)
 {
     m_sampleSkip = pValue;
     m_sampleSkipPV.getTimestamp() = pTimestamp;
@@ -418,7 +423,7 @@ void ADQAIChannelGroup::getSampleSkip(timespec* pTimestamp, int32_t* pValue)
 {
     *pValue = m_sampleSkip;
     *pTimestamp = m_sampleSkipPV.getTimestamp();
-}
+}*/
 
 void ADQAIChannelGroup::setSampleDec(const timespec& pTimestamp, const int32_t& pValue)
 {
@@ -751,7 +756,6 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         if (status)
         {
             m_patternModePV.push(now, m_patternMode);
-            ADQNDS_MSG_INFOLOG_PV("SUCCESS: SetTestPatternMode");
         }
     }
 
@@ -921,7 +925,6 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
 
             if (i == dbsInstCnt)
             {
-                ADQNDS_MSG_INFOLOG_PV("SUCCESS: SetupDBS is set for all channels.");
                 m_dbsBypassPV.push(now, m_dbsBypass);
                 m_dbsDcPV.push(now, m_dbsDc);
                 m_dbsLowSatPV.push(now, m_dbsLowSat);
@@ -948,16 +951,28 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_sampleCntChanged = false;
 
         if (m_recordCnt < -1)
+        {
             m_recordCnt = -1;
+            ADQNDS_MSG_INFOLOG_PV("INFO: Infinite record collection is set.");
+        }
+        
+        if (m_recordCnt == 0)
+            m_recordCnt = 1;
+        
+        if (m_recordCnt > 0)
+            ADQNDS_MSG_INFOLOG_PV("INFO: Limited record collection is set.");
 
-        if (m_sampleCnt < 0)
-            m_sampleCnt = 0;
+        if (m_sampleCnt <= 0)
+        {
+            m_sampleCnt = 5;
+            ADQNDS_MSG_INFOLOG_PV("INFO: Number of samples to collect cannot be less than 5.");
+        }
 
         if ((m_recordCnt == -1) && (m_daqMode != 2))
         {
             m_recordCnt = 0;
             status = 0;
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Infinite collection is enabled only in Triggered mode.");
+            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Infinite record collection is enabled only in Triggered DAQ mode.");
         }
 
         if (m_recordCnt >= 0)
@@ -1012,6 +1027,9 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             m_recordCntCollect = m_recordCnt;
             ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Number of records to collect cannot be higher than total number of records.");
         }
+        
+        if (m_recordCntCollect < 0)
+            m_recordCntCollect = 0;
 
         m_recordCntCollectPV.push(now, m_recordCntCollect);
 
@@ -1032,89 +1050,75 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_streamTimePV.push(now, m_streamTime);
     }
 
-    if (m_sampleSkipChanged)
-    {
-        m_sampleSkipChanged = false;
-        std::string adqOption = m_adqInterface->GetCardOption();
-
-        if (m_sampleSkip < 1)
-        {
-            m_sampleSkip = 1;
-            ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be less than 1 -> changed to 1.");
-        }
-
-        if (m_sampleSkip > 65536)
-        {
-            m_sampleSkip = 65536;
-            ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be more than 65536 -> changed to 65536.");
-        }
-
-        if ((adqOption.find("-2X") != std::string::npos) || (adqOption.find("-1X") != std::string::npos))
-        {
-            if (m_sampleSkip == 3)
-            {
-                m_sampleSkip = 4;
-                ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be 3 -> changed to 4.");
-            }
-
-            if (m_sampleSkip == 5 || m_sampleSkip == 6 || m_sampleSkip == 7)
-            {
-                m_sampleSkip = 8;
-                ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be 5, 6 or 7 -> changed to 8.");
-            }
-        }
-
-        if ((adqOption.find("-4C") != std::string::npos) || (adqOption.find("-2C") != std::string::npos))
-        {
-            if (m_sampleSkip == 3)
-            {
-                m_sampleSkip = 4;
-                ADQNDS_MSG_INFOLOG_PV("INFO: Sample skip can't be 3 -> changed to 4.");
-            }
-        }
-
-        status = m_adqInterface->SetSampleSkip(m_sampleSkip);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleSkip failed.");
-
-        m_sampleSkip = m_adqInterface->GetSampleSkip();
-        m_sampleSkipPV.push(now, m_sampleSkip);
-
-        // Trigger sample rate with decimation to update
-        double tmp = 0;
-        m_sampRateDecPV.read(&now, &tmp);
-        m_sampRateDecPV.push(now, tmp);
-    }
-
     if (m_sampleDecChanged)
     {
         m_sampleDecChanged = false;
         std::string adqOption = m_adqInterface->GetCardOption();
-
-        if ((m_adqType == 714 || m_adqType == 14) && (adqOption.find("-FWSDR") != std::string::npos))
+        
+        if (m_sampleDec < 1)
         {
-            if (m_sampleDec < 0)
-            {
-                m_sampleDec = 0;
-            }
+            m_sampleDec = 1;
+            ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation can't be set to less than 1 -> changed to 1.");
+        }
 
-            status = m_adqInterface->SetSampleDecimation(m_sampleDec);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleDecimation failed.");
-
-            if (status)
+        if ((m_adqType == 714 || m_adqType == 14))
+        {
+            if (adqOption.find("-FWSDR") != std::string::npos)
             {
+                status = m_adqInterface->SetSampleDecimation(m_sampleDec);
+                ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleDecimation failed.");
+
                 m_sampleDec = m_adqInterface->GetSampleDecimation();
-                m_sampleSkipPV.push(now, m_sampleDec);
+                m_sampleDecPV.push(now, m_sampleDec);
             }
+            else
+            {
+                if (m_sampleDec > 65536)
+                {
+                    m_sampleDec = 65536;
+                    ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation can't be set to more than 65536 -> changed to 65536.");
+                }
 
-            // Trigger sample rate with decimation to update
-            double tmp = 0;
-            m_sampRateDecPV.read(&now, &tmp);
-            m_sampRateDecPV.push(now, tmp);
+                if ((adqOption.find("-2X") != std::string::npos) || (adqOption.find("-1X") != std::string::npos))
+                {
+                    if (m_sampleDec == 3)
+                    {
+                        m_sampleDec = 4;
+                        ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation can't be set to 3 -> changed to 4.");
+                    }
+
+                    if (m_sampleDec == 5 || m_sampleDec == 6 || m_sampleDec == 7)
+                    {
+                        m_sampleDec = 8;
+                        ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation can't be set to 5, 6 or 7 -> changed to 8.");
+                    }
+                }
+
+                if ((adqOption.find("-4C") != std::string::npos) || (adqOption.find("-2C") != std::string::npos))
+                {
+                    if (m_sampleDec == 3)
+                    {
+                        m_sampleDec = 4;
+                        ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation can't be set to 3 -> changed to 4.");
+                    }
+                }
+                
+                status = m_adqInterface->SetSampleSkip(m_sampleDec);
+                ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleSkip failed.");
+
+                m_sampleDec = m_adqInterface->GetSampleSkip();
+                m_sampleDecPV.push(now, m_sampleDec);
+            }
         }
         else
         {
-            ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation is not supported on this device.");
+            ADQNDS_MSG_INFOLOG_PV("INFO: Sample decimation is available for ADQ14 only.");
         }
+        
+        // Update sample rate with decimation readback
+        double tmp = 0;
+        m_sampRateDecPV.read(&now, &tmp);
+        m_sampRateDecPV.push(now, tmp);
     }
 
     if (m_preTrigSampChanged)
@@ -1524,9 +1528,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_timeoutChanged = false;
 
         if (m_timeout <= 0)
-        {
             m_timeout = 1000;
-        }
 
         m_timeoutPV.push(now, m_timeout);
     }
@@ -1976,35 +1978,35 @@ finish:
 */
 void ADQAIChannelGroup::daqMultiRecord()
 {
-    int status;
-    void* daqVoidBuffers[CHANNEL_COUNT_MAX];
-    //unsigned int streamCompleted = 0;
-    m_trigged = 0;
+        int status;
+        void* daqVoidBuffers[CHANNEL_COUNT_MAX];
+        //unsigned int streamCompleted = 0;
+        m_trigged = 0;
 
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        m_daqDataBuffer[chan] = NULL;
-    }
-
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        m_daqDataBuffer[chan] = (short*)calloc(m_sampleCntTotal, sizeof(short));
-    }
-
-    // Create a pointer array containing the data buffer pointers
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        daqVoidBuffers[chan] = (void*)m_daqDataBuffer[chan];
-    }
-
-    for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-    {
-        if (m_daqDataBuffer[chan] == NULL)
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
         {
-            status = 0;
-            ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: Failed to allocate memory for target buffers.");
+            m_daqDataBuffer[chan] = NULL;
         }
-    }
+
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+        {
+            m_daqDataBuffer[chan] = (short*)calloc(m_sampleCntTotal, sizeof(short));
+        }
+
+        // Create a pointer array containing the data buffer pointers
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+        {
+            daqVoidBuffers[chan] = (void*)m_daqDataBuffer[chan];
+        }
+
+        for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+        {
+            if (m_daqDataBuffer[chan] == NULL)
+            {
+                status = 0;
+                ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: Failed to allocate memory for target buffers.");
+            }
+        }
 
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
@@ -2020,45 +2022,10 @@ void ADQAIChannelGroup::daqMultiRecord()
             status = m_adqInterface->ArmTrigger();
             ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: ArmTrigger failed.");
         }    
-            ADQNDS_MSG_INFOLOG_PV("Triggering...");
-/*
-        if (m_trigMode == 0)   // SW trigger
-        {
-            do
-            {
-                {
-                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    m_trigged = m_adqInterface->GetAcquiredAll();
-                }
-                
-                for (int i = 0; i < m_recordCnt; ++i)
-                {
-                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    status = m_adqInterface->SWTrig();
-                    ADQNDS_MSG_ERRLOG_PV_GOTO_FINISH(status, "ERROR: SWTrig failed.");
-                }
-            } while (m_trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
-        }
-        else
-        {
-            do
-            //while ((m_trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
-            {    
-                std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                //m_trigged = m_adqInterface->GetAcquiredAll();
-                m_trigged = 0;
-                
-                if (m_stateMachine.getLocalState() == nds::state_t::stopping)
-                {
-                    ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
-                    goto finish;
-                }
             
-            } while (m_trigged == 0); //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping));
-        }
-*/        
-        //do
-        while (m_trigged == 0) //&& !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+        ADQNDS_MSG_INFOLOG_PV("Triggering...");
+
+        while ((m_trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping) && !m_threadStop)
         { 
             if (m_trigMode == 0)   // SW trigger
             {
@@ -2079,18 +2046,22 @@ void ADQAIChannelGroup::daqMultiRecord()
                 {    
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
                     m_trigged = m_adqInterface->GetAcquiredAll();
-                    //m_trigged = 0;
                 } 
-            }
-           
-        } //while (m_trigged == 0);
+            }     
+        } 
+        
+        // DAQ is interrupted if the application is exiting (see the destructor)
+        if (m_threadStop) 
+        {
+            return;
+        }
         
         if (m_stateMachine.getLocalState() == nds::state_t::stopping)
         {
             ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
             goto finish;
         }
-    
+        
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             std::ostringstream textTmp;
@@ -2461,15 +2432,16 @@ finish:
 
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
-    ndsInfoStream(m_node) << "Stopping the application..." << std::endl;
-        
-    if ((m_daqMode = 0) && (m_stateMachine.getLocalState() == nds::state_t::running))
+    ndsInfoStream(m_node) << "Closing the application..." << std::endl;
+
+    // Stopping the Multi-Record acquisition
+    if (!m_stopDaq)
     {
         ndsInfoStream(m_node) << "Stopping the acquisition..." << std::endl;
-        m_trigged = 1;
+        m_threadStop = 1;
+        m_daqThread.join();
     }
 
-    
     ndsInfoStream(m_node) << "Freeing buffers..." << std::endl;
     
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)

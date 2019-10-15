@@ -12,6 +12,7 @@
 #include "ADQInfo.h"
 
 #include <mutex>
+#include <atomic>
 #include <nds3/nds.h>
 
 /** @file ADQAIChannelGroup.h
@@ -509,6 +510,7 @@ public:
 private:
     ADQInterface* m_adqInterface;
     int m_trigged;
+    std::atomic_bool m_threadStop = { false };
 
     unsigned int m_chanCnt;
     int m_adqType;
@@ -612,7 +614,7 @@ private:
     nds::PVDelegateIn<int32_t> m_sampleCntPV;
     nds::PVDelegateIn<int32_t> m_sampleCntMaxPV;
     nds::PVDelegateIn<int32_t> m_sampleCntTotalPV;
-    nds::PVDelegateIn<int32_t> m_sampleSkipPV;
+    //nds::PVDelegateIn<int32_t> m_sampleSkipPV;
     nds::PVDelegateIn<int32_t> m_sampleDecPV;
     nds::PVDelegateIn<int32_t> m_preTrigSampPV;
     nds::PVDelegateIn<int32_t> m_trigHoldOffSampPV;
@@ -635,7 +637,7 @@ private:
     nds::PVDelegateIn<double> m_streamTimePV;
 
     nds::Thread m_daqThread;
-    bool m_stopDaq;
+    bool m_stopDaq = true;
 
     /** @var m_daqRawDataBuffer
      * @brief Data buffer. 
