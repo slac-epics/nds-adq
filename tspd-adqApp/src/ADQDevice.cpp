@@ -38,8 +38,8 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             throw nds::NdsError("Failed to create ADQ Control Unit (CreateADQControlUnit).");
         }
 
-        // Enable error logging for devices (saves files to the TOP directory '/m-epics-tspd-adq')
-        //ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
+        // Enable error logging for devices (saves files to the TOP directory)
+        ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
 
         // Check revisions
         const int adqApiRev = ADQAPI_GetRevision();

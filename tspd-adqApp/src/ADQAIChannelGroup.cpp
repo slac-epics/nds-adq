@@ -130,7 +130,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_sampleCntTotalPV.setScanType(nds::scanType_t::interrupt);
     m_node.addChild(m_sampleCntTotalPV);
 
-    //createPv<int32_t>("SampSkip", m_sampleSkipPV, &ADQAIChannelGroup::setSampleSkip, &ADQAIChannelGroup::getSampleSkip);
     createPv<int32_t>("SampDec", m_sampleDecPV, &ADQAIChannelGroup::setSampleDec, &ADQAIChannelGroup::getSampleDec);
     createPv<int32_t>("PreTrigSamp", m_preTrigSampPV, &ADQAIChannelGroup::setPreTrigSamp, &ADQAIChannelGroup::getPreTrigSamp);
     createPv<int32_t>("TrigHoldOffSamp", m_trigHoldOffSampPV, &ADQAIChannelGroup::setTrigHoldOffSamp, &ADQAIChannelGroup::getTrigHoldOffSamp);
@@ -410,20 +409,6 @@ void ADQAIChannelGroup::getSamplesTotal(timespec* pTimestamp, int32_t* pValue)
     *pValue = m_sampleCntTotal;
     *pTimestamp = m_sampleCntTotalPV.getTimestamp();
 }
-
-/*void ADQAIChannelGroup::setSampleSkip(const timespec& pTimestamp, const int32_t& pValue)
-{
-    m_sampleSkip = pValue;
-    m_sampleSkipPV.getTimestamp() = pTimestamp;
-    m_sampleSkipChanged = true;
-    commitChanges();
-}
-
-void ADQAIChannelGroup::getSampleSkip(timespec* pTimestamp, int32_t* pValue)
-{
-    *pValue = m_sampleSkip;
-    *pTimestamp = m_sampleSkipPV.getTimestamp();
-}*/
 
 void ADQAIChannelGroup::setSampleDec(const timespec& pTimestamp, const int32_t& pValue)
 {
@@ -720,6 +705,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
     if (m_daqModeChanged)
     {
         m_daqModeChanged = false;
+        
+        if (m_daqMode == 0) // Multi-Record -> check record number, must not be infinite collection (-1)
+        {
+            m_recordCntChanged = true;
+        }
 
         if ((m_daqMode == 2) && ((m_adqType == 714) || (m_adqType == 14)))   // Triggered streaming and ADQ14
         {
@@ -950,7 +940,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_recordCntChanged = false;
         m_sampleCntChanged = false;
 
-        if (m_recordCnt < -1)
+        if ((m_recordCnt < -1) && (m_recordCnt == -1))
         {
             m_recordCnt = -1;
             ADQNDS_MSG_INFOLOG_PV("INFO: Infinite record collection is set.");
@@ -1781,11 +1771,11 @@ void ADQAIChannelGroup::daqTrigStream()
         }
             // Poll for the transfer buffer status as long as the timeout has not been
             // reached and no buffers have been filled.
-            while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !buffersFilled)
+            while (!(m_stateMachine.getLocalState() == nds::state_t::stopping) && !buffersFilled && !m_threadInterruptOnExit)
             {
                 // Mark the loop start
                 timerStart();
-                while (!buffersFilled && (timerSpentTimeMs() < (unsigned)m_timeout) && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+                while (!buffersFilled && (timerSpentTimeMs() < (unsigned)m_timeout) && !(m_stateMachine.getLocalState() == nds::state_t::stopping) && !m_threadInterruptOnExit)
                 {
                     {
                         std::lock_guard<std::mutex> lock(m_adqDevMutex);
@@ -1809,6 +1799,14 @@ void ADQAIChannelGroup::daqTrigStream()
                 }
             }
             
+            // DAQ is interrupted if the application is commanded to exit in IOC shell
+            if (m_threadInterruptOnExit) 
+            {
+                std::cout << "Data acquisition is stopped." << std::endl;
+                return;
+            }
+            
+            // DAQ is interrupted if it was aborted with state machine
             if (m_stateMachine.getLocalState() == nds::state_t::stopping)
             {
                 ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
@@ -1980,8 +1978,7 @@ void ADQAIChannelGroup::daqMultiRecord()
 {
         int status;
         void* daqVoidBuffers[CHANNEL_COUNT_MAX];
-        //unsigned int streamCompleted = 0;
-        m_trigged = 0;
+        int trigged = 0;
 
         for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
         {
@@ -2025,13 +2022,13 @@ void ADQAIChannelGroup::daqMultiRecord()
             
         ADQNDS_MSG_INFOLOG_PV("Triggering...");
 
-        while ((m_trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping) && !m_threadStop)
+        while ((trigged == 0) && !(m_stateMachine.getLocalState() == nds::state_t::stopping) && !m_threadInterruptOnExit)
         { 
             if (m_trigMode == 0)   // SW trigger
             {
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    m_trigged = m_adqInterface->GetAcquiredAll();
+                    trigged = m_adqInterface->GetAcquiredAll();
                 }
                 
                 for (int i = 0; i < m_recordCnt; ++i)
@@ -2045,17 +2042,19 @@ void ADQAIChannelGroup::daqMultiRecord()
             {
                 {    
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    m_trigged = m_adqInterface->GetAcquiredAll();
+                    trigged = m_adqInterface->GetAcquiredAll();
                 } 
             }     
         } 
         
-        // DAQ is interrupted if the application is exiting (see the destructor)
-        if (m_threadStop) 
+        // DAQ is interrupted if the application is commanded to exit in IOC shell
+        if (m_threadInterruptOnExit) 
         {
+            std::cout << "Data acquisition is stopped." << std::endl;
             return;
         }
         
+        // DAQ is interrupted if it was aborted with state machine
         if (m_stateMachine.getLocalState() == nds::state_t::stopping)
         {
             ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
@@ -2190,7 +2189,7 @@ void ADQAIChannelGroup::daqContinStream()
             bufferStatusLoops = 0;
             buffersFilled = 0;
 
-            while (buffersFilled == 0 && !(m_stateMachine.getLocalState() == nds::state_t::stopping))
+            while (buffersFilled == 0 && !(m_stateMachine.getLocalState() == nds::state_t::stopping) && !m_threadInterruptOnExit)
             {    
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
@@ -2216,12 +2215,20 @@ void ADQAIChannelGroup::daqContinStream()
                 }
             }
             
+            // DAQ is interrupted if the application is commanded to exit in IOC shell
+            if (m_threadInterruptOnExit) 
+            {
+                std::cout << "Data acquisition is stopped." << std::endl;
+                return;
+            }
+            
+            // DAQ is interrupted if it was aborted with state machine
             if (m_stateMachine.getLocalState() == nds::state_t::stopping)
             {
                 ADQNDS_MSG_INFOLOG_PV("INFO: Data acquisition was stopped.");
                 goto finish;
             }
-
+        
             for (unsigned int buf = 0; buf < buffersFilled; buf++)
             {
                 ADQNDS_MSG_INFOLOG_PV("INFO: Receiving data...");
@@ -2438,7 +2445,7 @@ ADQAIChannelGroup::~ADQAIChannelGroup()
     if (!m_stopDaq)
     {
         ndsInfoStream(m_node) << "Stopping the acquisition..." << std::endl;
-        m_threadStop = 1;
+        m_threadInterruptOnExit = 1;
         m_daqThread.join();
     }
 
