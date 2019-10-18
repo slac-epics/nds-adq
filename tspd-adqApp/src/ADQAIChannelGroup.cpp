@@ -69,12 +69,12 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_chanCnt = m_adqInterface->GetNofChannels();
     m_adqType = m_adqInterface->GetADQType();
 
-    // Create vector of pointers to each chanel
+    // Create vector of pointers to each channel
     for (size_t channelNum(0); channelNum != m_chanCnt; ++channelNum)
     {
         std::ostringstream channelName;
         channelName << "Ch" << channelNum;
-        m_AIChannelsPtr.push_back(std::make_shared<ADQAIChannel>(channelName.str(), m_node, channelNum));
+        m_AIChannelsPtr.push_back(std::make_shared<ADQAIChannel>(channelName.str(), m_node, channelNum, m_adqInterface, m_logMsgPV));
     }
 
     // PV for error/warning/info messages
@@ -706,7 +706,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
     {
         m_daqModeChanged = false;
         
-        if (m_daqMode == 0) // Multi-Record -> check record number, must not be infinite collection (-1)
+        if ((m_daqMode == 0) || (m_daqMode == 2)) // Check record number (for Triggered streaming and Multi-Record)
         {
             m_recordCntChanged = true;
         }
@@ -716,9 +716,12 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             status = m_adqInterface->HasTriggeredStreamingFunctionality();
             if (!status)
             {
-                ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Device doesn't have triggered streaming functionaly.");
+                ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Device doesn't have triggered streaming functionality.");
                 m_daqMode = 1;
             }
+            
+            // Infinite collection (Triggered streaming) doesn't work with SW trigger. Check the trigger mode
+            m_trigModeChanged = true;
         }
         
         if (m_daqMode == 3) // Raw streaming -> check channel mask, only one channel can be active
@@ -746,20 +749,6 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         if (status)
         {
             m_patternModePV.push(now, m_patternMode);
-        }
-    }
-
-    if (m_trigModeChanged)
-    {
-        m_trigModeChanged = false;
-
-        status = m_adqInterface->SetTriggerMode(m_trigMode + 1);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerMode failed.");
-        if (status)
-        {
-            m_trigMode = m_adqInterface->GetTriggerMode();
-            m_trigMode -= 1;
-            m_trigModePV.push(now, m_trigMode);
         }
     }
 
@@ -940,10 +929,26 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         m_recordCntChanged = false;
         m_sampleCntChanged = false;
 
-        if ((m_recordCnt < -1) && (m_recordCnt == -1))
+        if (m_recordCnt <= -1)
         {
             m_recordCnt = -1;
-            ADQNDS_MSG_INFOLOG_PV("INFO: Infinite record collection is set.");
+            
+            if (m_daqMode != 2)
+            {
+                m_recordCnt = 1;
+                status = 0;
+                ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Infinite record collection is enabled only in Triggered DAQ mode --> changed to 1.");
+            }
+            else
+            {
+                ADQNDS_MSG_INFOLOG_PV("INFO: Infinite record collection is set.");
+                
+                // Infinite collection (Triggered streaming) doesn't work with SW trigger. Check the trigger mode
+                if (m_trigMode == 0)
+                {
+                    m_trigModeChanged = true;
+                }
+            }
         }
         
         if (m_recordCnt == 0)
@@ -956,13 +961,6 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
         {
             m_sampleCnt = 5;
             ADQNDS_MSG_INFOLOG_PV("INFO: Number of samples to collect cannot be less than 5.");
-        }
-
-        if ((m_recordCnt == -1) && (m_daqMode != 2))
-        {
-            m_recordCnt = 0;
-            status = 0;
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Infinite record collection is enabled only in Triggered DAQ mode.");
         }
 
         if (m_recordCnt >= 0)
@@ -1005,6 +1003,26 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             // Trigger records to collect to update
             m_recordCntCollectPV.read(&now, &m_recordCntCollect);
             m_recordCntCollectPV.push(now, m_recordCntCollect);
+        }
+    }
+    
+    if (m_trigModeChanged)
+    {
+        m_trigModeChanged = false;
+
+        // Infinite collection (Triggered streaming) doesn't work with SW trigger. Send a message to user
+         if ((m_daqMode == 2) && (m_recordCnt == -1) && (m_trigMode == 0)) 
+        {
+            ADQNDS_MSG_INFOLOG_PV("INFO: Infinite record collection doesn't work with SW trigger.");
+        }
+
+        status = m_adqInterface->SetTriggerMode(m_trigMode + 1);
+        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerMode failed.");
+        if (status)
+        {
+            m_trigMode = m_adqInterface->GetTriggerMode();
+            m_trigMode -= 1;
+            m_trigModePV.push(now, m_trigMode);
         }
     }
 
@@ -1526,7 +1544,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
     // Check changes on channels
     for (auto const& channel : m_AIChannelsPtr)
     {
-        channel->commitChanges(true, m_adqInterface, m_logMsgPV);
+        channel->commitChanges(true);
     }
 }
 
@@ -1541,7 +1559,7 @@ void ADQAIChannelGroup::onSwitchOn()
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
         channel->setState(nds::state_t::on);
-        channel->commitChanges(true, m_adqInterface, m_logMsgPV);
+        channel->commitChanges(true);
     }
 }
 
@@ -1567,7 +1585,7 @@ void ADQAIChannelGroup::onStart()
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
         channel->setState(nds::state_t::running);
-        channel->commitChanges(true, m_adqInterface, m_logMsgPV);
+        channel->commitChanges(true);
     }
 
     m_stopDaq = false;
@@ -2311,7 +2329,7 @@ finish:
 }
 
 /* Data acquisition method for raw streaming.
- * Works per channel.
+ * Works per channel. No triggering.
  */
 void ADQAIChannelGroup::daqRawStream()
 {

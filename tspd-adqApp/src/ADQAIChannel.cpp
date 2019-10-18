@@ -18,8 +18,10 @@
 #include "ADQDevice.h"
 #include "ADQInfo.h"
 
-ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum) :
+ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> logMsgPV) :
     m_channelNum(channelNum),
+    m_adqInterface(adqInterface), 
+    m_logMsgPV(logMsgPV),
     m_inputRangePV(nds::PVDelegateIn<double>("InputRange-RB", std::bind(&ADQAIChannel::getInputRange, this,
                                                                         std::placeholders::_1, std::placeholders::_2))),
     m_dcBiasPV(nds::PVDelegateIn<int32_t>("DCBias-RB", std::bind(&ADQAIChannel::getDcBias, this, std::placeholders::_1,
@@ -80,6 +82,7 @@ void ADQAIChannel::setInputRange(const timespec& pTimestamp, const double& pValu
     m_inputRange = pValue;
     m_inputRangePV.getTimestamp() = pTimestamp;
     m_inputRangeChanged = true;
+    commitChanges();
 }
 
 void ADQAIChannel::getInputRange(timespec* pTimestamp, double* pValue)
@@ -93,6 +96,7 @@ void ADQAIChannel::setDcBias(const timespec& pTimestamp, const int32_t& pValue)
     m_dcBias = pValue;
     m_dcBiasPV.getTimestamp() = pTimestamp;
     m_dcBiasChanged = true;
+    commitChanges();
 }
 
 void ADQAIChannel::getDcBias(timespec* pTimestamp, int32_t* pValue)
@@ -106,6 +110,7 @@ void ADQAIChannel::setChanDec(const timespec& pTimestamp, const int32_t& pValue)
     m_chanDec = pValue;
     m_chanDecPV.getTimestamp() = pTimestamp;
     m_chanDecChanged = true;
+    commitChanges();
 }
 
 void ADQAIChannel::getChanDec(timespec* pTimestamp, int32_t* pValue)
@@ -117,15 +122,15 @@ void ADQAIChannel::getChanDec(timespec* pTimestamp, int32_t* pValue)
 /* This function updates readback PVs according to changed each channel's parameter
  * and applies them to the device with ADQAPI functions.
  */
-void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> m_logMsgPV)
+void ADQAIChannel::commitChanges(bool calledFromDaqThread)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
     unsigned int status = 0;
     std::ostringstream textTmp;
 
-    int adqType = adqInterface->GetADQType();
-    std::string adqOption = adqInterface->GetCardOption();
+    int adqType = m_adqInterface->GetADQType();
+    std::string adqOption = m_adqInterface->GetCardOption();
 
     if (!calledFromDaqThread &&
         (m_stateMachine.getLocalState() != nds::state_t::on && m_stateMachine.getLocalState() != nds::state_t::stopping &&
@@ -141,7 +146,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
 
         if ((adqType == 714 || adqType == 14) && (adqOption.find("-VG") != std::string::npos))
         {
-            status = adqInterface->HasAdjustableInputRange();
+            status = m_adqInterface->HasAdjustableInputRange();
             if (status)
             {
                 if (m_inputRange <= 0)
@@ -162,10 +167,10 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
                 if ((m_inputRange > 2) || (m_inputRange < 5) || (m_inputRange > 5))
                     m_inputRange = 5000;
 
-                status = adqInterface->SetInputRange(m_channelNum + 1, m_inputRange, &inputRangeRb);
+                status = m_adqInterface->SetInputRange(m_channelNum + 1, m_inputRange, &inputRangeRb);
                 if (status)
                 {
-                    status = adqInterface->GetInputRange(m_channelNum + 1, &inputRangeRb);
+                    status = m_adqInterface->GetInputRange(m_channelNum + 1, &inputRangeRb);
                     if (status)
                         m_inputRangePV.push(now, (double)inputRangeRb);
                 }
@@ -195,9 +200,9 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
     {
         m_dcBiasChanged = false;
 
-        if (adqInterface->HasAdjustableBias())
+        if (m_adqInterface->HasAdjustableBias())
         {
-            status = adqInterface->SetAdjustableBias(m_channelNum + 1, m_dcBias);
+            status = m_adqInterface->SetAdjustableBias(m_channelNum + 1, m_dcBias);
             SLEEP(1000);
 
             if (!status)
@@ -209,7 +214,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
             else
             {
                 int dcBias = 0;
-                status = adqInterface->GetAdjustableBias(m_channelNum + 1, &dcBias);
+                status = m_adqInterface->GetAdjustableBias(m_channelNum + 1, &dcBias);
                 m_dcBias = dcBias;
                 m_dcBiasPV.push(now, m_dcBias);
             }
@@ -246,7 +251,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface*& adqInt
         }
         else
         {
-            ADQNDS_MSG_INFOLOG_PV("INFO: Sample channel decimation is available for devices with -FWSDR option only.");
+            ADQNDS_MSG_INFOLOG_PV("INFO: Sample channel decimation is available for ADQ7-FWSDR only.");
         }
     }
 }

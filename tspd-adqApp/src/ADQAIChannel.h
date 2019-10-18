@@ -19,13 +19,15 @@
 class ADQAIChannel
 {
 public:
-    /** @fn ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum);
+    /** @fn ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> logMsgPV);
      * @brief ADQAIChannel class constructor.
      * @param name a name with which this class will register its child node.
      * @param parentNode a name of a parent node to which this class' node is a child.
      * @param channelNum a number of channel which a constructed class represents.
+     * @param adqInterface a pointer to the ADQ API interface created in the ADQDevice class.
+     * @param logMsgPV process variable for sending the log messages (shared with the ADQAIChannelGroup class).
      */
-    ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum);
+    ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> logMsgPV);
 
     /** @var m_channelNum
      * @brief Number of channel.
@@ -80,10 +82,9 @@ public:
     /** @fn commitChanges
      * @brief This method processes changes are applied to channel specific parameters.
      * @param calledFromDaqThread a flag that prevents this function to be called when set to false.
-     * @param adqInterface a pointer to the ADQ API interface created in the ADQDevice class.
-     * @param m_logMsgPV a PV from ADQAIGroupChannel that receives any log messages.
      */
-    void commitChanges(bool calledFromDaqThread, ADQInterface*& adqInterface, nds::PVDelegateIn<std::string> m_logMsgPV);
+    
+    void commitChanges(bool calledFromDaqThread = false);
 
 private:
     nds::Node m_node;
@@ -111,6 +112,7 @@ private:
     void recover();
     bool allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
 
+    nds::PVDelegateIn<std::string> m_logMsgPV;
     nds::PVDelegateIn<double> m_inputRangePV;
     nds::PVDelegateIn<int32_t> m_dcBiasPV;
     nds::PVDelegateIn<int32_t> m_chanDecPV;
