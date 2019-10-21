@@ -256,7 +256,7 @@
       <keep_wh_ratio>false</keep_wh_ratio>
     </scale_options>
     <scripts>
-      <path pathString="Macros/SerialNumber_macro.js" checkConnect="true" sfe="false" seoe="false">
+      <path pathString="../macros/SerialNumber_macro.js" checkConnect="true" sfe="false" seoe="false">
         <pv trig="true">loc://ADQSerialNumber</pv>
       </path>
     </scripts>
