@@ -25,6 +25,7 @@ public:
      * @param name a name with which this class will register its child node.
      * @param parentNode a name of a parent node to which this class' node is a child.
      * @param adqInterface a pointer to the ADQ API interface created in the ADQInit class.
+     * @param adqCtrlUnit a pointer to the ADQ control unit that sets up and controls the ADQ devices.
      */
     ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface*& adqInterface, void* adqCtrlUnit);
     virtual ~ADQInfo();

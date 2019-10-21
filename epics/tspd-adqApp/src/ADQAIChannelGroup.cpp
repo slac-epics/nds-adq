@@ -88,7 +88,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     createPvEnum<int32_t>("DAQMode", m_daqModePV, daqModeList, &ADQAIChannelGroup::setDaqMode, &ADQAIChannelGroup::getDaqMode);
 
     // PV for Pattern Mode
-    nds::enumerationStrings_t patternModeList = { "Normal", "Test (x)", "Count upwards", "Count downwards", "Alter ups & downs" };
+    nds::enumerationStrings_t patternModeList = { "Normal", "Count upwards", "Count downwards", "Alter ups & downs" };
     createPvEnum<int32_t>("PatternMode", m_patternModePV, patternModeList, &ADQAIChannelGroup::setPatternMode, &ADQAIChannelGroup::getPatternMode);
 
     // PVs for setting active channels and channel mask
@@ -139,7 +139,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     createPv<int32_t>("ClockRefOut", m_clockRefOutPV, &ADQAIChannelGroup::setClockRefOut, &ADQAIChannelGroup::getClockRefOut);
 
     // PV for Trigger Mode
-    nds::enumerationStrings_t trigModeList = { "SW trigger", "External trigger", "Level trigger", "Internal trigger" };
+    nds::enumerationStrings_t trigModeList = { "Software", "External", "Level", "Internal" };
     createPvEnum<int32_t>("TrigMode", m_trigModePV, trigModeList, &ADQAIChannelGroup::setTrigMode, &ADQAIChannelGroup::getTrigMode);
 
     // PV for level trigger level
@@ -744,6 +744,11 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
     if (m_patternModeChanged)
     {
         m_patternModeChanged = false;
+        
+        // ADQ14 and ADQ7 do not support Test pattern option (second option defined in ADQ API)
+        if (m_patternMode >= 1)
+            m_patternMode += 1;
+        
         status = m_adqInterface->SetTestPatternMode(m_patternMode);
         ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTestPatternMode failed.");
         if (status)

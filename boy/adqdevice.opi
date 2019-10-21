@@ -94,13 +94,13 @@
     <foreground_color>
       <color name="IO OutputPV Fg" red="0" green="0" blue="0" />
     </foreground_color>
-    <height>38</height>
+    <height>35</height>
     <items>
-      <s>ADQ-06025</s>
+      <s>ADQ-05711</s>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>Device prefix combo</name>
-    <pv_name>loc://ADQSerialNumber("ADQ-06025")</pv_name>
+    <pv_name>loc://ADQSerialNumber("ADQ-05711")</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -229,7 +229,7 @@
       <color name="IO Foreground" red="0" green="0" blue="0" />
     </foreground_color>
     <group_name></group_name>
-    <height>1</height>
+    <height>965</height>
     <macros>
       <include_parent_macros>true</include_parent_macros>
     </macros>
@@ -263,7 +263,7 @@
     <tooltip></tooltip>
     <visible>true</visible>
     <widget_type>Linking Container</widget_type>
-    <width>1</width>
+    <width>1833</width>
     <wuid>-7c6ac6a0:163723e06aa:-650b</wuid>
     <x>14</x>
     <y>94</y>
