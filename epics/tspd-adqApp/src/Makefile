@@ -14,7 +14,7 @@ LIB += tspd-adq
 
 # We enable the c++11 flag, plus we define the NDS3_DLL preprocessor macro.
 USR_CXXFLAGS_Linux = -std=c++11 -Wall -Wextra -Werror -pedantic -DNDS3_DLL -pthread -DLINUX
-USR_INCLUDES_Win32 += -I../../../ADQAPI
+USR_INCLUDES_WIN32 += -I../../../../ADQAPI
 
 ifeq ($(SHARED_LIBRARIES), YES)
    USR_CXXFLAGS_WIN32 += -DNDS3_DLL -DNDS3_DLL_EXPORTS
@@ -24,9 +24,13 @@ endif
 USR_CXXFLAGS_WIN32 += -DNOMINMAX
 
 # Dependency on NDS3 and ADQAPI
-tspd-adq_LIBS = nds3epics
+tspd-adq_LIBS = nds3-epics
 
-tspd-adq_LIBS_WIN32 += nds3 adqapi
+ifeq (win32-x86, $(findstring win32-x86, $(T_A)))
+tspd-adq_LIBS_WIN32 += nds3 ../../../../ADQAPI/x86/ADQAPI
+else ifeq (windows-x64, $(findstring windows-x64, $(T_A)))
+tspd-adq_LIBS_WIN32 += nds3 ../../../../ADQAPI/x64/ADQAPI
+endif
 
 tspd-adq_SYS_LIBS_Linux += nds3 adq
 

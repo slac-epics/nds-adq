@@ -158,8 +158,8 @@ public:
     void setExternTrigInputImpedance(const timespec& pTimestamp, const int32_t& pValue);
 
     /** @fn getTrigMode
-	 * @brief Gets the trigger mode.
-	 */
+     * @brief Gets the trigger mode.
+     */
     void getTrigMode(timespec* pTimestamp, int32_t* pValue);
 
     /** @fn setMasterMode
@@ -458,11 +458,6 @@ public:
      */
     void getInternTrigHighSamp(timespec* pTimestamp, int32_t* pValue);
 
-    /** @fn setInternTrigLowSamp
-     * @brief Sets the Internal trigger low sample length.
-     */
-    void setInternTrigLowSamp(const timespec& pTimestamp, const int32_t& pValue);
-
     /** @fn getInternTrigLowSamp
      * @brief Gets the Internal trigger low sample length.
      */
@@ -492,6 +487,7 @@ public:
      * @brief Gets the log messages.
      */
     void getLogMsg(timespec* pTimestamp, std::string* pValue);
+    void setLogMsg(const timespec& pTimestamp, std::string const& pValue);
 
     /** @fn getEnumerationOrder
      * @brief Gets the bus enumeration order of this module.
@@ -655,7 +651,6 @@ private:
     int32_t m_internTrigHighSamp;
     bool m_internTrigHighSampChanged;
     int32_t m_internTrigLowSamp;
-    bool m_internTrigLowSampChanged;
     int64_t m_SampleRate;
     int32_t m_internTrigFreq;
     bool m_internTrigFreqChanged;
@@ -716,6 +711,7 @@ private:
 #endif
     static std::mutex m_StaticMutex;
 
+    std::string m_logMsg;
     nds::PVDelegateIn<std::string> m_logMsgPV;
     nds::PVDelegateIn<int32_t> m_masterEnumerationPV;
     nds::PVDelegateIn<int32_t> m_thisEnumerationPV;
@@ -776,7 +772,7 @@ private:
             struct timespec now = { 0, 0 };
             clock_gettime(CLOCK_REALTIME, &now);
             m_logMsgPV.push(now, std::string(text));
-            ndsWarningStream(m_node) << utc_system_timestamp(now, ' ') << text << std::endl;
+            ndsWarningStream(m_node) << "WARNING: " << utc_system_timestamp(now, ' ') << " " << m_node.getFullExternalName() << " " << text << std::endl;
         }
     }
     /** @def ADQNDS_MSG_ERRLOG_PV

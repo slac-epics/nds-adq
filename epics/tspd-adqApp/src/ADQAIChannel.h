@@ -154,9 +154,10 @@ private:
             struct timespec now = { 0, 0 };
             clock_gettime(CLOCK_REALTIME, &now);
             logMsgPV.push(now, std::string(text));
-            ndsWarningStream(m_node) << ctime(&(now.tv_sec)) << " " << std::string(text) << std::endl;
+            ndsWarningStream(m_node) << "WARNING: " << utc_system_timestamp(now, ' ') << " " << m_node.getFullExternalName() << " " << text << std::endl;
         }
     }
+    std::string utc_system_timestamp(struct timespec const& now, char sep) const;
 };
 
 #endif /* ADQAICHANNEL_H; */

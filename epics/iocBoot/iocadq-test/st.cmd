@@ -17,8 +17,8 @@ adq_test_registerRecordDeviceDriver pdbbase
 dbLoadTemplate("db/ADQDevice.substitutions4", "PREFIX = $(ROOT), ADQSN = $(ADQSN)")
 
 ## Load library of ADQ module
-ndsLoadDriver("libtspd-adq.so")
-# ndsLoadDriver("tspd-adq.dll")
+# ndsLoadDriver("${ADQ_LIB}/libtspd-adq.so")
+ndsLoadDriver("${ADQ_LIB}/tspd-adq.dll")
 
 ## Create device with parameters: driver name (from NDS_DEFINE_DRIVER, not .SO name), rootNode, digitizer's serial number
 ndsCreateDevice(tspd_adq, "$(ROOT)", "ADQSN=$(ADQSN)")

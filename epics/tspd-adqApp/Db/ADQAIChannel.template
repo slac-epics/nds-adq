@@ -67,7 +67,7 @@ record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:CHANDEC") {
     field(DESC, "${CH} decimation (for ADQ7-FWSDR)")
     field(SCAN, "Passive")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-ChanDec")
+    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ${CH}-ChanDec")
     field(PINI, "YES")
 }
 
@@ -75,7 +75,7 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:CHANDEC-RB") {
     field(DESC, "${CH} decimation (for ADQ7-FWSDR) Rdbk")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) ${CH_NODE}-ChanDec-RB")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ${CH}-ChanDec-RB")
     field(PINI, "YES")
 }
 

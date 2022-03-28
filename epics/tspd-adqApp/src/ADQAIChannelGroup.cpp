@@ -142,7 +142,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     double SampleRate = 1000000000;
     int status = m_adqInterface->GetSampleRate(0, &SampleRate);
     m_SampleRate = int64_t(SampleRate + 0.5);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: GetSampleRate failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "GetSampleRate failed.");
     m_internTrigPeriod = int32_t(m_SampleRate + 0.5); // 1Hz, in samples
     m_levelTrigEdge = m_internTrigEdge = 1;
     m_internTrigHighSamp = 500;
@@ -154,7 +154,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     for (size_t channelNum(0); channelNum != m_chanCnt; ++channelNum)
     {
         std::ostringstream channelName;
-        channelName << "Ch" << channelNum;
+        channelName << "CH" << channelNum;
         m_AIChannelsPtr.push_back(std::make_shared<ADQAIChannel>(channelName.str(), m_node, int(channelNum)));
     }
 
@@ -294,7 +294,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
 
     setTriggerIdleState();
     status = m_adqInterface->SetTriggerMode(1); // SW trigger
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerMode failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerMode failed.");
 
     // PV for state machine
     m_stateMachine = m_node.addChild(nds::StateMachine(true,
@@ -355,7 +355,14 @@ nds::PVDelegateIn<T> ADQAIChannelGroup::createPvRb(const std::string& name,
 
 void ADQAIChannelGroup::getLogMsg(timespec* pTimestamp, std::string* pValue)
 {
-    m_logMsgPV.read(pTimestamp, pValue);
+    *pValue = m_logMsg;
+    *pTimestamp = m_logMsgPV.getTimestamp();
+}
+
+void ADQAIChannelGroup::setLogMsg(const timespec& pTimestamp, std::string const& pValue)
+{
+    m_logMsg = pValue;
+    m_logMsgPV.push(pTimestamp, m_logMsg);
 }
 
 void ADQAIChannelGroup::getMasterEnumeration(timespec* pTimestamp, int32_t* pValue)
@@ -624,7 +631,7 @@ void ADQAIChannelGroup::setClockSrc(const timespec& pTimestamp, const int32_t& p
 {
     m_clockSrc = pValue;
     m_clockSrcPV.getTimestamp() = pTimestamp;
-    m_clockSrcChanged |= (m_clockSrc != pValue);
+    m_clockSrcChanged = true;
     commitChanges();
 }
 
@@ -834,14 +841,6 @@ void ADQAIChannelGroup::getInternTrigHighSamp(timespec* pTimestamp, int32_t* pVa
     *pTimestamp = m_internTrigHighSampPV.getTimestamp();
 }
 
-void ADQAIChannelGroup::setInternTrigLowSamp(const timespec& pTimestamp, const int32_t& pValue)
-{
-    m_internTrigLowSamp = pValue;
-    m_internTrigLowSampPV.getTimestamp() = pTimestamp;
-    m_internTrigLowSampChanged = true;
-    commitChanges();
-}
-
 void ADQAIChannelGroup::getInternTrigLowSamp(timespec* pTimestamp, int32_t* pValue)
 {
     *pValue = m_internTrigLowSamp;
@@ -1026,7 +1025,7 @@ void ADQAIChannelGroup::onSwitchOn()
     TraceOutWithTime(m_node, "onSwitchOn called");
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    m_logMsgPV.push(now, std::string("")); // Clear any previous log messages.
+    setLogMsg(now, std::string("")); // Clear any previous log messages.
 
     // Enable all channels
     for (auto const& channel : m_AIChannelsPtr)
@@ -1059,7 +1058,7 @@ void ADQAIChannelGroup::onStart()
     TraceOutWithTime(m_node, "onStart called");
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
-    m_logMsgPV.push(now, std::string("")); // Clear any previous log messages.
+    setLogMsg(now, std::string("")); // Clear any previous log messages.
     for (auto const& channel : m_AIChannelsPtr)
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
@@ -1115,7 +1114,7 @@ void timerStart(void)
 {
     if (clock_gettime(CLOCK_REALTIME, &tsref) < 0)
     {
-        std::cout << "WARNING: Failed to start timer." << std::endl;
+        std::cout << "Failed to start timer." << std::endl;
         return;
     }
 }
@@ -1127,7 +1126,7 @@ unsigned int timerSpentTimeMs(void)
     struct timespec ts;
     if (clock_gettime(CLOCK_REALTIME, &ts) < 0)
     {
-        std::cout << "WARNING: Failed to get system time." << std::endl;
+        std::cout << "Failed to get system time." << std::endl;
         return -1;
     }
     return (unsigned int)((int)(ts.tv_sec - tsref.tv_sec) * 1000 + (int)(ts.tv_nsec - tsref.tv_nsec) / 1000000);
@@ -1158,14 +1157,14 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
         if (!daqDataBuffer[chan])
         {
             bufferSize = 0;
-            ADQNDS_MSG_ERRLOG_PV(bufferSize, "ERROR: Failed to allocate memory for target buffers.");
+            ADQNDS_MSG_ERRLOG_PV(bufferSize, "Failed to allocate memory for target buffers.");
         }
 
         daqStreamHeaders[chan] = (streamingHeader_t*)malloc(sizeof(streamingHeader_t)* m_recordCnt);
         if (!daqStreamHeaders[chan])
         {
             bufferSize = 0;
-            ADQNDS_MSG_ERRLOG_PV(bufferSize, "ERROR: Failed to allocate memory for target headers.");
+            ADQNDS_MSG_ERRLOG_PV(bufferSize, "Failed to allocate memory for target headers.");
         }
 
         if (daqLeftoverSamples != NULL)
@@ -1174,7 +1173,7 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
             if (!(*daqLeftoverSamples)[chan])
             {
                 bufferSize = 0;
-                ADQNDS_MSG_ERRLOG_PV(bufferSize, "ERROR: Failed to allocate memory for target extradata.");
+                ADQNDS_MSG_ERRLOG_PV(bufferSize, "Failed to allocate memory for target extradata.");
             }
         }
     }
@@ -1206,7 +1205,7 @@ void ADQAIChannelGroup::daqTrigStream()
     {
         unsigned int bufferSize = allocateBuffers(daqDataBuffer, daqStreamHeaders, &daqLeftoverSamples);
         if (!bufferSize)
-            ADQNDS_MSG_ERRLOG_PV(0, "ERROR: allocateBuffers failed.");
+            ADQNDS_MSG_ERRLOG_PV(0, "allocateBuffers failed.");
 
         for (unsigned int chan = 0; chan < CHANNEL_COUNT_MAX; ++chan)
         {
@@ -1227,40 +1226,40 @@ void ADQAIChannelGroup::daqTrigStream()
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->StopStreaming();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StopStreaming failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "StopStreaming failed.");
 
             status = m_adqInterface->TriggeredStreamingSetup(m_recordCnt, m_sampleCnt, m_preTrigSamp, m_trigHoldOffSamp, m_chanMask);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: TriggeredStreamingSetup failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "TriggeredStreamingSetup failed.");
 
             status = m_adqInterface->FlushPacketOnRecordStop(1);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: FlushPacketOnRecordStop failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "FlushPacketOnRecordStop failed.");
 
             status = m_adqInterface->SetStreamStatus(1);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 1 (Stream enabled) failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "SetStreamStatus to 1 (Stream enabled) failed.");
             if (m_adqType == 714 || m_adqType == 14)
             {
                 status = m_adqInterface->SetStreamConfig(2, 0);
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig 2 (enable packet headers) failed.");
+                ADQNDS_MSG_ERRLOG_PV(status, "SetStreamConfig 2 (enable packet headers) failed.");
             }
 
             status = m_adqInterface->SetTransferBuffers(m_chanCnt, bufferSize);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetTransferBuffers failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "SetTransferBuffers failed.");
 
             status = m_adqInterface->StartStreaming();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "StartStreaming failed.");
         }
         if (m_trigMode == 0)
         {
             for (int i = 0; i < m_recordCnt; ++i)
             {
                 status = m_adqInterface->SWTrig();
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
+                ADQNDS_MSG_ERRLOG_PV(status, "SWTrig failed.");
             }
         }
         else
         {
             status = armTrigger();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: armTrigger.");
+            ADQNDS_MSG_ERRLOG_PV(status, "armTrigger.");
         }
 
 
@@ -1281,7 +1280,7 @@ void ADQAIChannelGroup::daqTrigStream()
                 if (status)
                 {
                     status = 0;
-                    ADQNDS_MSG_ERRLOG_PV(status, "WARNING: Streaming overflow detected.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "Streaming overflow detected.");
                 }
 
                 buffersFilled = 0;
@@ -1293,7 +1292,7 @@ void ADQAIChannelGroup::daqTrigStream()
                     // We have no buffered data currently.
                     thisTimeout = m_timeout;
                 status = m_adqInterface->WaitForTransferBuffer(&buffersFilled, thisTimeout);
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: WaitForTransferBuffer failed.");
+                ADQNDS_MSG_ERRLOG_PV(status, "WaitForTransferBuffer failed.");
                 if (buffersFilled)
                 {
                     ndsInfoStream(m_node) << "INFO: Receiving data..." << std::endl;
@@ -1301,7 +1300,7 @@ void ADQAIChannelGroup::daqTrigStream()
                     TraceOutWithTime(m_node, "GetDataStreaming returned %u buffers with %u %u %u %u samples on records %u %u %u %u",
                         buffersFilled, samplesAddedCnt[0], samplesAddedCnt[1], samplesAddedCnt[2], samplesAddedCnt[3],
                         recordsDoneCnt[0], recordsDoneCnt[1], recordsDoneCnt[2], recordsDoneCnt[3]);
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetDataStreaming failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "GetDataStreaming failed.");
                 }
                 else
                 {
@@ -1428,10 +1427,10 @@ finish:
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
 
         status = m_adqInterface->SetStreamStatus(0);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamStatus to 0 (Stream disabled) failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetStreamStatus to 0 (Stream disabled) failed.");
 
         status = m_adqInterface->StopStreaming();
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "StopStreaming failed.");
     }
     ndsInfoStream(m_node) << "INFO: Acquisition finished." << std::endl;
 
@@ -1453,7 +1452,7 @@ finish:
     }
     catch (nds::StateMachineNoSuchTransition& /*error*/)
     {
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: State transition error.");
+        ADQNDS_MSG_WARNLOG_PV(status, "State transition error.");
     }
 
     commitChanges(true);
@@ -1472,11 +1471,11 @@ int ADQAIChannelGroup::commitDaisyChainTriggerSource(struct timespec const& now)
                 // There is no other readback of this valaue when using the daisy chain.
                 m_levelTrigEdgePV.push(now, m_levelTrigEdge);
 
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainSetupLevelTrigger failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainSetupLevelTrigger failed.");
         }
         TraceOutWithTime(m_node, "DaisyChainSetTriggerSource %d", m_trigMode + 1);
         status = m_adqInterface->DaisyChainSetTriggerSource(m_trigMode + 1);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainSetTriggerSource failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainSetTriggerSource failed.");
         DaisyChainGetStatus(__LINE__);
     }
     if (status) {
@@ -1493,23 +1492,23 @@ void ADQAIChannelGroup::setTriggerIdleState()
     SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_NORMAL);
 #endif
     int status = m_adqInterface->SetInternalTriggerPeriod(std::numeric_limits<unsigned int>::max() - 4);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetInternalTriggerPeriod failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerPeriod failed.");
     uint32_t internTrigLowSamp = std::numeric_limits<unsigned int>::max() - 4 - m_internTrigHighSamp;
     status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, internTrigLowSamp);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetInternalTriggerHighLow failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerHighLow failed.");
     if ((m_adqType == 412) || (m_adqType == 1600) || (m_adqType == 108) || (m_adqType == 14) || (m_adqType == 7) || (m_adqType == 8))
     {
         status = m_adqInterface->SetInternalTriggerSyncMode(0);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetInternalTriggerSyncMode failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerSyncMode failed.");
     }
     status = m_adqInterface->DisarmTimestampSync();
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DisarmTimestampSync failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "DisarmTimestampSync failed.");
     status = m_adqInterface->DisarmTrigger();
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DisarmTrigger failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "DisarmTrigger failed.");
     if (m_adqType == 8)
     {
         status = m_adqInterface->DaisyChainSetOutputState(0);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DaisyChainSetOutputState failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainSetOutputState failed.");
     }
 }
 
@@ -1518,13 +1517,13 @@ void ADQAIChannelGroup::commitInternTrigEdge(struct timespec const& now)
     m_internTrigEdgeChanged = false;
 
     int status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_internTrigEdge);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerEdge failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerEdge failed.");
 
     if (status)
     {
         unsigned int trigEdge = 0;
         status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: GetTriggerEdge failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "GetTriggerEdge failed.");
         if (status)
         {
             m_internTrigEdge = trigEdge;
@@ -1539,14 +1538,14 @@ void ADQAIChannelGroup::commitLevelTrigEdge(struct timespec const& now)
 
     TraceOutWithTime(m_node, "SetTriggerEdge %d", m_levelTrigEdge);
     int status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_levelTrigEdge);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerEdge failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerEdge failed.");
 
     if ((status) && (m_masterMode != 1))
     {
         // Does not work for the daisy chain usage.
         unsigned int trigEdge = 0;
         status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: GetTriggerEdge failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "GetTriggerEdge failed.");
         if (status)
         {
             m_levelTrigEdgePV.push(now, int(trigEdge));
@@ -1563,7 +1562,7 @@ void ADQAIChannelGroup::commitClockRefOut(struct timespec const& now)
     if (m_clockRefOut > 1)
         m_clockRefOut = 1;
     int status = m_adqInterface->EnableClockRefOut(m_clockRefOut);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: EnableClockRefOut failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "EnableClockRefOut failed.");
     if (status)
         m_clockRefOutPV.push(now, m_clockRefOut);
 }
@@ -1573,13 +1572,13 @@ void ADQAIChannelGroup::commitExternTrigEdge(struct timespec const& now)
     m_externTrigEdgeChanged = false;
 
     int status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_externTrigEdge);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerEdge failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerEdge failed.");
 
     if (status)
     {
         unsigned int trigEdge = 0;
         status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: GetTriggerEdge failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "GetTriggerEdge failed.");
         if (status)
         {
             m_externTrigEdge = trigEdge;
@@ -1589,13 +1588,13 @@ void ADQAIChannelGroup::commitExternTrigEdge(struct timespec const& now)
 }
 
 void ADQAIChannelGroup::commitExternTrigImpedance(struct timespec const& now)
-{	
+{   
     m_externTrigInputImpedanceChanged = false;
     int status = m_adqInterface->SetTriggerInputImpedance(1, m_externTrigInputImpedance);
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: SetTriggerInputImpedance failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerInputImpedance failed.");
     unsigned int externTrigInputImpedance;
     status = m_adqInterface->GetTriggerInputImpedance(1, &externTrigInputImpedance);
-    ADQNDS_MSG_WARNLOG_PV(status, "ERROR: GetTriggerInputImpedance failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "GetTriggerInputImpedance failed.");
     m_externTrigInputImpedancePV.push(now, int(externTrigInputImpedance));
 }
 
@@ -1614,7 +1613,7 @@ void ADQAIChannelGroup::commitInternTrigHighSamp(struct timespec const& now)
     {
         TraceOutWithTime(m_node, "SetInternalTriggerHighLow %u %u %u", m_internTrigPeriod, m_internTrigHighSamp, m_internTrigLowSamp);
         int status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, m_internTrigLowSamp);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetInternalTriggerHighLow failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerHighLow failed.");
     }
 
     m_internTrigHighSampPV.push(now, m_internTrigHighSamp);
@@ -1635,7 +1634,7 @@ void ADQAIChannelGroup::commitInternTrigFreqChanged(struct timespec const& now)
     {
         TraceOutWithTime(m_node, "SetInternalTriggerPeriod %u %u %u", m_internTrigPeriod, m_internTrigHighSamp, m_internTrigLowSamp);
         int status = m_adqInterface->SetInternalTriggerPeriod(m_internTrigPeriod);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetInternalTriggerPeriod failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerPeriod failed.");
     }
 
     m_internTrigFreqPV.push(now, m_internTrigFreq);
@@ -1650,7 +1649,7 @@ void ADQAIChannelGroup::commitExternTrigThreshold(struct timespec const& now)
         if (m_adqType == 714 || m_adqType == 14)
         {
             status = m_adqInterface->SetExtTrigThreshold(EXTERN_TRIG_COUNT, m_externTrigThreshold);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetExtTrigThreshold failed.");
+            ADQNDS_MSG_WARNLOG_PV(status, "SetExtTrigThreshold failed.");
 
             if (status)
                 m_externTrigThresholdPV.push(now, m_externTrigThreshold);
@@ -1658,7 +1657,7 @@ void ADQAIChannelGroup::commitExternTrigThreshold(struct timespec const& now)
         if ((m_adqType == 7) || (m_adqType == 8))
         {
             status = m_adqInterface->SetTriggerThresholdVoltage(m_trigMode + 1, m_externTrigThreshold);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetExtTrigThreshold failed.");
+            ADQNDS_MSG_WARNLOG_PV(status, "SetExtTrigThreshold failed.");
 
             if (status)
                 m_externTrigThresholdPV.push(now, m_externTrigThreshold);
@@ -1674,7 +1673,7 @@ void ADQAIChannelGroup::commitPatternMode(struct timespec const& now)
 {
     m_patternModeChanged = false;
     int status = m_adqInterface->SetTestPatternMode(m_patternMode);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTestPatternMode failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTestPatternMode failed.");
     if (status)
     {
         m_patternModePV.push(now, m_patternMode);
@@ -1688,7 +1687,7 @@ void ADQAIChannelGroup::commitLevelTrigLvl(struct timespec const& now)
 
     TraceOutWithTime(m_node, "SetLvlTrigLevel %d", m_levelTrigLvl);
     int status = m_adqInterface->SetLvlTrigLevel(m_levelTrigLvl);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetLvlTrigLevel failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetLvlTrigLevel failed.");
 
     if (m_adqType == 714 || m_adqType == 14)
         m_levelTrigLvl = m_adqInterface->GetLvlTrigLevel();
@@ -1702,7 +1701,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
     m_levelTrigChanMaskChanged = false;
     if (m_levelTrigChan < 0)
     {
-        ndsWarningStream(m_node) << "WARNING: negative level trigger channel is resetted to 0" << std::endl;
+        ndsWarningStream(m_node) << "negative level trigger channel is resetted to 0" << std::endl;
         m_levelTrigChan = 0;
     }
 
@@ -1710,14 +1709,14 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
     {
         switch (m_levelTrigChan)
         {
-        case 0:	  // None 
+        case 0:   // None 
             m_levelTrigChanMask = 0;
             break;
         case 1:   // ch A
             m_levelTrigChanMask = 1;
             break;
         default:
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Device has only one channel -> changed to channel A");
+            ADQNDS_MSG_WARNLOG_PV(0, "Device has only one channel -> changed to channel A");
             m_levelTrigChanMask = 1;
             break;
         }
@@ -1727,7 +1726,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
     {
         switch (m_levelTrigChan)
         {
-        case 0:	  // None 
+        case 0:   // None 
             m_levelTrigChanMask = 0;
             break;
         case 1:   // ch A
@@ -1739,7 +1738,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
         case 3:   // ch A+B
             if (m_adqType == 7)
             {
-                ADQNDS_MSG_WARNLOG_PV(0, "WARNING: ADQ7 allows only one channel to generate the trigger -> "
+                ADQNDS_MSG_WARNLOG_PV(0, "ADQ7 allows only one channel to generate the trigger -> "
                     "changed to channel B");
                 m_levelTrigChanMask = 2;
             }
@@ -1749,7 +1748,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
             }
             break;
         default:
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Device has only two channels -> changed to channel B");
+            ADQNDS_MSG_WARNLOG_PV(0, "Device has only two channels -> changed to channel B");
             m_levelTrigChanMask = 2;
             break;
         }
@@ -1759,7 +1758,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
     {
         switch (m_levelTrigChan)
         {
-        case 0:	  // None 
+        case 0:   // None 
             m_levelTrigChanMask = 0;
             break;
         case 5:   // ch A+B
@@ -1791,7 +1790,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
 
     TraceOutWithTime(m_node, "SetLvlTrigChannel %d %d", m_levelTrigChan, m_levelTrigChanMask);
     int status = m_adqInterface->SetLvlTrigChannel(m_levelTrigChanMask);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetLvlTrigChannel failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetLvlTrigChannel failed.");
 
     if (m_adqType == 714 || m_adqType == 14)
         m_levelTrigChanMask = m_adqInterface->GetLvlTrigChannel();
@@ -1822,7 +1821,7 @@ void ADQAIChannelGroup::commitExternTrigDelay(struct timespec const& now)
     }
 
     int status = m_adqInterface->SetExternalTriggerDelay(m_externTrigDelay);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetExternalTriggerDelay failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetExternalTriggerDelay failed.");
 
     m_externTrigDelayChanged = false;
     m_externTrigDelayPV.push(now, m_externTrigDelay);
@@ -1837,7 +1836,7 @@ void ADQAIChannelGroup::commitDaqMode(struct timespec& now)
         int status = m_adqInterface->HasTriggeredStreamingFunctionality();
         if (!status)
         {
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Device doesn't have triggered streaming functionality.");
+            ADQNDS_MSG_WARNLOG_PV(status, "Device doesn't have triggered streaming functionality.");
             m_daqMode = 1;
         }
     }
@@ -1868,7 +1867,7 @@ void ADQAIChannelGroup::commitClockSource(struct timespec const& now)
     }
 
     int status = m_adqInterface->SetClockSource(m_clockSrc);
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetClockSource failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetClockSource failed.");
 
     if (m_adqType == 714 || m_adqType == 14)
     {
@@ -1895,16 +1894,16 @@ void ADQAIChannelGroup::commitTriggerMode(struct timespec const& now)
         trigMode = 14;
 
     int status = m_adqInterface->DisarmTrigger();
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DisarmTrigger failed.");
+    ADQNDS_MSG_ERRLOG_PV(status, "DisarmTrigger failed.");
     if (m_masterMode == 1)
     {
         // Don't start triggering until the daisy chain is ready!
         uint32_t internTrigLowSamp = std::numeric_limits<unsigned int>::max() - 4 - m_internTrigHighSamp;
         TraceOutWithTime(m_node, "SetInternalTriggerPeriod %u %u %u", std::numeric_limits<unsigned int>::max() - 4, m_internTrigHighSamp, internTrigLowSamp);
         status = m_adqInterface->SetInternalTriggerPeriod(std::numeric_limits<unsigned int>::max() - 4);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetInternalTriggerPeriod failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "SetInternalTriggerPeriod failed.");
         status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, internTrigLowSamp);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetInternalTriggerHighLow failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "SetInternalTriggerHighLow failed.");
         // Trigger from the daisy chain and NOT the actual trigger source.
         // Or the daisy information will not be collected correctly.
         // The trigger source is set through DaisyChainSetTriggerSource().
@@ -1916,7 +1915,7 @@ void ADQAIChannelGroup::commitTriggerMode(struct timespec const& now)
         TraceOutWithTime(m_node, "setTriggerMode %d", trigMode);
         status = m_adqInterface->SetTriggerMode(trigMode);
     }
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetTriggerMode failed.");
+    ADQNDS_MSG_ERRLOG_PV(status, "SetTriggerMode failed.");
     if (status)
     {
         int trigModeReadBack = m_adqInterface->GetTriggerMode();
@@ -1936,7 +1935,7 @@ void ADQAIChannelGroup::commitTriggerMode(struct timespec const& now)
             // Daisy chain trigger sync not work. Use SYNC input instead.
             trigMode = 9;
         status = m_adqInterface->SetupTimestampSync(0, trigMode);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetupTimestampSync failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "SetupTimestampSync failed.");
     }
 
     if (status) {
@@ -1955,19 +1954,19 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
     int32_t trigHoldOffSamp = m_trigHoldOffSamp;
     if ((m_daisyPosition.size() > 0) && (m_daisyPosition[0] < 0))
     {
-        ndsWarningStream(m_node) << "WARNING: Daisy chain position is resetted to 0" << std::endl;
+        ndsWarningStream(m_node) << "Daisy chain position is resetted to 0" << std::endl;
         m_daisyPosition[0] = 0;
     }
     if (m_daisyPosition.size() > 0)
     {
         if ((m_daisyPosition.size() > 1) && (m_masterMode != 1))
         {
-            ndsWarningStream(m_node) << "WARNING: Daisy chain information only available to master modules" << std::endl;
+            ndsWarningStream(m_node) << "Daisy chain information only available to master modules" << std::endl;
             m_daisyPosition.resize(1);
         }
         if (m_adqType != 8)
         {
-            ndsWarningStream(m_node) << "WARNING: Daisy chain position only an option for ADQ8" << std::endl;
+            ndsWarningStream(m_node) << "Daisy chain position only an option for ADQ8" << std::endl;
             m_daisyPosition.clear();
         }
         else
@@ -1979,7 +1978,7 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
             for (size_t Position = 0; Position < m_device_info.size(); Position++)
             {
                 status = m_adqInterface->DaisyChainGetNofPretriggerSamples(m_daisyPosition[Position], m_SampleRate, &DaisyPreTriggerSamples);
-                ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DaisyChainGetNofPretriggerSamples failed.");
+                ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainGetNofPretriggerSamples failed.");
                 m_device_info[Position].Position = m_daisyPosition[Position];
                 m_device_info[Position].PretriggerSamples = preTrigSamp + DaisyPreTriggerSamples;
                 // The requirement to add 4 is only required if DaisyChainGetTriggerInformation is set to use trigger source 3.
@@ -1995,9 +1994,14 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
 
     if (preTrigSamp > m_sampleCnt)
     {
+        char Buf[20];
+        snprintf(Buf, sizeof(Buf) - 1, "%d", preTrigSamp);
+        std::string Warning = "Number of pre-trigger samples (" + std::string(Buf);
+        snprintf(Buf, sizeof(Buf) - 1, "%d", m_sampleCnt);
+        Warning += ") must be less than number of samples (" + std::string(Buf) + ") per record.";
         m_preTrigSamp = preTrigSamp = m_sampleCnt;
         m_preTrigSampPV.push(now, m_preTrigSamp);
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Number of pre-trigger samples must be less than number of samples per record.");
+        ADQNDS_MSG_WARNLOG_PV(0, Warning);
     }
 
     if (preTrigSamp < 0)
@@ -2005,28 +2009,28 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
         m_preTrigSamp = preTrigSamp = 0;
         m_preTrigSampPV.push(now, 0);
         m_preTrigSampPV.push(now, 0);
-        ndsWarningStream(m_node) << "WARNING: Number of pre-trigger samples is resetted to zero" << std::endl;
+        ndsWarningStream(m_node) << "Number of pre-trigger samples is resetted to zero" << std::endl;
     }
 
     if ((m_daqMode == 0) || (m_daqMode == 2)) // Multi-Record
     {
         status = m_adqInterface->SetPreTrigSamples(preTrigSamp);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetPreTrigSamples failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetPreTrigSamples failed.");
         m_preTrigSampPV.push(now, m_preTrigSamp);
     }
     else
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetPreTrigSamples only in multirecord mode.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetPreTrigSamples only in multirecord mode.");
 
     if (trigHoldOffSamp > m_sampleCnt)
     {
         trigHoldOffSamp = m_trigHoldOffSamp = 0;
         m_trigHoldOffSampPV.push(now, 0);
-        ndsWarningStream(m_node) << "WARNING: Number of hold-off samples must be less than number of samples per record." << std::endl;
+        ndsWarningStream(m_node) << "Number of hold-off samples must be less than number of samples per record." << std::endl;
     }
 
     if (trigHoldOffSamp < 0)
     {
-        ndsWarningStream(m_node) << "WARNING: Trigger hold-off is resetted to zero." << std::endl;
+        ndsWarningStream(m_node) << "Trigger hold-off is resetted to zero." << std::endl;
         trigHoldOffSamp = m_trigHoldOffSamp = 0;
         m_trigHoldOffSampPV.push(now, 0);
     }
@@ -2035,11 +2039,11 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
     {
         m_trigHoldOffSampChanged = false;
         status = m_adqInterface->SetTriggerDelay(trigHoldOffSamp);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerDelay failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerDelay failed.");
         m_trigHoldOffSampPV.push(now, trigHoldOffSamp);
     }
     else
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerDelay only in multirecord mode.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerDelay only in multirecord mode.");
 
     if (status)
     {
@@ -2054,11 +2058,11 @@ void ADQAIChannelGroup::DaisyChainGetStatus(long Line)
     unsigned int DaisyChainStatus = 0xFF;
     int status = m_adqInterface->DaisyChainGetStatus(&DaisyChainStatus);
     DaisyChainStatus &= 0XE; // We don't need the state of the daisy chain input.
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DaisyChainGetStatus failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainGetStatus failed.");
     if (DaisyChainStatus != m_DaisyChainStatus)
     {
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNING: DaisyChainGetStatus fault");
-        ndsWarningStream(m_node) << "WARNING: DaisyChainGetStatus fault " << DaisyChainStatus << " on " << m_node.getFullExternalName() << " at " << Line << std::endl;
+        ADQNDS_MSG_WARNLOG_PV(0, "DaisyChainGetStatus fault");
+        ndsWarningStream(m_node) << "DaisyChainGetStatus fault " << DaisyChainStatus << " on " << m_node.getFullExternalName() << " at " << Line << std::endl;
         m_DaisyChainStatus = DaisyChainStatus;
     }
 }
@@ -2072,28 +2076,28 @@ void ADQAIChannelGroup::commitDaisyChain(struct timespec const& now)
     if (m_adqType == 8)
     {
         status = m_adqInterface->DaisyChainEnableOutput(0);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainEnableOutput failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainEnableOutput failed.");
         status = m_adqInterface->DaisyChainEnable(0);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainEnable failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainEnable failed.");
         status = m_adqInterface->DaisyChainReset();
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainReset failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainReset failed.");
         if (m_masterMode == 1)
         {
             status = m_adqInterface->DaisyChainSetMode(1); // Master mode
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainSetMode failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainSetMode failed.");
         }
         else if (m_masterMode == 2)
         {
             status = m_adqInterface->DaisyChainSetMode(0); // Slave mode
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainSetMode failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainSetMode failed.");
         }
         commitDaisyChainTriggerSource(now);
         if (m_masterMode != 0)
         {
             status = m_adqInterface->DaisyChainSetupOutput(1, m_sync_immediate, 12);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainSetupOutput failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainSetupOutput failed.");
             status = m_adqInterface->DaisyChainEnableOutput(1);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainEnableOutput failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainEnableOutput failed.");
             DaisyChainGetStatus(__LINE__);
         }
     }
@@ -2147,13 +2151,13 @@ void ADQAIChannelGroup::commitSetupDBS(struct timespec const& now)
         else
         {
             status = 0;
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetupDBS failed on one or more channels.");
+            ADQNDS_MSG_WARNLOG_PV(status, "SetupDBS failed on one or more channels.");
         }
     }
     else
     {
         status = 0;
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: GetNofDBSInstances failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "GetNofDBSInstances failed.");
     }
 }
 
@@ -2164,7 +2168,7 @@ void ADQAIChannelGroup::commitActiveChan(struct timespec const& now)
     if (!m_chanCnt)
     {
         int status = 0;
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: No channels are found.");
+        ADQNDS_MSG_WARNLOG_PV(status, "No channels are found.");
         return;
     }
     if (m_chanCnt == 1)
@@ -2181,7 +2185,7 @@ void ADQAIChannelGroup::commitActiveChan(struct timespec const& now)
         case 4:   // ch A+B
         case 5:   // ch C+D
         case 6:   // ch A+B+C+D
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Device has only one channel -> changed to channel A.");
+            ADQNDS_MSG_WARNLOG_PV(0, "Device has only one channel -> changed to channel A.");
             m_chanMask = 0x1;
             m_chanInt = 1;
             break;
@@ -2208,7 +2212,7 @@ void ADQAIChannelGroup::commitActiveChan(struct timespec const& now)
             }
             else
             {
-                ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Only one channel can be set for Raw Streaming -> changed to "
+                ADQNDS_MSG_WARNLOG_PV(0, "Only one channel can be set for Raw Streaming -> changed to "
                     "channel B.");
                 m_chanMask = 0x2;
                 m_chanInt = 2;
@@ -2218,7 +2222,7 @@ void ADQAIChannelGroup::commitActiveChan(struct timespec const& now)
         case 4:   // ch A+B
         case 5:   // ch C+D
         case 6:   // ch A+B+C+D
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Device has only two channels -> changed to channels A+B.");
+            ADQNDS_MSG_WARNLOG_PV(0, "Device has only two channels -> changed to channels A+B.");
             m_chanMask = 0x3;
             m_chanInt = 3;
             break;
@@ -2339,7 +2343,7 @@ void ADQAIChannelGroup::commitRecordCount(struct timespec& now)
     {
         m_recordCnt = 0;
         status = 0;
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Infinite collection is enabled only in Triggered mode.");
+        ADQNDS_MSG_WARNLOG_PV(status, "Infinite collection is enabled only in Triggered mode.");
     }
 
     if (m_recordCnt >= 0)
@@ -2349,7 +2353,7 @@ void ADQAIChannelGroup::commitRecordCount(struct timespec& now)
         if (m_daqMode == 0)   // Multi-Record
         {
             status = m_adqInterface->GetMaxNofSamplesFromNofRecords(m_recordCnt, &sampleCntMax);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Couldn't get the MAX number of samples: set number of records.");
+            ADQNDS_MSG_WARNLOG_PV(status, "Couldn't get the MAX number of samples: set number of records.");
             if (status)
             {
                 m_sampleCntMax = sampleCntMax;
@@ -2358,7 +2362,7 @@ void ADQAIChannelGroup::commitRecordCount(struct timespec& now)
                 if (m_sampleCnt > m_sampleCntMax)
                 {
                     status = 0;
-                    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: Chosen number of samples was higher than the maximum number of samples.");
+                    ADQNDS_MSG_WARNLOG_PV(status, "Chosen number of samples was higher than the maximum number of samples.");
                     m_sampleCnt = m_sampleCntMax;
                 }
             }
@@ -2392,7 +2396,7 @@ void ADQAIChannelGroup::commitRecordCountCollect(struct timespec const& now)
     if (m_recordCntCollect > m_recordCnt)
     {
         m_recordCntCollect = m_recordCnt;
-        ndsWarningStream(m_node) << "WARNING: Number of records to collect cannot be higher than total number of records." << std::endl;
+        ndsWarningStream(m_node) << "Number of records to collect cannot be higher than total number of records." << std::endl;
     }
 
     m_recordCntCollectPV.push(now, m_recordCntCollect);
@@ -2408,7 +2412,7 @@ void ADQAIChannelGroup::commitStreamTime(struct timespec const& now)
     if (m_streamTime <= 0)
     {
         m_streamTime = 1.0;
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Streaming time can't be 0 seconds -> changed to 1.0 seconds.");
+        ADQNDS_MSG_WARNLOG_PV(0, "Streaming time can't be 0 seconds -> changed to 1.0 seconds.");
     }
 
     m_streamTimePV.push(now, m_streamTime);
@@ -2419,13 +2423,13 @@ void ADQAIChannelGroup::commitSWTrigEdge(struct timespec const& now)
     m_swTrigEdgeChanged = false;
 
     int status = m_adqInterface->SetTriggerEdge(m_trigMode + 1, m_swTrigEdge);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetTriggerEdge failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerEdge failed.");
 
     if (status)
     {
         unsigned int trigEdge = 0;
         status = m_adqInterface->GetTriggerEdge(m_trigMode + 1, &trigEdge);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: GetTriggerEdge failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "GetTriggerEdge failed.");
         if (status)
         {
             m_swTrigEdge = trigEdge;
@@ -2442,13 +2446,13 @@ void ADQAIChannelGroup::commitSampleSkip(struct timespec& now)
     if (m_sampleSkip < 1)
     {
         m_sampleSkip = 1;
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample skip can't be less than 1 -> changed to 1.");
+        ADQNDS_MSG_WARNLOG_PV(0, "Sample skip can't be less than 1 -> changed to 1.");
     }
 
     if (m_sampleSkip > 65536)
     {
         m_sampleSkip = 65536;
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample skip can't be more than 65536 -> changed to 65536.");
+        ADQNDS_MSG_WARNLOG_PV(0, "Sample skip can't be more than 65536 -> changed to 65536.");
     }
 
     if ((adqOption.find("-2X") != std::string::npos) || (adqOption.find("-1X") != std::string::npos))
@@ -2456,13 +2460,13 @@ void ADQAIChannelGroup::commitSampleSkip(struct timespec& now)
         if (m_sampleSkip == 3)
         {
             m_sampleSkip = 4;
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample skip can't be 3 -> changed to 4.");
+            ADQNDS_MSG_WARNLOG_PV(0, "Sample skip can't be 3 -> changed to 4.");
         }
 
         if (m_sampleSkip == 5 || m_sampleSkip == 6 || m_sampleSkip == 7)
         {
             m_sampleSkip = 8;
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample skip can't be 5, 6 or 7 -> changed to 8.");
+            ADQNDS_MSG_WARNLOG_PV(0, "Sample skip can't be 5, 6 or 7 -> changed to 8.");
         }
     }
 
@@ -2471,12 +2475,12 @@ void ADQAIChannelGroup::commitSampleSkip(struct timespec& now)
         if (m_sampleSkip == 3)
         {
             m_sampleSkip = 4;
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample skip can't be 3 -> changed to 4.");
+            ADQNDS_MSG_WARNLOG_PV(0, "Sample skip can't be 3 -> changed to 4.");
         }
     }
 
     int status = m_adqInterface->SetSampleSkip(m_sampleSkip);
-    ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleSkip failed.");
+    ADQNDS_MSG_WARNLOG_PV(status, "SetSampleSkip failed.");
 
     m_sampleSkip = m_adqInterface->GetSampleSkip();
     m_sampleSkipPV.push(now, m_sampleSkip);
@@ -2500,7 +2504,7 @@ void ADQAIChannelGroup::commitSampleDec(struct timespec& now)
         }
 
         int status = m_adqInterface->SetSampleDecimation(m_sampleDec);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleDecimation failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetSampleDecimation failed.");
 
         if (status)
         {
@@ -2515,7 +2519,7 @@ void ADQAIChannelGroup::commitSampleDec(struct timespec& now)
     }
     else
     {
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample decimation is not supported on this device.");
+        ADQNDS_MSG_WARNLOG_PV(0, "Sample decimation is not supported on this device.");
     }
 }
 
@@ -2527,21 +2531,21 @@ int ADQAIChannelGroup::armTrigger()
     {
         // Level trigger cannot be used for timestamp synchronization.
         status = m_adqInterface->ArmTimestampSync();
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ArmTimestampSync failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "ArmTimestampSync failed.");
     }
     if (m_masterMode == 2)
     {
         status = m_adqInterface->SetInternalTriggerSyncMode(m_masterMode);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetInternalTriggerSyncMode failed");
+        ADQNDS_MSG_ERRLOG_PV(status, "SetInternalTriggerSyncMode failed");
     }
     if ((m_masterMode != 2) && (m_trigMode == 3))
     {
         // To ensure good synchronisation of multiple modules.
         TraceOutWithTime(m_node, "SetInternalTriggerPeriod %u %u %u", m_internTrigPeriod, m_internTrigHighSamp, m_internTrigLowSamp);
         status = m_adqInterface->SetInternalTriggerPeriod(m_internTrigPeriod);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetInternalTriggerPeriod failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "SetInternalTriggerPeriod failed.");
         status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, m_internTrigLowSamp);
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetInternalTriggerHighLow failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "SetInternalTriggerHighLow failed.");
     }
 
     while (m_stateMachine.getLocalState() == nds::state_t::starting)
@@ -2552,7 +2556,7 @@ int ADQAIChannelGroup::armTrigger()
 #endif
     TraceOutWithTime(m_node, "ArmTrigger");
     status = m_adqInterface->ArmTrigger();
-    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: ArmTrigger failed.");
+    ADQNDS_MSG_ERRLOG_PV(status, "ArmTrigger failed.");
     return status;
 }
 
@@ -2595,27 +2599,27 @@ void ADQAIChannelGroup::daqMultiRecord()
     try
     {
         if (!allocateBuffers(daqDataBuffer, daqStreamHeaders, NULL))
-            ADQNDS_MSG_ERRLOG_PV(0, "ERROR: allocateBuffers failed.");
+            ADQNDS_MSG_ERRLOG_PV(0, "allocateBuffers failed.");
 
         TraceOutWithTime(m_node, "daqMultiRecord started");
 
         if (m_adqType == 8)
         {
             status = m_adqInterface->DaisyChainEnable(1);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainEnable failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainEnable failed.");
         }
 
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             TraceOutWithTime(m_node, "MultiRecordSetChannelMask %d", m_chanMask);
             status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: MultiRecordSetChannelMask failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "MultiRecordSetChannelMask failed.");
 
             status = m_adqInterface->MultiRecordSetup(m_recordCnt, m_sampleCnt);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: MultiRecordSetup failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "MultiRecordSetup failed.");
         }
         status = armTrigger();
-        ADQNDS_MSG_ERRLOG_PV(status, "ERROR: armTrigger failed.");
+        ADQNDS_MSG_ERRLOG_PV(status, "armTrigger failed.");
 
         for (Record = 0; Record < m_recordCnt; Record += m_recordCntCollect)
         {
@@ -2625,7 +2629,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                 for (int i = 0; i < m_recordCntCollect; ++i)
                 {
                     status = m_adqInterface->SWTrig();
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "SWTrig failed.");
                     SLEEP(1);
                 }
             }
@@ -2647,7 +2651,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                     if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
                         (m_stateMachine.getLocalState() != nds::state_t::starting))
                     {
-                        ndsWarningStream(m_node) << "WARNING: daqMultiRecord exited on frame " << Record << " after GetAcquiredRecords() with state " << int(m_stateMachine.getLocalState()) << " for " << m_node.getFullName() << std::endl;
+                        ndsWarningStream(m_node) << "daqMultiRecord exited on frame " << Record << " after GetAcquiredRecords() with state " << int(m_stateMachine.getLocalState()) << " for " << m_node.getFullName() << std::endl;
                         break;
                     }
 
@@ -2660,7 +2664,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                         if ((!StreamOverflowReported) && (m_adqInterface->GetStreamOverflow()))
                         {
                             StreamOverflowReported = true;
-                            ndsWarningStream(m_node) << "WARNING: GetStreamOverflow detected for " << m_node.getFullName() << std::endl;
+                            ndsWarningStream(m_node) << "GetStreamOverflow detected for " << m_node.getFullName() << std::endl;
                         }
 #endif
                     }
@@ -2675,7 +2679,7 @@ void ADQAIChannelGroup::daqMultiRecord()
             if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
                 (m_stateMachine.getLocalState() != nds::state_t::starting))
             {
-                ADQNDS_MSG_WARNLOG_PV(0, "WARNING: daqMultiRecord requested to exit");
+                ADQNDS_MSG_WARNLOG_PV(0, "daqMultiRecord requested to exit");
                 break;
             }
 
@@ -2685,7 +2689,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                 status = m_adqInterface->GetDataWHTS((void**)daqDataBuffer, daqStreamHeaders[0], NULL,
                     m_sampleCnt, sizeof(short), Record, m_recordCntCollect,
                     m_chanMask, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetDataWHTS failed.");
+                ADQNDS_MSG_ERRLOG_PV(status, "GetDataWHTS failed.");
             }
 
             struct timespec now = { 0, 0 };
@@ -2734,7 +2738,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                     status = m_adqInterface->DaisyChainGetTriggerInformation(
                         23, m_levelTrigEdge, m_levelTrigLvl, m_levelTrigChan, Record, m_recordCntCollect, m_sampleCnt,
                         &(m_device_info[0]), int(m_device_info.size()), &(trig_info[0]));
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: DaisyChainGetTriggerInformation failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainGetTriggerInformation failed.");
                 }
             }
             for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
@@ -2762,7 +2766,7 @@ void ADQAIChannelGroup::daqMultiRecord()
         MaxTimeStampDeviation = std::max(MaxTimeStampDeviation, fabs(NowTime - TimeStampRecord[CSVRecord].m_TrigTimeStamp));
     }
     if (MaxTimeStampDeviation > 10) {
-        ndsWarningStream(m_node) << "WARNING: maximum time stamp deviation was " << MaxTimeStampDeviation << " for " << m_node.getFullName() << std::endl;
+        ndsWarningStream(m_node) << "maximum time stamp deviation was " << MaxTimeStampDeviation << " for " << m_node.getFullName() << std::endl;
     }
     if (((Record > 0) && (Record < m_recordCnt)) || (MaxTimeStampDeviation > 10))
         RecordTimeStampsAsCSV(TimeStampRecord, Record);
@@ -2773,10 +2777,10 @@ void ADQAIChannelGroup::daqMultiRecord()
         if (m_adqType == 8)
         {
             status = m_adqInterface->DaisyChainEnable(0);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: DaisyChainEnable failed.");
+            ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainEnable failed.");
         }
         status = m_adqInterface->MultiRecordClose();
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: MultiRecordClose failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "MultiRecordClose failed.");
     }
 
     ndsInfoStream(m_node) << "INFO: Acquisition finished." << std::endl;
@@ -2789,7 +2793,7 @@ void ADQAIChannelGroup::daqMultiRecord()
     }
     catch (nds::StateMachineNoSuchTransition& /*error*/)
     {
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: State transition error.");
+        ADQNDS_MSG_WARNLOG_PV(status, "State transition error.");
     }
 
     commitChanges(true);
@@ -2839,16 +2843,16 @@ void ADQAIChannelGroup::daqContinStream()
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->StopStreaming();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StopStreaming failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "StopStreaming failed.");
 
             status = m_adqInterface->ContinuousStreamingSetup(m_chanMask);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: ContinuousStreamingSetup failed.");
+            ADQNDS_MSG_WARNLOG_PV(status, "ContinuousStreamingSetup failed.");
 
             // Start streaming
             samplesAddedTotal = 0;
 
             status = m_adqInterface->StartStreaming();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "StartStreaming failed.");
 
             timerStart();
 
@@ -2858,7 +2862,7 @@ void ADQAIChannelGroup::daqContinStream()
                 for (int i = 0; i < m_recordCnt; ++i)
                 {
                     status = m_adqInterface->SWTrig();
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SWTrig failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "SWTrig failed.");
                 }
             }
 
@@ -2870,7 +2874,7 @@ void ADQAIChannelGroup::daqContinStream()
                 while (buffersFilled == 0 && status)
                 {
                     status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetTransferBufferStatus failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "GetTransferBufferStatus failed.");
 
                     if (buffersFilled == 0)
                     {
@@ -2882,7 +2886,7 @@ void ADQAIChannelGroup::daqContinStream()
                             // If the DMA transfer is taking too long, we should flush the DMA buffer before it times out. The timeout defaults to 60 seconds.
                             ndsInfoStream(m_node) << "INFO: Timeout, flushing DMA..." << std::endl;
                             status = m_adqInterface->FlushDMA();
-                            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: FlushDMA failed.");
+                            ADQNDS_MSG_ERRLOG_PV(status, "FlushDMA failed.");
                         }
                     }
 
@@ -2902,7 +2906,7 @@ void ADQAIChannelGroup::daqContinStream()
                         samplesAdded,
                         headersAdded,
                         headerStatus);
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetDataStreaming failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "GetDataStreaming failed.");
 
                     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
                     {
@@ -2931,7 +2935,7 @@ void ADQAIChannelGroup::daqContinStream()
                 if (status)
                 {
                     streamCompleted = 1;
-                    ADQNDS_MSG_WARNLOG_PV(0, "WARNING: GetStreamOverflow detected.");
+                    ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected.");
                 }
             }
         }
@@ -2942,7 +2946,7 @@ void ADQAIChannelGroup::daqContinStream()
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
         status = m_adqInterface->StopStreaming();
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "StopStreaming failed.");
     }
 
     ndsInfoStream(m_node) << "INFO: Acquisition finished." << std::endl;
@@ -2963,7 +2967,7 @@ void ADQAIChannelGroup::daqContinStream()
     }
     catch (nds::StateMachineNoSuchTransition& /*error*/)
     {
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: State transition error.");
+        ADQNDS_MSG_WARNLOG_PV(status, "State transition error.");
     }
 
     commitChanges(true);
@@ -2997,14 +3001,14 @@ void ADQAIChannelGroup::daqRawStream()
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->SetTransferBuffers(CHANNEL_COUNT_MAX, bufferSize);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetTransferBuffers failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "SetTransferBuffers failed.");
 
             status = m_adqInterface->SetStreamStatus(1);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamStatus to 1 (Stream enabled) failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "SetStreamStatus to 1 (Stream enabled) failed.");
             status = m_adqInterface->SetStreamConfig(2, 1);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 2-1 (Raw without headers) failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "SetStreamConfig to 2-1 (Raw without headers) failed.");
             status = m_adqInterface->SetStreamConfig(3, m_chanInt);
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: SetStreamConfig to 3-x (channel mask) failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "SetStreamConfig to 3-x (channel mask) failed.");
         }
 
         ndsInfoStream(m_node) << "INFO: Receving data..." << std::endl;
@@ -3015,10 +3019,10 @@ void ADQAIChannelGroup::daqRawStream()
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
             status = m_adqInterface->StopStreaming();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StopStreaming failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "StopStreaming failed.");
 
             status = m_adqInterface->StartStreaming();
-            ADQNDS_MSG_ERRLOG_PV(status, "ERROR: StartStreaming failed.");
+            ADQNDS_MSG_ERRLOG_PV(status, "StartStreaming failed.");
         }
 
         m_sampleCntCollect = bufferSize;
@@ -3031,12 +3035,12 @@ void ADQAIChannelGroup::daqRawStream()
                 do
                 {
                     status = m_adqInterface->GetTransferBufferStatus(&buffersFilled);
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: GetTransferBufferStatus failed.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "GetTransferBufferStatus failed.");
 
                 } while ((buffersFilled == 0) && (status));
 
                 status = m_adqInterface->CollectDataNextPage();
-                ADQNDS_MSG_ERRLOG_PV(status, "ERROR: CollectDataNextPage failed.");
+                ADQNDS_MSG_ERRLOG_PV(status, "CollectDataNextPage failed.");
 
                 bufferSampCnt = MIN(m_adqInterface->GetSamplesPerPage(), m_sampleCntCollect);
                 ndsInfoStream(m_node) << "GetSamplesPerPage " << m_adqInterface->GetSamplesPerPage() << std::endl;
@@ -3045,7 +3049,7 @@ void ADQAIChannelGroup::daqRawStream()
                 if (status)
                 {
                     status = 0;
-                    ADQNDS_MSG_ERRLOG_PV(status, "ERROR: Streaming overflow detected.");
+                    ADQNDS_MSG_ERRLOG_PV(status, "Streaming overflow detected.");
                 }
             }
 
@@ -3073,14 +3077,14 @@ void ADQAIChannelGroup::daqRawStream()
 
         // Reset settings from Raw Streaming to normal streaming
         status = m_adqInterface->SetStreamStatus(0);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamStatus to 0 (Stream disabled) failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetStreamStatus to 0 (Stream disabled) failed.");
         status = m_adqInterface->SetStreamConfig(2, 0);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamConfig to 2-1 (With headers) failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetStreamConfig to 2-1 (With headers) failed.");
         status = m_adqInterface->SetStreamConfig(3, 0);
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetStreamConfig to 3-x (channel mask) failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "SetStreamConfig to 3-x (channel mask) failed.");
 
         status = m_adqInterface->StopStreaming();
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: StopStreaming failed.");
+        ADQNDS_MSG_WARNLOG_PV(status, "StopStreaming failed.");
     }
 
     ndsInfoStream(m_node) << "INFO: Acquisition finished." << std::endl;
@@ -3096,7 +3100,7 @@ void ADQAIChannelGroup::daqRawStream()
     }
     catch (nds::StateMachineNoSuchTransition& /*error*/)
     {
-        ADQNDS_MSG_WARNLOG_PV(status, "WARNING: State transition error.");
+        ADQNDS_MSG_WARNLOG_PV(status, "State transition error.");
     }
 
     commitChanges(true);
@@ -3123,8 +3127,8 @@ void ADQAIChannelGroup::ThrowException(std::string const& text)
 {
     struct timespec now = { 0, 0 };
     clock_gettime(CLOCK_REALTIME, &now);
-    m_logMsgPV.push(now, std::string(text));
-    ndsErrorStream(m_node) << utc_system_timestamp(now, ' ') << " " << text << std::endl;
+    setLogMsg(now, text);
+    ndsErrorStream(m_node) << "ERROR: " << utc_system_timestamp(now, ' ') << " " << m_node.getFullExternalName() << " " << text << std::endl;
     throw nds::NdsError(text);
 }
 
@@ -3133,12 +3137,12 @@ void ADQAIChannelGroup::TraceOutWithTime(nds::Port& node, const char *pszFormat,
 {
     std::lock_guard<std::mutex> staticlock(m_StaticMutex);
     static const int TRACE_BUFF_SIZE = 512;
-    static char	szTraceBuffer1[TRACE_BUFF_SIZE];
+    static char szTraceBuffer1[TRACE_BUFF_SIZE];
     static struct timespec StartTime = { 0, 0 };
     if ((StartTime.tv_sec == 0) && (StartTime.tv_nsec == 0))
         clock_gettime(CLOCK_REALTIME, &StartTime);
 
-    va_list	args;
+    va_list args;
 
     va_start(args, pszFormat);
     vsnprintf(szTraceBuffer1, TRACE_BUFF_SIZE - 1, pszFormat, args);

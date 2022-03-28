@@ -202,7 +202,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface* adqInte
                     m_inputRangePV.push(now, (double)inputRangeRb);
                 else
                 {
-                    textTmp << "WARNING: SetInputRange failed, CH" << m_channelNum;
+                    textTmp << "SetInputRange failed, CH" << m_channelNum;
                     std::string textForPV(textTmp.str());
                     ADQNDS_MSG_WARNLOG_PV(status, textForPV, logMsgPV);
                 }
@@ -230,7 +230,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface* adqInte
             status = adqInterface->SetInputImpedance(m_channelNum + 1, m_inputImpedance);
             if (!status)
             {
-                textTmp << "WARNING: SetInputImpedance failed on CH" << m_channelNum;
+                textTmp << "SetInputImpedance failed on CH" << m_channelNum;
                 std::string textForPV(textTmp.str());
                 ADQNDS_MSG_WARNLOG_PV(status, textForPV, logMsgPV);
             }
@@ -255,7 +255,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface* adqInte
 
             if (!status)
             {
-                textTmp << "WARNING: SetAdjustableBias failed on CH" << m_channelNum;
+                textTmp << "SetAdjustableBias failed on CH" << m_channelNum;
                 std::string textForPV(textTmp.str());
                 ADQNDS_MSG_WARNLOG_PV(status, textForPV, logMsgPV);
             }
@@ -287,7 +287,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface* adqInte
             }
 
             status = adqInterface->SetChannelDecimation(m_channelNum, m_chanDec);
-            ADQNDS_MSG_WARNLOG_PV(status, "WARNING: SetSampleDecimation failed.", logMsgPV);
+            ADQNDS_MSG_WARNLOG_PV(status, "SetSampleDecimation failed.", logMsgPV);
 
             if (status)
             {
@@ -299,7 +299,7 @@ void ADQAIChannel::commitChanges(bool calledFromDaqThread, ADQInterface* adqInte
         }
         else
         {
-            ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Sample channel decimation is not supported on this device.", logMsgPV);
+            ADQNDS_MSG_WARNLOG_PV(0, "Sample channel decimation is not supported on this device.", logMsgPV);
         }
     }
 }
@@ -341,4 +341,16 @@ void ADQAIChannel::getDataPV(timespec* pTimestamp, std::vector<int16_t>* pValue)
 {
     UNUSED(pTimestamp);
     UNUSED(pValue);
+}
+
+std::string ADQAIChannel::utc_system_timestamp(struct timespec const& now, char sep) const
+{
+    // https://stackoverflow.com/questions/15106102/how-to-use-c-stdostream-with-printf-like-formatting
+    const int bufsize = 31;
+    const int tmpsize = 21;
+    char buf[bufsize];
+    struct tm* tm = gmtime(&now.tv_sec);
+    strftime(buf, tmpsize, "%Y-%m-%d %H:%M:%S.", tm);
+    sprintf(buf + tmpsize - 1, "%09lu%c", now.tv_nsec, sep);
+    return buf;
 }

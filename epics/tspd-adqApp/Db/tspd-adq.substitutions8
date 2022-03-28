@@ -1,4 +1,4 @@
-file db/ADQDevice.template 
+file db/ADQInfo.template 
 {
     pattern { INFO,  INFO_NELM }
             { INFO,  32        }
@@ -21,10 +21,4 @@ file db/ADQAIChannel.template
             { COM,  CH5 }
             { COM,  CH6 }
             { COM,  CH7 }
-}
-
-file ADQMessageLog.template 
-{
-    pattern { GRP, GRP_NODE }
-            { COM, ChGrp    }
 }

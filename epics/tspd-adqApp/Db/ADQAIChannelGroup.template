@@ -333,7 +333,7 @@ record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:PATTERNMODE") {
     field(THVL, 3)
     field(THST, "Alter ups & downs")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP}, 0) PatternMode")
+    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) PatternMode")
     field(PINI, "YES")
 }
 
@@ -349,7 +349,7 @@ record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:PATTERNMODE-RB") {
     field(THVL, 3)
     field(THST, "Alter ups & downs")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}-${GRP}, 0) PatternMode-RB")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) PatternMode-RB")
     field(PINI, "YES")
 }
 
@@ -435,7 +435,7 @@ record(longout, "${PREFIX}-${ADQSN}:${GRP}:SAMPDEC") {
     field(DESC, "Sample decimation")
     field(SCAN, "Passive")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) SampDEC")
+    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) SampDec")
     field(PINI, "YES")
 }
 
@@ -745,14 +745,6 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:INTERNTRIGHIGHSAMP-RB") {
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) InternTrigHighSamp-RB")
-    field(PINI, "YES")
-}
-
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:INTERNTRIGLOWSAMP") {
-    field(DESC, "Internal Trigger low samp length")
-    field(SCAN, "Passive")
-    field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}-${GRP_NODE}, 0) InternTrigLowSamp")
     field(PINI, "YES")
 }
 

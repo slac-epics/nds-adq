@@ -19,8 +19,8 @@ adq-test_DBD += base.dbd
 adq-test_DBD += adq-testInclude.dbd
 
 # Add all the support libraries needed by this IOC
-PROD_LIBS += nds3epics asyn
-PROD_LIBS_WIN32 += nds3 dl
+PROD_LIBS += nds3-epics asyn
+PROD_LIBS_WIN32 += nds3
 PROD_SYS_LIBS_Linux += nds3
 adq-test_LDFLAGS_Linux += -Wl,--no-as-needed -ladq -lnds3 
 

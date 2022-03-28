@@ -26,8 +26,8 @@ class ADQDevice::CADQControl
 {
     // ADQ Control Unit
     void* m_adqCtrlUnit;
-    std::map<std::string, int> m_ADQDeviceMap;	// Mapping to ADQ device index
-    std::vector<ADQInterface*> m_adqInterfaces;	// The list of ADQ objects
+    std::map<std::string, int> m_ADQDeviceMap;  // Mapping to ADQ device index
+    std::vector<ADQInterface*> m_adqInterfaces; // The list of ADQ objects
     std::map<int, std::vector<int>> m_device_position;
 public:
     void detect_daisy_chain_order();
@@ -136,15 +136,15 @@ ADQDevice::CADQControl::CADQControl()
     int status = ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
 #endif
 
-	// Check revisions
-	const int adqApiRev = ADQAPI_GetRevision();
-	if (!IS_VALID_DLL_REVISION(adqApiRev))
-	{
-		std::cout << "WARNING: The included header file and the linked library are of different revisions. This "
-			"may cause corrupt behavior."
-			<< std::endl;
-	}
-	// Find all connected devices
+    // Check revisions
+    const int adqApiRev = ADQAPI_GetRevision();
+    if (!IS_VALID_DLL_REVISION(adqApiRev))
+    {
+        std::cout << "WARNING: The included header file and the linked library are of different revisions. This "
+            "may cause corrupt behavior."
+            << std::endl;
+    }
+    // Find all connected devices
     status = ADQControlUnit_ListDevices(m_adqCtrlUnit, &adqInfoStruct, &adqDevList);
     if (!status)
     {
