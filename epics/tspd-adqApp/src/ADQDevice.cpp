@@ -129,12 +129,7 @@ ADQDevice::CADQControl::CADQControl()
     {
         throw nds::NdsError("Failed to create ADQ Control Unit (CreateADQControlUnit).");
     }
-#ifdef _DEBUG
-    // Enable error logging for devices (saves files to the TOP directory)
-    int status = ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_RTONLY, ".");
-#else
     int status = ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
-#endif
 
     // Check revisions
     const int adqApiRev = ADQAPI_GetRevision();

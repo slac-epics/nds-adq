@@ -79,9 +79,9 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_clockRefOutPV(createPvRb<int32_t>("ClockRefOut-RB", &ADQAIChannelGroup::getClockRefOut)),
     m_trigModePV(createPvRb<int32_t>("TrigMode-RB", &ADQAIChannelGroup::getTrigMode)),
     m_masterModePV(createPvRb<int32_t>("MasterMode-RB", &ADQAIChannelGroup::getMasterMode)),
-    m_trigTimeStampPV(createPvRb<double>("TrigTimeStamp", &ADQAIChannelGroup::getTrigTimeStamp)),
+    m_trigTimeStampPV(createPvRb<std::vector<double>>("TrigTimeStamp", &ADQAIChannelGroup::getTrigTimeStamp)),
     m_daisyRecordStartPV(createPvRb<std::vector<int32_t>>("DaisyRecordStart", &ADQAIChannelGroup::getDaisyRecordStart)),
-    m_daisyTimeStampPV(createPvRb<double>("DaisyTimeStamp", &ADQAIChannelGroup::getDaisyTimeStamp)),
+    m_daisyTimeStampPV(createPvRb<std::vector<double>>("DaisyTimeStamp", &ADQAIChannelGroup::getDaisyTimeStamp)),
     m_swTrigEdgePV(createPvRb<int32_t>("SWTrigEdge-RB", &ADQAIChannelGroup::getSWTrigEdge)),
     m_levelTrigLvlPV(createPvRb<int32_t>("LevelTrigLvl-RB", &ADQAIChannelGroup::getLevelTrigLvl)),
     m_levelTrigEdgePV(createPvRb<int32_t>("LevelTrigEdge-RB", &ADQAIChannelGroup::getLevelTrigEdge)),
@@ -131,7 +131,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
         m_clockSrc = m_clockRefOut = m_chanActive = m_chanInt = m_chanMask = m_trigMode = m_masterMode = m_swTrigEdge = m_levelTrigLvl =
         m_levelTrigEdge = m_levelTrigChanMask = m_externTrigDelay = m_externTrigThreshold = m_externTrigEdge = m_externTrigInputImpedance =
         m_internTrigHighSamp = m_internTrigLowSamp = m_internTrigFreq = m_internTrigPeriod = m_internTrigEdge =
-        m_timeout = m_streamTime = m_trigTimeStamp = m_PRETime = m_sync_immediate = 0;
+        m_timeout = m_streamTime = m_PRETime = m_sync_immediate = 0;
 
     m_chanMask = 0xFF;
     m_recordCnt = 1;
@@ -697,7 +697,7 @@ void ADQAIChannelGroup::getMasterMode(timespec* pTimestamp, int32_t* pValue)
     *pTimestamp = m_masterModePV.getTimestamp();
 }
 
-void ADQAIChannelGroup::getTrigTimeStamp(timespec* pTimestamp, double* pValue)
+void ADQAIChannelGroup::getTrigTimeStamp(timespec* pTimestamp, std::vector<double>* pValue)
 {
     *pValue = m_trigTimeStamp;
     *pTimestamp = m_trigTimeStampPV.getTimestamp();
@@ -709,7 +709,7 @@ void ADQAIChannelGroup::getDaisyRecordStart(timespec* pTimestamp, std::vector<in
     *pTimestamp = m_daisyRecordStartPV.getTimestamp();
 }
 
-void ADQAIChannelGroup::getDaisyTimeStamp(timespec* pTimestamp, double* pValue)
+void ADQAIChannelGroup::getDaisyTimeStamp(timespec* pTimestamp, std::vector<double>* pValue)
 {
     *pValue = m_daisyTimeStamp;
     *pTimestamp = m_daisyTimeStampPV.getTimestamp();
@@ -1056,9 +1056,6 @@ void ADQAIChannelGroup::onSwitchOff()
 void ADQAIChannelGroup::onStart()
 {
     TraceOutWithTime(m_node, "onStart called");
-    struct timespec now;
-    clock_gettime(CLOCK_REALTIME, &now);
-    setLogMsg(now, std::string("")); // Clear any previous log messages.
     for (auto const& channel : m_AIChannelsPtr)
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
@@ -1160,7 +1157,7 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
             ADQNDS_MSG_ERRLOG_PV(bufferSize, "Failed to allocate memory for target buffers.");
         }
 
-        daqStreamHeaders[chan] = (streamingHeader_t*)malloc(sizeof(streamingHeader_t)* m_recordCnt);
+        daqStreamHeaders[chan] = (streamingHeader_t*)malloc(sizeof(streamingHeader_t) * m_recordCntCollect);
         if (!daqStreamHeaders[chan])
         {
             bufferSize = 0;
@@ -1276,6 +1273,7 @@ void ADQAIChannelGroup::daqTrigStream()
                 buffersFilled = 0;
 
                 status = m_adqInterface->GetStreamOverflow();
+                m_trigTimeStamp.resize(1);
 
                 if (status)
                 {
@@ -1382,13 +1380,13 @@ void ADQAIChannelGroup::daqTrigStream()
                 if ((!trigTimeSent) && (headersDoneCnt))
                 {
                     // Only the first channel contains a valid timestamp.
-                    m_trigTimeStamp = daqStreamHeaders[chan]->timeStamp * PicoSec;
+                    m_trigTimeStamp[0] = daqStreamHeaders[chan]->timeStamp * PicoSec;
                     if (recordCnt == 0)
                         // Timestamp issue: the first time stamp recorded is not reset.
                         if ((m_trigMode == 1) || (m_trigMode == 2))
-                            m_trigTimeStamp = 0;
+                            m_trigTimeStamp[0] = 0;
                     trigTimeSent = true;
-                    TraceOutWithTime(m_node, "Sent timestamp %f", m_trigTimeStamp);
+                    TraceOutWithTime(m_node, "Sent timestamp %f", m_trigTimeStamp[0]);
                 }
             }
 
@@ -1854,8 +1852,6 @@ void ADQAIChannelGroup::commitDaqMode(struct timespec& now)
 
 void ADQAIChannelGroup::commitClockSource(struct timespec const& now)
 {
-    m_clockSrcChanged = false;
-
     if (m_clockSrc < 0)
     {
         m_clockSrc = 0;
@@ -1877,6 +1873,7 @@ void ADQAIChannelGroup::commitClockSource(struct timespec const& now)
     if (status)
         m_clockSrcPV.push(now, m_clockSrc);
     if (status) {
+        m_clockSrcChanged = false;
         ndsInfoStream(m_node) << "Clock source set." << std::endl;
     }
 }
@@ -2057,12 +2054,16 @@ void ADQAIChannelGroup::DaisyChainGetStatus(long Line)
 {
     unsigned int DaisyChainStatus = 0xFF;
     int status = m_adqInterface->DaisyChainGetStatus(&DaisyChainStatus);
-    DaisyChainStatus &= 0XE; // We don't need the state of the daisy chain input.
     ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainGetStatus failed.");
     if (DaisyChainStatus != m_DaisyChainStatus)
     {
-        ADQNDS_MSG_WARNLOG_PV(0, "DaisyChainGetStatus fault");
-        ndsWarningStream(m_node) << "DaisyChainGetStatus fault " << DaisyChainStatus << " on " << m_node.getFullExternalName() << " at " << Line << std::endl;
+        if (DaisyChainStatus & 0XE) // NB, the LSB isn't necessarily a fault condition.
+        {
+            ADQNDS_MSG_WARNLOG_PV(0, "DaisyChainGetStatus fault");
+            ndsWarningStream(m_node) << "DaisyChainGetStatus fault " << DaisyChainStatus << " on " << m_node.getFullExternalName() << " at " << Line << std::endl;
+        }
+        else
+            ndsInfoStream(m_node) << "DaisyChainGetStatus fault cleared " << m_DaisyChainStatus << std::endl;
         m_DaisyChainStatus = DaisyChainStatus;
     }
 }
@@ -2595,6 +2596,7 @@ void ADQAIChannelGroup::daqMultiRecord()
     double PicoSec = (m_adqType == 8) ? PicoSec25 : PicoSec125;
     std::vector<TimeStamp_t> TimeStampRecord(m_recordCnt);
     int32_t Record = 0;
+    int32_t RecordCntRB = 0;
 
     try
     {
@@ -2633,41 +2635,37 @@ void ADQAIChannelGroup::daqMultiRecord()
                     SLEEP(1);
                 }
             }
+            while (true)
             {
-#ifdef _DEBUG
-                bool StreamOverflowReported = false;
-#endif
-                while (true)
+                // Polling for enough records to be available.
                 {
-                    {
-                        std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                        std::lock_guard<std::mutex> staticlock(m_StaticMutex);
-                        acqRecTotal = m_adqInterface->GetAcquiredRecords();
-                    }
-                    if (acqRecTotal >= Record + m_recordCntCollect)
-                    {
-                        break;
-                    }
-                    if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
-                        (m_stateMachine.getLocalState() != nds::state_t::starting))
-                    {
-                        ndsWarningStream(m_node) << "daqMultiRecord exited on frame " << Record << " after GetAcquiredRecords() with state " << int(m_stateMachine.getLocalState()) << " for " << m_node.getFullName() << std::endl;
-                        break;
-                    }
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    std::lock_guard<std::mutex> staticlock(m_StaticMutex);
+                    acqRecTotal = m_adqInterface->GetAcquiredRecords();
+                }
+                if (RecordCntRB < acqRecTotal)
+                {
+                    struct timespec now = { 0, 0 };
+                    clock_gettime(CLOCK_REALTIME, &now);
+                    RecordCntRB = acqRecTotal;
+                    m_recordCntPV.push(now, RecordCntRB);
+                }
+                if (acqRecTotal >= Record + m_recordCntCollect)
+                    break;
+                if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
+                    (m_stateMachine.getLocalState() != nds::state_t::starting))
+                {
+                    ndsWarningStream(m_node) << "daqMultiRecord exited on frame " << Record << " after GetAcquiredRecords() with state " << int(m_stateMachine.getLocalState()) << " for " << m_node.getFullName() << std::endl;
+                    break;
+                }
 
-                    SLEEP(1);
-                    {
-#ifdef _DEBUG
-                        std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                        if (m_adqType == 8)
-                            DaisyChainGetStatus(__LINE__);
-                        if ((!StreamOverflowReported) && (m_adqInterface->GetStreamOverflow()))
-                        {
-                            StreamOverflowReported = true;
-                            ndsWarningStream(m_node) << "GetStreamOverflow detected for " << m_node.getFullName() << std::endl;
-                        }
-#endif
-                    }
+                SLEEP(1);
+                {
+                    std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                    if (m_adqType == 8)
+                        DaisyChainGetStatus(__LINE__);
+                    if (m_adqInterface->GetStreamOverflow())
+                        ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected");
                 };
             }
 
@@ -2679,7 +2677,7 @@ void ADQAIChannelGroup::daqMultiRecord()
             if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
                 (m_stateMachine.getLocalState() != nds::state_t::starting))
             {
-                ADQNDS_MSG_WARNLOG_PV(0, "daqMultiRecord requested to exit");
+                ndsWarningStream(m_node) << "daqMultiRecord requested to exit " << m_node.getFullName() << std::endl;
                 break;
             }
 
@@ -2694,6 +2692,7 @@ void ADQAIChannelGroup::daqMultiRecord()
 
             struct timespec now = { 0, 0 };
             clock_gettime(CLOCK_REALTIME, &now);
+            m_trigTimeStamp.resize(m_recordCntCollect);
             for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
             {
                 // time in ms.
@@ -2709,18 +2708,18 @@ void ADQAIChannelGroup::daqMultiRecord()
                         trigTimeStamp = 0;
                     }
                 }
-                m_trigTimeStamp = trigTimeStamp - m_PRETime;
-                m_trigTimeStampPV.push(now, m_trigTimeStamp);
+                m_trigTimeStamp[Collected] = trigTimeStamp - m_PRETime;
                 TimeStampRecord[Record + Collected].m_ClockTimeStamp = now;
-                TimeStampRecord[Record + Collected].m_TrigTimeStamp = m_trigTimeStamp;
-                for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
-                {
-                    if ((m_chanMask & (1 << chan)) != 0)
-                        // Read buffers by each channel and send them to DATA PVs
-                        m_AIChannelsPtr[chan]->readData(daqDataBuffer[chan], m_sampleCnt*m_recordCntCollect, now);
-                }
-                TraceOutWithTime(m_node, "%s record %d timestamp %f", (m_masterMode == 1) ? "Master" : "Slave ", Record + Collected, m_trigTimeStamp);
+                TimeStampRecord[Record + Collected].m_TrigTimeStamp = m_trigTimeStamp[Collected];
+                TraceOutWithTime(m_node, "%s record %d timestamp %f", (m_masterMode == 1) ? "Master" : "Slave ", Record + Collected, m_trigTimeStamp[Collected]);
             }
+            for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
+            {
+                if ((m_chanMask & (1 << chan)) != 0)
+                    // Read buffers by each channel and send them to DATA PVs
+                    m_AIChannelsPtr[chan]->readData(daqDataBuffer[chan], m_sampleCnt*m_recordCntCollect, now);
+            }
+            m_trigTimeStampPV.push(now, m_trigTimeStamp);
             std::vector<std::vector<int64_t>> RecordStart(m_recordCntCollect);
             std::vector<ADQDaisyChainTriggerInformation> trig_info(m_recordCntCollect);
             std::vector <std::vector<double>> ExtendedPrecision(m_recordCntCollect);
@@ -2741,34 +2740,38 @@ void ADQAIChannelGroup::daqMultiRecord()
                     ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainGetTriggerInformation failed.");
                 }
             }
-            for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
-                if ((m_adqType == 8) && (m_masterMode == 1) && (m_device_info.size() > 0))
+            if ((m_adqType == 8) && (m_masterMode == 1) && (m_device_info.size() > 0))
+            {
+                m_daisyRecordStart.resize(m_device_info.size() * m_recordCntCollect);
+                m_daisyTimeStamp.resize(m_recordCntCollect);
+                for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
                 {
-                    m_daisyTimeStamp = (trig_info[Collected].Timestamp * PicoSec) - m_PRETime;
-                    m_daisyTimeStampPV.push(now, m_daisyTimeStamp);
-                    m_daisyRecordStart.resize(m_device_info.size());
-                    for (size_t Module = 0; Module < m_daisyRecordStart.size(); Module++)
-                        m_daisyRecordStart[Module] = RecordStart[Collected][Module];
-                    m_daisyRecordStartPV.push(now, m_daisyRecordStart);
+                    m_daisyTimeStamp[Collected] = (trig_info[Collected].Timestamp * PicoSec) - m_PRETime;
+                    for (size_t Module = 0; Module < m_device_info.size(); Module++)
+                        m_daisyRecordStart[Collected * m_device_info.size() + Module] = RecordStart[Collected][Module];
                 }
-            m_recordCntPV.push(now, Record + 1);
+                m_daisyTimeStampPV.push(now, m_daisyTimeStamp);
+                m_daisyRecordStartPV.push(now, m_daisyRecordStart);
+            }
         }
     }
     catch (nds::NdsError const&) {
     }
 
-    double MaxTimeStampDeviation = 0;
+    double MaxTimestampDeviation = 0;
     double PRETime = TimeStampRecord[0].m_ClockTimeStamp.tv_sec * 1000 + TimeStampRecord[0].m_ClockTimeStamp.tv_nsec / 1000000.0;
     for (int32_t CSVRecord = 0; CSVRecord < Record; CSVRecord++)
     {
         double NowTime = TimeStampRecord[CSVRecord].m_ClockTimeStamp.tv_sec * 1000 + TimeStampRecord[CSVRecord].m_ClockTimeStamp.tv_nsec / 1000000.0;
         NowTime = NowTime - PRETime;
-        MaxTimeStampDeviation = std::max(MaxTimeStampDeviation, fabs(NowTime - TimeStampRecord[CSVRecord].m_TrigTimeStamp));
+        if (m_recordCntCollect == 1)
+            MaxTimestampDeviation = std::max(MaxTimestampDeviation, fabs(NowTime - TimeStampRecord[CSVRecord].m_TrigTimeStamp));
     }
-    if (MaxTimeStampDeviation > 10) {
-        ndsWarningStream(m_node) << "maximum time stamp deviation was " << MaxTimeStampDeviation << " for " << m_node.getFullName() << std::endl;
+    if (MaxTimestampDeviation > 20) {
+        ndsWarningStream(m_node) << "maximum time stamp deviation was " << MaxTimestampDeviation << " for " << m_node.getFullName() << std::endl;
     }
-    if (((Record > 0) && (Record < m_recordCnt)) || (MaxTimeStampDeviation > 10))
+
+    if (((Record > 0) && (Record < m_recordCnt)) || (MaxTimestampDeviation > 10))
         RecordTimeStampsAsCSV(TimeStampRecord, Record);
 
     setTriggerIdleState();

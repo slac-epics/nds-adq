@@ -175,13 +175,13 @@ public:
     /** @fn getTrigTimeStamp
      * @brief Gets the trigger time stamp for the most recent record.
      */
-    void getTrigTimeStamp(timespec* pTimestamp, double* pValue);
+    void getTrigTimeStamp(timespec* pTimestamp, std::vector<double>* pValue);
 
     /** @fn getDaisyRecordStart
      * @brief Gets the daisy time stamp(s) for the most recent record.
      */
     void getDaisyRecordStart(timespec* pTimestamp, std::vector<int32_t>* pValue);
-    void getDaisyTimeStamp(timespec* pTimestamp, double* pValue);
+    void getDaisyTimeStamp(timespec* pTimestamp, std::vector<double>* pValue);
 
     /** @fn setDbsBypass
      * @brief Sets if the DBS settings is bypassed (1) or not (0).
@@ -615,6 +615,9 @@ private:
     bool m_trigHoldOffSampChanged;
     int32_t m_trigHoldOffSamp;
 
+    // We want to ensure that the clock source is set for every acquisition - even though it has not been changed.
+    // This is because the clock distribution could suffer an electronic glitch.
+    // In which case, we will get a warning that there's a problem.
     bool m_clockSrcChanged;
     int32_t m_clockSrc;
     bool m_clockRefOutChanged;
@@ -654,9 +657,9 @@ private:
     int64_t m_SampleRate;
     int32_t m_internTrigFreq;
     bool m_internTrigFreqChanged;
-    double m_trigTimeStamp;
+    std::vector<double> m_trigTimeStamp;
     std::vector<int32_t> m_daisyRecordStart;
-    double m_daisyTimeStamp;
+    std::vector<double> m_daisyTimeStamp;
     double m_PRETime;
     int32_t m_internTrigPeriod;
     int32_t m_internTrigEdge;
@@ -739,9 +742,9 @@ private:
     nds::PVDelegateIn<int32_t> m_clockRefOutPV;
     nds::PVDelegateIn<int32_t> m_trigModePV;
     nds::PVDelegateIn<int32_t> m_masterModePV;
-    nds::PVDelegateIn<double>  m_trigTimeStampPV;
+    nds::PVDelegateIn<std::vector<double>>  m_trigTimeStampPV;
     nds::PVDelegateIn<std::vector<int32_t>> m_daisyRecordStartPV;
-    nds::PVDelegateIn<double>  m_daisyTimeStampPV;
+    nds::PVDelegateIn<std::vector<double>>  m_daisyTimeStampPV;
     nds::PVDelegateIn<int32_t> m_swTrigEdgePV;
     nds::PVDelegateIn<int32_t> m_levelTrigLvlPV;
     nds::PVDelegateIn<int32_t> m_levelTrigEdgePV;
@@ -771,8 +774,9 @@ private:
         {
             struct timespec now = { 0, 0 };
             clock_gettime(CLOCK_REALTIME, &now);
-            m_logMsgPV.push(now, std::string(text));
-            ndsWarningStream(m_node) << "WARNING: " << utc_system_timestamp(now, ' ') << " " << m_node.getFullExternalName() << " " << text << std::endl;
+            std::string Warning = "WARNING: " + utc_system_timestamp(now, ' ') + " " + m_node.getFullExternalName() + " " + text;
+            m_logMsgPV.push(now, std::string(Warning));
+            ndsWarningStream(m_node) << Warning << std::endl;
         }
     }
     /** @def ADQNDS_MSG_ERRLOG_PV

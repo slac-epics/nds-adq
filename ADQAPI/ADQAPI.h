@@ -4,7 +4,7 @@
 
 #ifndef ADQAPI_REVISION_H
 #define ADQAPI_REVISION_H
-#define ADQAPI_REVISION 57945
+#define ADQAPI_REVISION 64436
 #endif
 
 #ifndef ADQAPI_ERROR_CODES_H_KUBA83
@@ -128,6 +128,14 @@ enum ADQHWIFEnum
   HWIF_OTHER = 8/**< Reserved */
 };
 
+enum ADQCommunicationInterface
+{
+  ADQ_COMMUNICATION_INTERFACE_INVALID = 0,
+  ADQ_COMMUNICATION_INTERFACE_PCIE = 1,
+  ADQ_COMMUNICATION_INTERFACE_USB = 2,
+  ADQ_COMMUNICATION_INTERFACE_MAX_VAL = INT32_MAX
+};
+
 struct ADQInfoListEntry
 {
   enum ADQHWIFEnum HWIFType;
@@ -210,7 +218,7 @@ struct SDCardConfiguration
   unsigned int TriggerDelay[8];
 };
 
-#define ADQAPI_VERSION_MAJOR 1
+#define ADQAPI_VERSION_MAJOR 4
 #define ADQAPI_VERSION_MINOR 0
 
 #define ADQ_MAX_NOF_CHANNELS 8
@@ -223,27 +231,22 @@ struct SDCardConfiguration
 #define ADQ_MAX_NOF_PULSE_GENERATORS 4
 #define ADQ_MAX_NOF_PATTERN_INSTRUCTIONS 16
 #define ADQ_MAX_NOF_TEMPERATURE_SENSORS 16
-#define ADQ_RECORDHEADER_STATUS_OVERFLOW 1
-#define ADQ_RECORDHEADER_STATUS_END_MISSING 2
-#define ADQ_RECORDHEADER_STATUS_OVERRANGE 4
-#define ADQ_RECORDHEADER_STATUS_TRIGGER_RISING 8
-#define ADQ_RECORDHEADER_STATUS_EARLY_HEADER 16
-#define ADQ_RECORDHEADER_STATUS_DRAM_LEVEL_POS 5
-#define ADQ_RECORDHEADER_STATUS_DRAM_LEVEL_WIDTH 3
+#define ADQ_MAX_NOF_FILTER_COEFFICIENTS 10
 
 #define ADQ_MARKER_BYTES_WRITTEN_INDEX 0
 #define ADQ_MARKER_NOF_RECORDS_INDEX 1
 #define ADQ_MARKER_STATUS_INDEX 2
-#define ADQ_MARKER_DRAM_LEVEL_INDEX 3 // 64B
+#define ADQ_MARKER_DRAM_LEVEL_INDEX 3
 #define ADQ_MARKER_COUNTER_INDEX 4
 
-#define ADQ_MARKER_STATUS_OVERFLOW 1
-#define ADQ_MARKER_STATUS_FLUSH 2
+#define ADQ_MARKER_STATUS_OVERFLOW_POS (0)
+#define ADQ_MARKER_STATUS_OVERFLOW (1u << ADQ_MARKER_STATUS_OVERFLOW_POS)
+#define ADQ_MARKER_STATUS_FLUSH_POS (1)
+#define ADQ_MARKER_STATUS_FLUSH (1u << ADQ_MARKER_STATUS_FLUSH_POS)
 
 #define ADQ_ANY_CHANNEL (-1)
 #define ADQ_INFINITE_RECORD_LENGTH (-1)
 #define ADQ_INFINITE_NOF_RECORDS (-1)
-
 
 enum ADQStatusId
 {
@@ -323,6 +326,8 @@ enum ADQParameterId
   ADQ_PARAMETER_ID_PULSE_GENERATOR2 = 33,
   ADQ_PARAMETER_ID_PULSE_GENERATOR3 = 34,
   ADQ_PARAMETER_ID_TIMESTAMP_SYNCHRONIZATION = 35,
+  ADQ_PARAMETER_ID_FIR_FILTER = 36,
+  ADQ_PARAMETER_ID_CLOCK_SYSTEM = 40,
 #ifdef ADQAPI_INTERNAL
   ADQ_PARAMETER_ID_INTERNAL_DIGITAL_GAINANDOFFSET = 65536,
 #endif
@@ -330,7 +335,7 @@ enum ADQParameterId
 };
 
 #define ADQ_PARAMETERS_MAGIC (0xAA559977AA559977ull)
-#define ADQ_PARAMETERS_MAX_SIZE (sizeof(struct ADQDataTransferParameters))
+#define ADQ_PARAMETERS_MAX_SIZE (sizeof(struct ADQParameters))
 
 enum ADQEventSource
 {
@@ -458,6 +463,26 @@ enum ADQClockSource
   ADQ_CLOCK_SOURCE_MAX_VAL = INT32_MAX
 };
 
+enum ADQClockReferenceSource
+{
+  ADQ_CLOCK_REFERENCE_SOURCE_INVALID = 0,
+  ADQ_CLOCK_REFERENCE_SOURCE_INTERNAL = 1,
+  ADQ_CLOCK_REFERENCE_SOURCE_PORT_CLK = 2,
+  ADQ_CLOCK_REFERENCE_SOURCE_PXIE_10M = 3,
+  ADQ_CLOCK_REFERENCE_SOURCE_MTCA_TCLKA = 4,
+  ADQ_CLOCK_REFERENCE_SOURCE_MTCA_TCLKB = 5,
+  ADQ_CLOCK_REFERENCE_SOURCE_PXIE_100M = 6,
+  ADQ_CLOCK_REFERENCE_SOURCE_MAX_VAL = INT32_MAX
+};
+
+enum ADQClockGenerator
+{
+  ADQ_CLOCK_GENERATOR_INVALID = 0,
+  ADQ_CLOCK_GENERATOR_INTERNAL_PLL = 1,
+  ADQ_CLOCK_GENERATOR_EXTERNAL_CLOCK = 2,
+  ADQ_CLOCK_GENERATOR_MAX_VAL = INT32_MAX
+};
+
 enum ADQFunction
 {
   ADQ_FUNCTION_INVALID = 0,
@@ -472,6 +497,32 @@ enum ADQFunction
   ADQ_FUNCTION_MAX_VAL = INT32_MAX
 };
 
+enum ADQRoundingMethod
+{
+  ADQ_ROUNDING_METHOD_TIE_AWAY_FROM_ZERO = 0,
+  ADQ_ROUNDING_METHOD_TIE_TOWARDS_ZERO = 1,
+  ADQ_ROUNDING_METHOD_TIE_TO_EVEN = 2,
+  ADQ_ROUNDING_METHOD_MAX_VAL = INT32_MAX
+};
+
+enum ADQCoefficientFormat
+{
+  ADQ_COEFFICIENT_FORMAT_DOUBLE = 0,
+  ADQ_COEFFICIENT_FORMAT_FIXED_POINT = 1,
+  ADQ_COEFFICIENT_FORMAT_MAX_VAL = INT32_MAX
+};
+
+enum ADQUserLogic
+{
+  ADQ_USER_LOGIC_RESERVED = 0,
+  ADQ_USER_LOGIC1 = 1,
+  ADQ_USER_LOGIC2 = 2,
+  ADQ_USER_LOGIC_MAX_VAL = INT32_MAX
+};
+
+#define ADQ_GEN4_RECORD_HEADER_MISC_PATTERN_GENERATOR_POS (0)
+#define ADQ_GEN4_RECORD_HEADER_MISC_PATTERN_GENERATOR_MASK (0x0Fu << ADQ_GEN4_RECORD_HEADER_MISC_PATTERN_GENERATOR_POS)
+
 struct ADQGen4RecordHeader
 {
   uint8_t version_major;
@@ -483,7 +534,7 @@ struct ADQGen4RecordHeader
   int64_t record_start;
   uint32_t record_length;
   uint8_t user_id;
-  uint8_t reserved0;
+  uint8_t misc;
   uint16_t record_status;
   uint32_t record_number;
   uint8_t channel;
@@ -491,7 +542,7 @@ struct ADQGen4RecordHeader
   char serial_number[10];
   uint64_t sampling_period;
   float time_unit;
-  uint32_t reserved1;
+  uint32_t reserved;
 };
 
 struct ADQGen4RecordHeaderRaw
@@ -507,7 +558,7 @@ struct ADQGen4RecordHeaderRaw
   uint8_t pad0[3];
   uint32_t record_length;
   uint8_t user_id;
-  uint8_t reserved0;
+  uint8_t misc;
   uint16_t record_status;
   uint32_t record_number;
   uint8_t channel;
@@ -515,7 +566,7 @@ struct ADQGen4RecordHeaderRaw
   char serial_number[10];
   uint64_t sampling_period;
   float time_unit;
-  uint32_t reserved1;
+  uint32_t reserved;
 };
 
 struct ADQGen4Record
@@ -523,6 +574,20 @@ struct ADQGen4Record
   struct ADQGen4RecordHeader *header;
   void *data;
   uint64_t size;
+};
+
+struct ADQClockSystemParameters
+{
+  enum ADQParameterId id;
+  int32_t reserved;
+  enum ADQClockGenerator clock_generator;
+  enum ADQClockReferenceSource reference_source;
+  double sampling_frequency;
+  double reference_frequency;
+  double delay_adjustment;
+  int32_t low_jitter_mode_enabled;
+  int32_t delay_adjustment_enabled;
+  uint64_t magic;
 };
 
 enum ADQPatternGeneratorOperation
@@ -688,6 +753,24 @@ struct ADQP2pStatus
   int32_t reserved;
 };
 
+struct ADQConstantParametersCommunicationInterface
+{
+  enum ADQCommunicationInterface type;
+  int32_t link_width;
+  int32_t link_generation;
+  int32_t reserved;
+};
+
+struct ADQConstantParametersFirFilter
+{
+  int32_t is_present;
+  int32_t order;
+  int32_t nof_coefficients;
+  int32_t coefficient_bits;
+  int32_t coefficient_fractional_bits;
+  int32_t reserved;
+};
+
 struct ADQConstantParametersChannel
 {
   double base_sampling_rate;
@@ -697,6 +780,7 @@ struct ADQConstantParametersChannel
   int32_t nof_input_ranges;
   int32_t has_variable_dc_offset;
   int32_t has_variable_input_range;
+  struct ADQConstantParametersFirFilter fir_filter;
 };
 
 struct ADQConstantParametersPin
@@ -718,18 +802,22 @@ struct ADQConstantParametersPort
 struct ADQConstantParameters
 {
   enum ADQParameterId id;
-  enum ADQClockSource clock_source;
+  int32_t reserved;
+  struct ADQClockSystemParameters clock_system;
   int32_t nof_channels;
   int32_t nof_pattern_generators;
   int32_t max_nof_pattern_generator_instructions;
   int32_t nof_pulse_generators;
-  uint8_t dna[16];
+  char dna[40];
   char serial_number[16];
   char product_name[32];
   char product_options[32];
   char firmware_name[32];
+  char firmware_revision[16];
+  char firmware_type[16];
   struct ADQConstantParametersChannel channel[ADQ_MAX_NOF_CHANNELS];
   struct ADQConstantParametersPort port[ADQ_MAX_NOF_PORTS];
+  struct ADQConstantParametersCommunicationInterface communication_interface;
   uint64_t magic;
 };
 
@@ -790,6 +878,22 @@ struct ADQSampleSkipParameters
   enum ADQParameterId id;
   int32_t reserved;
   struct ADQSampleSkipParametersChannel channel[ADQ_MAX_NOF_CHANNELS];
+  uint64_t magic;
+};
+
+struct ADQFirFilterParametersChannel
+{
+  enum ADQRoundingMethod rounding_method;
+  enum ADQCoefficientFormat format;
+  double coefficient[ADQ_MAX_NOF_FILTER_COEFFICIENTS];
+  int32_t coefficient_fixed_point[ADQ_MAX_NOF_FILTER_COEFFICIENTS];
+};
+
+struct ADQFirFilterParameters
+{
+  enum ADQParameterId id;
+  int32_t reserved;
+  struct ADQFirFilterParametersChannel channel[ADQ_MAX_NOF_CHANNELS];
   uint64_t magic;
 };
 
@@ -931,6 +1035,7 @@ struct ADQSignalProcessingParameters
   struct ADQDigitalGainAndOffsetParameters gain_offset;
   struct ADQSampleSkipParameters sample_skip;
   struct ADQDbsParameters dbs;
+  struct ADQFirFilterParameters fir_filter;
   uint64_t magic;
 };
 
@@ -1027,6 +1132,7 @@ struct ADQInterface
   virtual int GetADQType() = 0;
 
   virtual unsigned int GetNofChannels() = 0;
+  virtual int GetNofProcessingChannels() = 0;
   virtual unsigned int GetNofHwChannels() = 0;
   virtual unsigned int GetNofFPGAs() = 0;
   virtual unsigned int GetDRAMPhysEndAddr(unsigned int* DRAM_MAX_END_ADDRESS) = 0;
@@ -1172,11 +1278,11 @@ struct ADQInterface
   virtual int Blink() = 0;
   virtual unsigned int GetInterleavingIPFrequencyCalibrationMode(unsigned char IPInstanceAddr, unsigned int* freqcalflag) = 0;
   virtual unsigned int SetInterleavingIPFrequencyCalibrationMode(unsigned char IPInstanceAddr, unsigned int freqcalmode) = 0;
-  virtual unsigned int WriteUserRegister(unsigned int ul_target, unsigned int regnum, unsigned int mask, unsigned int data, unsigned int* retval) = 0;
-  virtual unsigned int ReadUserRegister(unsigned int ul_target, unsigned int regnum, unsigned int* retval) = 0;
-  virtual unsigned int WriteBlockUserRegister(unsigned int ul_target, unsigned int start_addr, unsigned int *data, unsigned int num_bytes, unsigned int options) = 0;
+  virtual int WriteUserRegister(int ul_target, uint32_t regnum, uint32_t mask, uint32_t data, uint32_t *retval) = 0;
+  virtual int ReadUserRegister(int ul_target, uint32_t regnum, uint32_t *retval) = 0;
+  virtual int WriteBlockUserRegister(int ul_target, uint32_t start_addr, uint32_t *data, uint32_t num_bytes, uint32_t options) = 0;
 
-  virtual unsigned int ReadBlockUserRegister(unsigned int ul_target, unsigned int start_addr, unsigned int *data, unsigned int num_bytes, unsigned int options) = 0;
+  virtual int ReadBlockUserRegister(int ul_target, uint32_t start_addr, uint32_t *data, uint32_t num_bytes, uint32_t options) = 0;
   virtual unsigned int BypassUserLogic(unsigned int ul_target, unsigned int bypass) = 0;
   virtual unsigned int EnableUseOfUserHeaders(unsigned int mode, unsigned int api_value) = 0;
   virtual int SetUserLogicFilter(unsigned int channel,
@@ -1195,8 +1301,8 @@ struct ADQInterface
   virtual unsigned int GetFPGATempGrade(unsigned int fpganum, char* tgrade) = 0;
   virtual unsigned int GetFPGASpeedGrade(unsigned int fpganum, unsigned int* sgrade) = 0;
   virtual unsigned int SetBiasDACPercentage(unsigned int channel, float percent) = 0;
-  virtual unsigned int SetupLevelTrigger(int *level, int *edge,
-                                         int *reset_level,
+  virtual unsigned int SetupLevelTrigger(const int *level, const int *edge,
+                                         const int *reset_level,
                                          unsigned int channel_mask,
                                          unsigned int individual_mode) = 0;
   virtual int SetLevelTriggerSequenceLength(unsigned int channel,
@@ -1323,10 +1429,10 @@ struct ADQInterface
                                unsigned int* headers_added,
                                unsigned int* header_status) = 0;
 
-  virtual unsigned int PlotAssist(const char *MemoryName, 
-                                  void *MemoryPointer, 
-                                  unsigned int MemoryMaxBytesCount, 
-                                  unsigned int PlotSamplesCount, 
+  virtual unsigned int PlotAssist(const char *MemoryName,
+                                  void *MemoryPointer,
+                                  unsigned int MemoryMaxBytesCount,
+                                  unsigned int PlotSamplesCount,
                                   const char *Format) = 0;
 
   virtual unsigned int GetLastError() = 0;
@@ -1652,6 +1758,8 @@ struct ADQInterface
   virtual int SetupInternal008(unsigned int arg0) = 0;
   virtual int SetupInternal009(unsigned int arg0) = 0;
   virtual int SetupInternal010(unsigned int arg0) = 0;
+  virtual unsigned int SetupInternal011(unsigned int arg0, unsigned int arg1, unsigned int arg2,
+                                        unsigned int arg3) = 0;
   virtual int ReadInternal000(unsigned int *arg0) = 0;
 
   virtual int GetDNA(unsigned int* dna) = 0;
@@ -1718,16 +1826,6 @@ struct ADQInterface
 
   virtual unsigned int USBReConnect() = 0;
 
-  virtual int OCTDebug(unsigned int arg1, unsigned int arg2, unsigned int arg3) = 0;
-  virtual int OCTResetOVP() = 0;
-  virtual int OCTSetOVPLevel(unsigned int level) = 0;
-  virtual int OCTGetOVPLevel(unsigned int* level) = 0;
-  virtual int OCTGetOVPStatus(unsigned int* neg_ov, unsigned int* pos_ov) = 0;
-  virtual int OCTSetTriggerCount(unsigned int count) = 0;
-  virtual int OCTSetFFTLength(unsigned int length) = 0;
-  virtual int OCTSetFFTEnable(unsigned int enable) = 0;
-  virtual int OCTSetFFTEnableWin(unsigned int enable) = 0;
-  virtual int OCTSetFFTHoldOff(unsigned int holdoff) = 0;
   virtual int EnableGPIOSupplyOutput(unsigned int enable) = 0;
 
   virtual int USBLinkupTest(unsigned int retries) = 0;
@@ -1988,7 +2086,8 @@ struct ADQInterface
 
   virtual int GetADQDataDeviceStruct(void* buffer) = 0;
 
-  virtual int SetTargetSampleRate(int mode, int value) = 0;
+
+  virtual int SetTargetSampleRate(int mode, double value) = 0;
 
   virtual int SmTransaction(uint16_t cmd, const void *const wr_buf,
                             size_t wr_buf_len, void *const rd_buf,
@@ -2006,9 +2105,24 @@ struct ADQInterface
   virtual int SetupEventSource(enum ADQEventSource source, void *configuration, size_t length) = 0;
   virtual int SetupFunction(enum ADQFunction function, void *configuration, size_t length) = 0;
   virtual int InitializeParameters(enum ADQParameterId id, void *const parameters) = 0;
+
+  virtual int InitializeParametersString(enum ADQParameterId id, char *const string, size_t length, int format) = 0;
+  virtual int InitializeParametersFilename(enum ADQParameterId id, const char *const filename, int format) = 0;
+
   virtual int GetParameters(enum ADQParameterId id, void *const parameters) = 0;
+
+  virtual int GetParametersString(enum ADQParameterId id, char *const string, size_t length, int format) = 0;
+  virtual int GetParametersFilename(enum ADQParameterId id, const char *const filename, int format) = 0;
+
   virtual int SetParameters(void *const parameters) = 0;
+
+  virtual int SetParametersString(const char *const string, size_t length) = 0;
+  virtual int SetParametersFilename(const char *const filename) = 0;
+
   virtual int ValidateParameters(const void *const parameters) = 0;
+
+  virtual int ValidateParametersString(const char *const string, size_t length) = 0;
+  virtual int ValidateParametersFilename(const char *const filename) = 0;
 
   virtual unsigned int ValidateDll() = 0; //MUST BE LAST FUNCTION !!!
 
@@ -2053,7 +2167,6 @@ struct ADQInterface
 #define LOG_LEVEL_ERROR                                         0x1
 #define LOG_LEVEL_WARN                                          0x2
 #define LOG_LEVEL_INFO                                          0x3
-#define LOG_LEVEL_RTONLY                                        0x00020000
 
 #ifdef __cplusplus
 extern "C"
@@ -2162,6 +2275,7 @@ DLL_IMPORT  void* ADQ_GetPtrData(void* adq_cu_ptr, int adq_num , unsigned int ch
 DLL_IMPORT  int ADQ_SetDataFormat(void* adq_cu_ptr, int adq_num , unsigned int format);
 DLL_IMPORT  int ADQ_GetADQType(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  unsigned int ADQ_GetNofChannels(void* adq_cu_ptr, int adq_num);
+DLL_IMPORT  int ADQ_GetNofProcessingChannels(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  unsigned int ADQ_GetNofHwChannels(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  unsigned int ADQ_GetNofFPGAs(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  unsigned int ADQ_GetDRAMPhysEndAddr(void* adq_cu_ptr, int adq_num , unsigned int* DRAM_MAX_END_ADDRESS);
@@ -2290,10 +2404,10 @@ DLL_IMPORT  unsigned int ADQ_SetExtTrigThreshold(void* adq_cu_ptr, int adq_num ,
 DLL_IMPORT  int ADQ_Blink(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  unsigned int ADQ_GetInterleavingIPFrequencyCalibrationMode(void* adq_cu_ptr, int adq_num , unsigned char IPInstanceAddr, unsigned int* freqcalflag);
 DLL_IMPORT  unsigned int ADQ_SetInterleavingIPFrequencyCalibrationMode(void* adq_cu_ptr, int adq_num , unsigned char IPInstanceAddr, unsigned int freqcalmode);
-DLL_IMPORT  unsigned int ADQ_WriteUserRegister(void* adq_cu_ptr, int adq_num , unsigned int ul_target, unsigned int regnum, unsigned int mask, unsigned int data, unsigned int* retval);
-DLL_IMPORT  unsigned int ADQ_ReadUserRegister(void* adq_cu_ptr, int adq_num , unsigned int ul_target, unsigned int regnum, unsigned int* retval);
-DLL_IMPORT  unsigned int ADQ_WriteBlockUserRegister(void* adq_cu_ptr, int adq_num , unsigned int ul_target, unsigned int start_addr, unsigned int *data, unsigned int num_bytes, unsigned int options);
-DLL_IMPORT  unsigned int ADQ_ReadBlockUserRegister(void* adq_cu_ptr, int adq_num , unsigned int ul_target, unsigned int start_addr, unsigned int *data, unsigned int num_bytes, unsigned int options);
+DLL_IMPORT  int ADQ_WriteUserRegister(void* adq_cu_ptr, int adq_num , int ul_target, uint32_t regnum, uint32_t mask, uint32_t data, uint32_t *retval);
+DLL_IMPORT  int ADQ_ReadUserRegister(void* adq_cu_ptr, int adq_num , int ul_target, uint32_t regnum, uint32_t *retval);
+DLL_IMPORT  int ADQ_WriteBlockUserRegister(void* adq_cu_ptr, int adq_num , int ul_target, uint32_t start_addr, uint32_t *data, uint32_t num_bytes, uint32_t options);
+DLL_IMPORT  int ADQ_ReadBlockUserRegister(void* adq_cu_ptr, int adq_num , int ul_target, uint32_t start_addr, uint32_t *data, uint32_t num_bytes, uint32_t options);
 DLL_IMPORT  unsigned int ADQ_BypassUserLogic(void* adq_cu_ptr, int adq_num , unsigned int ul_target, unsigned int bypass);
 DLL_IMPORT  unsigned int ADQ_EnableUseOfUserHeaders(void* adq_cu_ptr, int adq_num , unsigned int mode, unsigned int api_value);
 DLL_IMPORT  int ADQ_SetUserLogicFilter(void* adq_cu_ptr, int adq_num , unsigned int channel,void *coefficients,unsigned int length,unsigned int format,unsigned int rounding_method);
@@ -2308,7 +2422,7 @@ DLL_IMPORT  unsigned int ADQ_GetFPGApart(void* adq_cu_ptr, int adq_num , unsigne
 DLL_IMPORT  unsigned int ADQ_GetFPGATempGrade(void* adq_cu_ptr, int adq_num , unsigned int fpganum, char* tgrade);
 DLL_IMPORT  unsigned int ADQ_GetFPGASpeedGrade(void* adq_cu_ptr, int adq_num , unsigned int fpganum, unsigned int* sgrade);
 DLL_IMPORT  unsigned int ADQ_SetBiasDACPercentage(void* adq_cu_ptr, int adq_num , unsigned int channel, float percent);
-DLL_IMPORT  unsigned int ADQ_SetupLevelTrigger(void* adq_cu_ptr, int adq_num , int *level, int *edge,int *reset_level,unsigned int channel_mask,unsigned int individual_mode);
+DLL_IMPORT  unsigned int ADQ_SetupLevelTrigger(void* adq_cu_ptr, int adq_num , const int *level, const int *edge,const int *reset_level,unsigned int channel_mask,unsigned int individual_mode);
 DLL_IMPORT  int ADQ_SetLevelTriggerSequenceLength(void* adq_cu_ptr, int adq_num , unsigned int channel,unsigned int sequence_length);
 DLL_IMPORT  int ADQ_EnableLevelTriggerLogicOr(void* adq_cu_ptr, int adq_num , int channel, int enable);
 DLL_IMPORT  unsigned int ADQ_GetRxFifoOverflow(void* adq_cu_ptr, int adq_num);
@@ -2641,6 +2755,7 @@ DLL_IMPORT  int ADQ_SetupInternal007(void* adq_cu_ptr, int adq_num , unsigned in
 DLL_IMPORT  int ADQ_SetupInternal008(void* adq_cu_ptr, int adq_num , unsigned int arg0);
 DLL_IMPORT  int ADQ_SetupInternal009(void* adq_cu_ptr, int adq_num , unsigned int arg0);
 DLL_IMPORT  int ADQ_SetupInternal010(void* adq_cu_ptr, int adq_num , unsigned int arg0);
+DLL_IMPORT  unsigned int ADQ_SetupInternal011(void* adq_cu_ptr, int adq_num , unsigned int arg0, unsigned int arg1, unsigned int arg2,unsigned int arg3);
 DLL_IMPORT  int ADQ_ReadInternal000(void* adq_cu_ptr, int adq_num , unsigned int *arg0);
 DLL_IMPORT  int ADQ_GetDNA(void* adq_cu_ptr, int adq_num , unsigned int* dna);
 DLL_IMPORT  int ADQ_ResetDNA(void* adq_cu_ptr, int adq_num , unsigned int assert);
@@ -2671,16 +2786,6 @@ DLL_IMPORT  int ADQ_SetSWTrigValue(void* adq_cu_ptr, int adq_num , float samples
 DLL_IMPORT  unsigned int ADQ_SetDACPercentage(void* adq_cu_ptr, int adq_num , unsigned int spi_addr, unsigned int output_num, float percent);
 DLL_IMPORT  unsigned int ADQ_MultiRecordSetChannelMask(void* adq_cu_ptr, int adq_num , unsigned int channelmask);
 DLL_IMPORT  unsigned int ADQ_USBReConnect(void* adq_cu_ptr, int adq_num);
-DLL_IMPORT  int ADQ_OCTDebug(void* adq_cu_ptr, int adq_num , unsigned int arg1, unsigned int arg2, unsigned int arg3);
-DLL_IMPORT  int ADQ_OCTResetOVP(void* adq_cu_ptr, int adq_num);
-DLL_IMPORT  int ADQ_OCTSetOVPLevel(void* adq_cu_ptr, int adq_num , unsigned int level);
-DLL_IMPORT  int ADQ_OCTGetOVPLevel(void* adq_cu_ptr, int adq_num , unsigned int* level);
-DLL_IMPORT  int ADQ_OCTGetOVPStatus(void* adq_cu_ptr, int adq_num , unsigned int* neg_ov, unsigned int* pos_ov);
-DLL_IMPORT  int ADQ_OCTSetTriggerCount(void* adq_cu_ptr, int adq_num , unsigned int count);
-DLL_IMPORT  int ADQ_OCTSetFFTLength(void* adq_cu_ptr, int adq_num , unsigned int length);
-DLL_IMPORT  int ADQ_OCTSetFFTEnable(void* adq_cu_ptr, int adq_num , unsigned int enable);
-DLL_IMPORT  int ADQ_OCTSetFFTEnableWin(void* adq_cu_ptr, int adq_num , unsigned int enable);
-DLL_IMPORT  int ADQ_OCTSetFFTHoldOff(void* adq_cu_ptr, int adq_num , unsigned int holdoff);
 DLL_IMPORT  int ADQ_EnableGPIOSupplyOutput(void* adq_cu_ptr, int adq_num , unsigned int enable);
 DLL_IMPORT  int ADQ_USBLinkupTest(void* adq_cu_ptr, int adq_num , unsigned int retries);
 DLL_IMPORT  int ADQ_SetClockInputImpedance(void* adq_cu_ptr, int adq_num , unsigned int input_num, unsigned int mode);
@@ -2789,7 +2894,7 @@ DLL_IMPORT  int ADQ_SetStreamingChannelMask(void* adq_cu_ptr, int adq_num , unsi
 DLL_IMPORT  int ADQ_InitializeStreaming(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  int ADQ_GetADQDataDeviceStructSize(void* adq_cu_ptr, int adq_num , unsigned int* size);
 DLL_IMPORT  int ADQ_GetADQDataDeviceStruct(void* adq_cu_ptr, int adq_num , void* buffer);
-DLL_IMPORT  int ADQ_SetTargetSampleRate(void* adq_cu_ptr, int adq_num , int mode, int value);
+DLL_IMPORT  int ADQ_SetTargetSampleRate(void* adq_cu_ptr, int adq_num , int mode, double value);
 DLL_IMPORT  int ADQ_SmTransaction(void* adq_cu_ptr, int adq_num , uint16_t cmd, const void *const wr_buf,size_t wr_buf_len, void *const rd_buf,size_t rd_buf_len);
 DLL_IMPORT  int ADQ_SmTransactionImmediate(void* adq_cu_ptr, int adq_num , uint16_t cmd, const void *const wr_buf,size_t wr_buf_len, void *const rd_buf,size_t rd_buf_len);
 DLL_IMPORT  int ADQ_UnlockP2pBuffers(void* adq_cu_ptr, int adq_num , int channel, uint64_t mask);
@@ -2801,9 +2906,17 @@ DLL_IMPORT  int ADQ_ReturnRecordBuffer(void* adq_cu_ptr, int adq_num , int chann
 DLL_IMPORT  int ADQ_SetupEventSource(void* adq_cu_ptr, int adq_num , enum ADQEventSource source, void *configuration, size_t length);
 DLL_IMPORT  int ADQ_SetupFunction(void* adq_cu_ptr, int adq_num , enum ADQFunction function, void *configuration, size_t length);
 DLL_IMPORT  int ADQ_InitializeParameters(void* adq_cu_ptr, int adq_num , enum ADQParameterId id, void *const parameters);
+DLL_IMPORT  int ADQ_InitializeParametersString(void* adq_cu_ptr, int adq_num , enum ADQParameterId id, char *const string, size_t length, int format);
+DLL_IMPORT  int ADQ_InitializeParametersFilename(void* adq_cu_ptr, int adq_num , enum ADQParameterId id, const char *const filename, int format);
 DLL_IMPORT  int ADQ_GetParameters(void* adq_cu_ptr, int adq_num , enum ADQParameterId id, void *const parameters);
+DLL_IMPORT  int ADQ_GetParametersString(void* adq_cu_ptr, int adq_num , enum ADQParameterId id, char *const string, size_t length, int format);
+DLL_IMPORT  int ADQ_GetParametersFilename(void* adq_cu_ptr, int adq_num , enum ADQParameterId id, const char *const filename, int format);
 DLL_IMPORT  int ADQ_SetParameters(void* adq_cu_ptr, int adq_num , void *const parameters);
+DLL_IMPORT  int ADQ_SetParametersString(void* adq_cu_ptr, int adq_num , const char *const string, size_t length);
+DLL_IMPORT  int ADQ_SetParametersFilename(void* adq_cu_ptr, int adq_num , const char *const filename);
 DLL_IMPORT  int ADQ_ValidateParameters(void* adq_cu_ptr, int adq_num , const void *const parameters);
+DLL_IMPORT  int ADQ_ValidateParametersString(void* adq_cu_ptr, int adq_num , const char *const string, size_t length);
+DLL_IMPORT  int ADQ_ValidateParametersFilename(void* adq_cu_ptr, int adq_num , const char *const filename);
 #ifdef __cplusplus
 }
 #endif

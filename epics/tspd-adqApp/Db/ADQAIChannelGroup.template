@@ -175,10 +175,12 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:NEXTENUMERATION") {
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) nextEnumeration")
 }
 
-record(ai, "${PREFIX}-${ADQSN}:${GRP}:TRIGTIMESTAMP") {
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:TRIGTIMESTAMP") {
     field(DESC, "Trigger time stamp")
     field(SCAN, "I/O Intr")
-    field(DTYP, "asynFloat64")
+    field(DTYP, "asynFloat64ArrayIn")
+    field(FTVL, "DOUBLE")
+    field(NELM, "${NRECORDSCOLLECT=1}")
     field(EGU,  "mS")
     field(PRIO, "HIGH")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) TrigTimeStamp")
@@ -190,14 +192,17 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:DAISYRECORDSTART") {
     field(DTYP, "asynInt32ArrayIn")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) DaisyRecordStart")
     field(EGU,  "Clock cycles")
-    field(NELM, "10")
+    # This is the number of modules in the chain * NRECORDSCOLLECT
+    field(NELM, "${NDAISYRECORDSCOLLECT=10}")
     field(FTVL, "LONG")
 }
 
-record(ai, "${PREFIX}-${ADQSN}:${GRP}:DAISYTIMESTAMP") {
+record(waveform, "${PREFIX}-${ADQSN}:${GRP}:DAISYTIMESTAMP") {
     field(DESC, "Daisychain master time stamp")
     field(SCAN, "I/O Intr")
-    field(DTYP, "asynFloat64")
+    field(DTYP, "asynFloat64ArrayIn")
+    field(FTVL, "DOUBLE")
+    field(NELM, "${NRECORDSCOLLECT=1}")
     field(EGU,  "mS")
     field(PRIO, "HIGH")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) DaisyTimeStamp")
