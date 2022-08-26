@@ -1,10 +1,10 @@
 /*
- * (C)opyright 2008-2018 Signal Processing Devices Sweden AB
+ * (C)opyright 2008-2022 Signal Processing Devices Sweden AB
  */
 
 #ifndef ADQAPI_REVISION_H
 #define ADQAPI_REVISION_H
-#define ADQAPI_REVISION 64436
+#define ADQAPI_REVISION 66865
 #endif
 
 #ifndef ADQAPI_ERROR_CODES_H_KUBA83
@@ -108,8 +108,9 @@ enum ADQProductID_Enum
   PID_ADQ8 = 0x0026,
   PID_ADQ12 = 0x0027,
   PID_ADQ7Virtual = 0x0030,
-  PID_ADQ3 = 0x0031,
+  PID_ADQ32 = 0x0031,
   PID_ADQSM = 0x0032,
+  PID_ADQ36 = 0x0033,
   PID_TX320 = 0x201A,
   PID_RX320 = 0x201C,
   PID_S6000 = 0x2019
@@ -176,6 +177,12 @@ struct ADQRecord
   uint64_t size;
 };
 
+struct ADQRecordArray
+{
+  struct ADQRecord **record;
+  int32_t nof_records;
+};
+
 struct ADQDaisyChainTriggerInformation
 {
   uint64_t Timestamp;
@@ -218,12 +225,21 @@ struct SDCardConfiguration
   unsigned int TriggerDelay[8];
 };
 
-#define ADQAPI_VERSION_MAJOR 4
+struct ADQClockSystemStatus
+{
+  int32_t pll1_lock_detect; /**< Indicates that PLL1 is currently locked.*/
+  int32_t pll2_lock_detect; /**< Indicates that PLL2 is currently locked.*/
+  int32_t pll1_lock_lost_alarm; /**< Indicates that PLL1 has lost its lock since the alarm was last cleared.*/
+  int32_t pll2_lock_lost_alarm; /**< Indicates that PLL2 has lost its lock since the alarm was last cleared.*/
+  double reference_source_frequency_estimate; /**< Estimated frequency of the reference source in Hz. */
+};
+
+#define ADQAPI_VERSION_MAJOR 6
 #define ADQAPI_VERSION_MINOR 0
 
 #define ADQ_MAX_NOF_CHANNELS 8
 #define ADQ_MAX_NOF_BUFFERS 16
-#define ADQ_MAX_NOF_PORTS 8
+#define ADQ_MAX_NOF_PORTS 12
 #define ADQ_MAX_NOF_PINS 16
 #define ADQ_MAX_NOF_ADC_CORES 4
 #define ADQ_MAX_NOF_INPUT_RANGES 8
@@ -232,6 +248,8 @@ struct SDCardConfiguration
 #define ADQ_MAX_NOF_PATTERN_INSTRUCTIONS 16
 #define ADQ_MAX_NOF_TEMPERATURE_SENSORS 16
 #define ADQ_MAX_NOF_FILTER_COEFFICIENTS 10
+#define ADQ_MAX_NOF_MATRIX_INPUTS 8
+
 
 #define ADQ_MARKER_BYTES_WRITTEN_INDEX 0
 #define ADQ_MARKER_NOF_RECORDS_INDEX 1
@@ -247,6 +265,7 @@ struct SDCardConfiguration
 #define ADQ_ANY_CHANNEL (-1)
 #define ADQ_INFINITE_RECORD_LENGTH (-1)
 #define ADQ_INFINITE_NOF_RECORDS (-1)
+#define ADQ_FOLLOW_RECORD_TRANSFER_BUFFER (-1)
 
 enum ADQStatusId
 {
@@ -255,8 +274,10 @@ enum ADQStatusId
   ADQ_STATUS_ID_DRAM = 2,
   ADQ_STATUS_ID_ACQUISITION = 3,
   ADQ_STATUS_ID_TEMPERATURE = 4,
+  ADQ_STATUS_ID_CLOCK_SYSTEM = 5,
   ADQ_STATUS_ID_PACKET_OVERFLOW = 65537,
-  ADQ_STATUS_ID_MEMCOM_OVERFLOW = 65538
+  ADQ_STATUS_ID_MEMCOM_OVERFLOW = 65538,
+  ADQ_STATUS_ID_MAX_VAL = INT32_MAX
 };
 
 struct ADQOverflowStatus
@@ -285,6 +306,7 @@ struct ADQTemperatureStatusSensor
 struct ADQTemperatureStatus
 {
   int32_t nof_sensors;
+  int32_t reserved;
   struct ADQTemperatureStatusSensor sensor[ADQ_MAX_NOF_TEMPERATURE_SENSORS];
 };
 
@@ -327,7 +349,14 @@ enum ADQParameterId
   ADQ_PARAMETER_ID_PULSE_GENERATOR3 = 34,
   ADQ_PARAMETER_ID_TIMESTAMP_SYNCHRONIZATION = 35,
   ADQ_PARAMETER_ID_FIR_FILTER = 36,
+  ADQ_PARAMETER_ID_PORT_GPIOC = 37,
+  ADQ_PARAMETER_ID_EVENT_SOURCE_GPIOA0 = 38,
+  ADQ_PARAMETER_ID_EVENT_SOURCE_GPIOB0 = 39,
   ADQ_PARAMETER_ID_CLOCK_SYSTEM = 40,
+  ADQ_PARAMETER_ID_EVENT_SOURCE_STARB = 41,
+  ADQ_PARAMETER_ID_EVENT_SOURCE_SOFTWARE = 42,
+  ADQ_PARAMETER_ID_EVENT_SOURCE_MATRIX = 43,
+  ADQ_PARAMETER_ID_EVENT_SOURCE_LEVEL_MATRIX = 44,
 #ifdef ADQAPI_INTERNAL
   ADQ_PARAMETER_ID_INTERNAL_DIGITAL_GAINANDOFFSET = 65536,
 #endif
@@ -359,6 +388,7 @@ enum ADQEventSource
   ADQ_EVENT_SOURCE_SOFTWARE_CLKREF_SYNC = 24,
   ADQ_EVENT_SOURCE_GPIOA0 = 25,
   ADQ_EVENT_SOURCE_GPIOA1 = 26,
+  ADQ_EVENT_SOURCE_GPIOB0 = 60,
   ADQ_EVENT_SOURCE_LEVEL_CHANNEL0 = 100,
   ADQ_EVENT_SOURCE_LEVEL_CHANNEL1 = 101,
   ADQ_EVENT_SOURCE_LEVEL_CHANNEL2 = 102,
@@ -367,6 +397,9 @@ enum ADQEventSource
   ADQ_EVENT_SOURCE_LEVEL_CHANNEL5 = 105,
   ADQ_EVENT_SOURCE_LEVEL_CHANNEL6 = 106,
   ADQ_EVENT_SOURCE_LEVEL_CHANNEL7 = 107,
+  ADQ_EVENT_SOURCE_CLOCK_REFERENCE = 120,
+  ADQ_EVENT_SOURCE_MATRIX = 121,
+  ADQ_EVENT_SOURCE_LEVEL_MATRIX = 122,
   ADQ_EVENT_SOURCE_MAX_VAL = INT32_MAX
 };
 
@@ -400,6 +433,7 @@ enum ADQPort
   ADQ_PORT_GPIOB = 8,
   ADQ_PORT_PXIE = 9,
   ADQ_PORT_MTCA = 10,
+  ADQ_PORT_GPIOC = 11,
   ADQ_PORT_MAX_VAL = INT32_MAX
 };
 
@@ -409,6 +443,7 @@ enum ADQPinPxie
   ADQ_PIN_PXIE_TRIG1 = 1,
   ADQ_PIN_PXIE_STARA = 2,
   ADQ_PIN_PXIE_STARB = 3,
+  ADQ_PIN_PXIE_STARC = 4,
   ADQ_PIN_PXIE_MAX_VAL = INT32_MAX
 };
 
@@ -429,6 +464,7 @@ enum ADQImpedance
 {
   ADQ_IMPEDANCE_50_OHM = 0,
   ADQ_IMPEDANCE_HIGH = 1,
+  ADQ_IMPEDANCE_100_OHM = 2,
   ADQ_IMPEDANCE_MAX_VAL = INT32_MAX
 };
 
@@ -437,7 +473,7 @@ enum ADQDirection
   ADQ_DIRECTION_IN = 0,
   ADQ_DIRECTION_OUT = 1,
   ADQ_DIRECTION_INOUT = 2,
-  ADQ_DIRECTION_MAXVAL = INT32_MAX
+  ADQ_DIRECTION_MAX_VAL = INT32_MAX
 };
 
 enum ADQEdge
@@ -494,6 +530,7 @@ enum ADQFunction
   ADQ_FUNCTION_PULSE_GENERATOR2 = 6,
   ADQ_FUNCTION_PULSE_GENERATOR3 = 7,
   ADQ_FUNCTION_TIMESTAMP_SYNCHRONIZATION = 8,
+  ADQ_FUNCTION_USER_LOGIC = 9,
   ADQ_FUNCTION_MAX_VAL = INT32_MAX
 };
 
@@ -518,6 +555,15 @@ enum ADQUserLogic
   ADQ_USER_LOGIC1 = 1,
   ADQ_USER_LOGIC2 = 2,
   ADQ_USER_LOGIC_MAX_VAL = INT32_MAX
+};
+
+enum ADQEeprom
+{
+  ADQ_EEPROM_INVALID = 0,
+  ADQ_EEPROM_MOTHERBOARD = 1,
+  ADQ_EEPROM_DAUGHTERBOARD = 2,
+  ADQ_EEPROM_USER = 3,
+  ADQ_EEPROM_MAX_VAL = INT32_MAX
 };
 
 #define ADQ_GEN4_RECORD_HEADER_MISC_PATTERN_GENERATOR_POS (0)
@@ -576,6 +622,12 @@ struct ADQGen4Record
   uint64_t size;
 };
 
+struct ADQGen4RecordArray
+{
+  struct ADQGen4Record **record;
+  int32_t nof_records;
+};
+
 struct ADQClockSystemParameters
 {
   enum ADQParameterId id;
@@ -632,6 +684,7 @@ struct ADQPulseGeneratorParameters
 struct ADQDataAcquisitionParametersCommon
 {
   int64_t reserved;
+
 };
 
 struct ADQDataAcquisitionParametersChannel
@@ -639,6 +692,7 @@ struct ADQDataAcquisitionParametersChannel
   int64_t horizontal_offset;
   int64_t record_length;
   int64_t nof_records;
+  int64_t dsu_forced_metadata_interval;
   enum ADQEventSource trigger_source;
   enum ADQEdge trigger_edge;
   enum ADQFunction trigger_blocking_source;
@@ -677,6 +731,10 @@ struct ADQDataTransferParametersCommon
   int32_t write_lock_enabled;
   int32_t transfer_records_to_host_enabled;
   int32_t packed_buffers_enabled;
+
+
+  uint32_t dsu_doorbell_value_mask;
+  int32_t dsu_operation_size;
 };
 
 struct ADQDataTransferParametersChannel
@@ -694,7 +752,16 @@ struct ADQDataTransferParametersChannel
   volatile void *metadata_buffer[ADQ_MAX_NOF_BUFFERS];
   volatile uint32_t *marker_buffer[ADQ_MAX_NOF_BUFFERS];
   int32_t record_length_infinite_enabled;
+  int32_t record_enabled;
   int32_t metadata_enabled;
+
+  int32_t dsu_record_enabled;
+  int32_t dsu_metadata_enabled;
+
+
+  uint32_t dsu_record_enabled_endpoints_mask;
+  uint32_t dsu_metadata_enabled_endpoints_mask;
+  int32_t reserved;
 };
 
 struct ADQDataTransferParameters
@@ -715,6 +782,7 @@ struct ADQDataReadoutParametersCommon
 struct ADQDataReadoutParametersChannel
 {
   int64_t nof_record_buffers_max;
+  int64_t nof_record_buffers_in_array;
   int64_t record_buffer_size_max;
   int64_t record_buffer_size_increment;
   int32_t incomplete_records_enabled;
@@ -802,12 +870,11 @@ struct ADQConstantParametersPort
 struct ADQConstantParameters
 {
   enum ADQParameterId id;
-  int32_t reserved;
-  struct ADQClockSystemParameters clock_system;
   int32_t nof_channels;
   int32_t nof_pattern_generators;
   int32_t max_nof_pattern_generator_instructions;
   int32_t nof_pulse_generators;
+  int32_t nof_matrix_inputs;
   char dna[40];
   char serial_number[16];
   char product_name[32];
@@ -815,9 +882,13 @@ struct ADQConstantParameters
   char firmware_name[32];
   char firmware_revision[16];
   char firmware_type[16];
+  char firmware_part_number[16];
+  struct ADQClockSystemParameters clock_system;
   struct ADQConstantParametersChannel channel[ADQ_MAX_NOF_CHANNELS];
   struct ADQConstantParametersPort port[ADQ_MAX_NOF_PORTS];
   struct ADQConstantParametersCommunicationInterface communication_interface;
+  uint64_t eeprom_user_area_size;
+  uint64_t dram_size;
   uint64_t magic;
 };
 
@@ -848,6 +919,20 @@ struct ADQEventSourceLevelParameters
   enum ADQParameterId id;
   int32_t reserved;
   struct ADQEventSourceLevelParametersChannel channel[ADQ_MAX_NOF_CHANNELS];
+  uint64_t magic;
+};
+
+struct ADQEventSourceLevelMatrixParametersChannel
+{
+  int32_t enabled;
+  enum ADQEdge edge;
+};
+
+struct ADQEventSourceLevelMatrixParameters
+{
+  enum ADQParameterId id;
+  int32_t reserved;
+  struct ADQEventSourceLevelMatrixParametersChannel channel[ADQ_MAX_NOF_CHANNELS];
   uint64_t magic;
 };
 
@@ -934,8 +1019,17 @@ struct ADQTestPatternParameters
 struct ADQEventSourcePortParameters
 {
   enum ADQParameterId id;
-  int32_t reserved;
+  int32_t clock_reference_synchronization_enabled;
   double threshold;
+  enum ADQEdge clock_reference_synchronization_edge;
+  int32_t reserved;
+  uint64_t magic;
+};
+
+struct ADQEventSourceSoftwareParameters
+{
+  enum ADQParameterId id;
+  int32_t reserved;
   uint64_t magic;
 };
 
@@ -947,6 +1041,20 @@ struct ADQEventSourcePeriodicParameters
   int64_t high;
   int64_t low;
   double frequency;
+  uint64_t magic;
+};
+
+struct ADQEventSourceMatrixParametersInput
+{
+  enum ADQEventSource source;
+  enum ADQEdge edge;
+};
+
+struct ADQEventSourceMatrixParameters
+{
+  enum ADQParameterId id;
+  int32_t reserved;
+  struct ADQEventSourceMatrixParametersInput input[ADQ_MAX_NOF_MATRIX_INPUTS];
   uint64_t magic;
 };
 
@@ -1024,7 +1132,10 @@ struct ADQEventSourceParameters
   int32_t reserved;
   struct ADQEventSourcePeriodicParameters periodic;
   struct ADQEventSourceLevelParameters level;
+  struct ADQEventSourceLevelMatrixParameters level_matrix;
+  struct ADQEventSourceSoftwareParameters software;
   struct ADQEventSourcePortParameters port[ADQ_MAX_NOF_PORTS];
+  struct ADQEventSourceMatrixParameters matrix;
   uint64_t magic;
 };
 
@@ -1089,6 +1200,40 @@ struct ADQDigitalGainAndOffsetParametersInternal
   uint64_t magic;
 };
 #endif
+
+
+#define ADQ_DSU_MAX_NOF_ENDPOINTS 16u
+struct DSU7MetadataRaw{
+  uint8_t pad;
+  uint8_t status;//pad[4],trig_tevent, trig_rising,overrange, rec_end
+  uint8_t trigger;// trig_tnum;
+  uint8_t user_id;
+  uint16_t general_purpose_start;
+  uint16_t trigger_extended_precision;
+  uint64_t timestamp;
+  uint16_t lost_records;
+  uint16_t lost_cycles;
+  uint32_t record_number;
+  uint64_t record_length; // 36 bits
+};
+
+struct DSU7RecordHeader
+{
+  uint8_t RecordStatus; /**< Status of record. */
+  uint8_t UserID; /**< ID set by user. */
+  uint8_t Channel; /**< Channel. */
+  uint8_t DataFormat; /**< Data format. */
+  uint32_t SerialNumber; /**< Device serial. */
+  uint32_t RecordNumber; /**< Record number. */
+  int32_t SamplePeriod; /**< Sample period [ps]. */
+  uint64_t Timestamp; /**< Record timestamp. */
+  int64_t RecordStart; /**< Record start. */
+  uint64_t RecordLength; /**< Record length [samples]. */
+  uint16_t GeneralPurpose0; /**< General purpose 0. */
+  uint16_t GeneralPurpose1; /**< General purpose 1. */
+  uint16_t LostRecords; /**< Lost records. */
+  uint16_t LostCycles; /**< Lost cycles. */
+};
 
 
 #endif
@@ -1537,6 +1682,9 @@ struct ADQInterface
   virtual int SetStreamStatus(int status) = 0;
   virtual int GetStreamOverflow() = 0;
   virtual int GetStatus(enum ADQStatusId id, void *const status) = 0;
+
+  virtual int GetStatusString(enum ADQStatusId id, char *const string, size_t length, int format) = 0;
+  virtual int GetStatusFilename(enum ADQStatusId id, const char *const filename, int format) = 0;
   virtual char* GetBoardSerialNumber() = 0;
   virtual int GetCalibrationInformation(unsigned int index, int* int_info, char* str_info) = 0;
   virtual int* GetRevision() = 0;
@@ -1662,9 +1810,6 @@ struct ADQInterface
   virtual unsigned int SendDataDev2Dev(unsigned long PhysicalAddress, unsigned int channel, unsigned int options) = 0;
   virtual unsigned int SetupDMADev2GPUDGMA(unsigned int num_buffers, unsigned long long *physical_address_list, unsigned int *size_list) = 0;
   virtual unsigned int SetupDMADev2GPUDDMA(unsigned int num_buffers, unsigned long long *physical_address_list, unsigned int *size_list) = 0;
- virtual unsigned int SetupDMAP2p2D(unsigned long long *physical_address_list, unsigned long long *size_list,
-                               		unsigned int record_len, unsigned int nof_rec_line, unsigned int nof_lines_buf,
-                              		unsigned int stream_channels, unsigned int destination_type, void *options) = 0;
   virtual unsigned int WaitforGPUMarker(unsigned int *marker_list, unsigned int list_size, unsigned int marker, unsigned int timeout_ms) = 0;
 
   virtual unsigned int GetP2pStatus(unsigned int* pending, unsigned int channel) = 0;
@@ -1897,11 +2042,6 @@ struct ADQInterface
 
   virtual int SetupTimestampSync(unsigned int mode, unsigned int trig_source) = 0;
 
-  virtual int SetupTimestampSync2(
-      enum ADQTimestampSynchronizationMode mode,
-      enum ADQEventSource source,
-      enum ADQEdge edge) = 0;
-
   virtual int ArmTimestampSync() = 0;
 
   virtual int DisarmTimestampSync() = 0;
@@ -2120,9 +2260,17 @@ struct ADQInterface
   virtual int SetParametersFilename(const char *const filename) = 0;
 
   virtual int ValidateParameters(const void *const parameters) = 0;
-
+  
+  virtual int DSUUpdateDoorbellAddress(unsigned int endpoint, 
+                        unsigned int STE, uint64_t doorbell_address) = 0;
+  virtual int GetDSUParameters(uint64_t *BAR_addr, unsigned int *BAR_size_MiB, 
+                          unsigned int *read_size_min, unsigned int *read_size_max, 
+                          unsigned int *nof_endpoints_max, unsigned int *nof_dsu_ch) = 0;
   virtual int ValidateParametersString(const char *const string, size_t length) = 0;
   virtual int ValidateParametersFilename(const char *const filename) = 0;
+
+  virtual int ReadEeprom(enum ADQEeprom eeprom, uint32_t address, void *const buffer, size_t length) = 0;
+  virtual int WriteEeprom(enum ADQEeprom eeprom, uint32_t address, const void *const buffer, size_t length) = 0;
 
   virtual unsigned int ValidateDll() = 0; //MUST BE LAST FUNCTION !!!
 
@@ -2592,6 +2740,8 @@ DLL_IMPORT  int ADQ_GetStreamStatus(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  int ADQ_SetStreamStatus(void* adq_cu_ptr, int adq_num , int status);
 DLL_IMPORT  int ADQ_GetStreamOverflow(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  int ADQ_GetStatus(void* adq_cu_ptr, int adq_num , enum ADQStatusId id, void *const status);
+DLL_IMPORT  int ADQ_GetStatusString(void* adq_cu_ptr, int adq_num , enum ADQStatusId id, char *const string, size_t length, int format);
+DLL_IMPORT  int ADQ_GetStatusFilename(void* adq_cu_ptr, int adq_num , enum ADQStatusId id, const char *const filename, int format);
 DLL_IMPORT  char* ADQ_GetBoardSerialNumber(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  int ADQ_GetCalibrationInformation(void* adq_cu_ptr, int adq_num , unsigned int index, int* int_info, char* str_info);
 DLL_IMPORT  int* ADQ_GetRevision(void* adq_cu_ptr, int adq_num);
@@ -2699,7 +2849,6 @@ DLL_IMPORT  unsigned int ADQ_WriteToDataEP(void* adq_cu_ptr, int adq_num , unsig
 DLL_IMPORT  unsigned int ADQ_SendDataDev2Dev(void* adq_cu_ptr, int adq_num , unsigned long PhysicalAddress, unsigned int channel, unsigned int options);
 DLL_IMPORT  unsigned int ADQ_SetupDMADev2GPUDGMA(void* adq_cu_ptr, int adq_num , unsigned int num_buffers, unsigned long long *physical_address_list, unsigned int *size_list);
 DLL_IMPORT  unsigned int ADQ_SetupDMADev2GPUDDMA(void* adq_cu_ptr, int adq_num , unsigned int num_buffers, unsigned long long *physical_address_list, unsigned int *size_list);
-DLL_IMPORT  unsigned int ADQ_SetupDMAP2p2D(void* adq_cu_ptr, int adq_num , unsigned long long *physical_address_list, unsigned long long *size_list,unsigned int record_len, unsigned int nof_rec_line, unsigned int nof_lines_buf,unsigned int stream_channels, unsigned int destination_type, void *options);
 DLL_IMPORT  unsigned int ADQ_WaitforGPUMarker(void* adq_cu_ptr, int adq_num , unsigned int *marker_list, unsigned int list_size, unsigned int marker, unsigned int timeout_ms);
 DLL_IMPORT  unsigned int ADQ_GetP2pStatus(void* adq_cu_ptr, int adq_num , unsigned int* pending, unsigned int channel);
 DLL_IMPORT  unsigned int ADQ_SetP2pSize(void* adq_cu_ptr, int adq_num , unsigned int bytes, unsigned int channel);
@@ -2816,7 +2965,6 @@ DLL_IMPORT  int ADQ_SDCardBackupGetProgress(void* adq_cu_ptr, int adq_num , unsi
 DLL_IMPORT  int ADQ_SDCardBackupGetData(void* adq_cu_ptr, int adq_num , void **target_buffers, void *target_headers,unsigned int target_buffer_size,unsigned char target_bytes_per_sample,unsigned int start_record_number,unsigned int number_of_records,unsigned char channel_mask, unsigned int start_sample,unsigned int nof_samples);
 DLL_IMPORT  int ADQ_SDCardBackupDaisyChainGetTriggerInformation(void* adq_cu_ptr, int adq_num , unsigned int source, unsigned int edge, int level, unsigned int channel,unsigned int nof_records, unsigned int record_length,struct ADQDaisyChainDeviceInformation *device_info,unsigned int nof_devices,struct ADQDaisyChainTriggerInformation *trig_info);
 DLL_IMPORT  int ADQ_SetupTimestampSync(void* adq_cu_ptr, int adq_num , unsigned int mode, unsigned int trig_source);
-DLL_IMPORT  int ADQ_SetupTimestampSync2(void* adq_cu_ptr, int adq_num , enum ADQTimestampSynchronizationMode mode,enum ADQEventSource source,enum ADQEdge edge);
 DLL_IMPORT  int ADQ_ArmTimestampSync(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  int ADQ_DisarmTimestampSync(void* adq_cu_ptr, int adq_num);
 DLL_IMPORT  int ADQ_SetTimestampSyncSeed(void* adq_cu_ptr, int adq_num , uint64_t seed);
@@ -2915,8 +3063,12 @@ DLL_IMPORT  int ADQ_SetParameters(void* adq_cu_ptr, int adq_num , void *const pa
 DLL_IMPORT  int ADQ_SetParametersString(void* adq_cu_ptr, int adq_num , const char *const string, size_t length);
 DLL_IMPORT  int ADQ_SetParametersFilename(void* adq_cu_ptr, int adq_num , const char *const filename);
 DLL_IMPORT  int ADQ_ValidateParameters(void* adq_cu_ptr, int adq_num , const void *const parameters);
+DLL_IMPORT  int ADQ_DSUUpdateDoorbellAddress(void* adq_cu_ptr, int adq_num , unsigned int endpoint,unsigned int STE, uint64_t doorbell_address);
+DLL_IMPORT  int ADQ_GetDSUParameters(void* adq_cu_ptr, int adq_num , uint64_t *BAR_addr, unsigned int *BAR_size_MiB,unsigned int *read_size_min, unsigned int *read_size_max,unsigned int *nof_endpoints_max, unsigned int *nof_dsu_ch);
 DLL_IMPORT  int ADQ_ValidateParametersString(void* adq_cu_ptr, int adq_num , const char *const string, size_t length);
 DLL_IMPORT  int ADQ_ValidateParametersFilename(void* adq_cu_ptr, int adq_num , const char *const filename);
+DLL_IMPORT  int ADQ_ReadEeprom(void* adq_cu_ptr, int adq_num , enum ADQEeprom eeprom, uint32_t address, void *const buffer, size_t length);
+DLL_IMPORT  int ADQ_WriteEeprom(void* adq_cu_ptr, int adq_num , enum ADQEeprom eeprom, uint32_t address, const void *const buffer, size_t length);
 #ifdef __cplusplus
 }
 #endif
@@ -4656,6 +4808,14 @@ extern "C" {
                                            unsigned int *headers_added,
                                            unsigned int *header_status,
                                            unsigned char channels_mask);
+
+
+  DLL_IMPORT int ADQData_ParseDiskStreamHeaders(void *ref,
+                                                void *stored_headers_bufffer,
+                                                unsigned int nof_stored_headers,
+                                                void *target_headers_buffer,
+                                                unsigned int *headers_added,
+                                                unsigned int channel_id);
 
 #ifdef __cplusplus
 }

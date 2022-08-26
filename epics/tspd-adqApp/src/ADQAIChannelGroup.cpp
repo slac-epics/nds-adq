@@ -52,7 +52,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     ADQInterface* adqInterface, int32_t masterEnumeration, int32_t thisEnumeration, int32_t nextEnumeration) :
     ADQInfo(name, parentNode, adqInterface), 
     m_node(nds::Port(name + GROUP_CHAN_DEVICE, nds::nodeType_t::generic)),
-    m_logMsgPV(createPvRb<std::string>("LogMsg", &ADQAIChannelGroup::getLogMsg)),
     m_masterEnumerationPV(createPvRb<int32_t>("masterEnumeration", &ADQAIChannelGroup::getMasterEnumeration)),
     m_thisEnumerationPV(createPvRb<int32_t>("thisEnumeration", &ADQAIChannelGroup::getThisEnumeration)),
     m_nextEnumerationPV(createPvRb<int32_t>("nextEnumeration", &ADQAIChannelGroup::getNextEnumeration)),
@@ -116,7 +115,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_sync_immediatePV.setScanType(nds::scanType_t::interrupt);
 
     m_chanCnt = m_adqInterface->GetNofChannels();
-    m_adqType = m_adqInterface->GetADQType();
 
     m_daisyPositionChanged = m_daqModeChanged = m_patternModeChanged = m_dbsBypassChanged = m_dbsDcChanged = m_dbsLowSatChanged =
         m_dbsUpSatChanged = m_recordCntChanged = m_recordCntCollectChanged = m_sampleCntChanged = m_sampleSkipChanged = m_sampleDecChanged =
@@ -139,11 +137,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_sampleCnt = 1024;
     m_sampleSkip = 1;
     m_internTrigFreq = 1;
-    double SampleRate = 1000000000;
-    int status = m_adqInterface->GetSampleRate(0, &SampleRate);
-    m_SampleRate = int64_t(SampleRate + 0.5);
-    ADQNDS_MSG_WARNLOG_PV(status, "GetSampleRate failed.");
-    m_internTrigPeriod = int32_t(m_SampleRate + 0.5); // 1Hz, in samples
+    m_internTrigPeriod = int32_t(SampleRate() + 0.5); // 1Hz, in samples
     m_levelTrigEdge = m_internTrigEdge = 1;
     m_internTrigHighSamp = 500;
     m_internTrigLowSamp = m_internTrigPeriod - m_internTrigHighSamp;
@@ -157,11 +151,6 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
         channelName << "CH" << channelNum;
         m_AIChannelsPtr.push_back(std::make_shared<ADQAIChannel>(channelName.str(), m_node, int(channelNum)));
     }
-
-    // PV for error/warning/info messages
-    m_logMsgPV.setScanType(nds::scanType_t::interrupt);
-    m_logMsgPV.setMaxElements(512);
-    m_node.addChild(m_logMsgPV);
 
     // PV for data acquisition modes
     nds::enumerationStrings_t daqModeList = { "Multi-Record", "Continuous stream", "Triggered stream", "Raw stream" };
@@ -293,7 +282,7 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     createPv<double>("StreamTime", m_streamTimePV, &ADQAIChannelGroup::setStreamTime, &ADQAIChannelGroup::getStreamTime);
 
     setTriggerIdleState();
-    status = m_adqInterface->SetTriggerMode(1); // SW trigger
+    int status = m_adqInterface->SetTriggerMode(1); // SW trigger
     ADQNDS_MSG_WARNLOG_PV(status, "SetTriggerMode failed.");
 
     // PV for state machine
@@ -351,18 +340,6 @@ nds::PVDelegateIn<T> ADQAIChannelGroup::createPvRb(const std::string& name,
                                                    std::function<void(ADQAIChannelGroup*, timespec*, T*)> getter)
 {
     return nds::PVDelegateIn<T>(name, std::bind(getter, this, std::placeholders::_1, std::placeholders::_2));
-}
-
-void ADQAIChannelGroup::getLogMsg(timespec* pTimestamp, std::string* pValue)
-{
-    *pValue = m_logMsg;
-    *pTimestamp = m_logMsgPV.getTimestamp();
-}
-
-void ADQAIChannelGroup::setLogMsg(const timespec& pTimestamp, std::string const& pValue)
-{
-    m_logMsg = pValue;
-    m_logMsgPV.push(pTimestamp, m_logMsg);
 }
 
 void ADQAIChannelGroup::getMasterEnumeration(timespec* pTimestamp, int32_t* pValue)
@@ -589,7 +566,7 @@ void ADQAIChannelGroup::setSampleDec(const timespec& pTimestamp, const int32_t& 
     m_sampleDecPV.getTimestamp() = pTimestamp;
     // ADQ8 doesn't support decimation, so no need to push it.
     std::string adqOption = m_adqInterface->GetCardOption();
-    m_sampleDecChanged = ((m_adqType == 714 || m_adqType == 14) && (adqOption.find("-FWSDR") != std::string::npos));
+    m_sampleDecChanged = ((adqType() == 714 || adqType() == 14) && (adqOption.find("-FWSDR") != std::string::npos));
     commitChanges();
 }
 
@@ -920,7 +897,7 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
      // Check changes on channels
         for (auto const& channel : m_AIChannelsPtr)
         {
-            channel->commitChanges(calledFromDaqThread, m_adqInterface, m_logMsgPV);
+            channel->commitChanges(calledFromDaqThread, m_adqInterface, logMsgPV());
         }
 
         nds::state_t LocalState = m_stateMachine.getLocalState();
@@ -1133,11 +1110,11 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
 {
     unsigned int bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
     unsigned int stream_chunk_bytes = 512;
-    if (m_adqType == 714 || m_adqType == 14)
+    if (adqType() == 714 || adqType() == 14)
         stream_chunk_bytes = ADQ14_STREAM_CHUNK_BYTES;
-    if (m_adqType == 7)
+    if (adqType() == 7)
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
-    if (m_adqType == 8)
+    if (adqType() == 8)
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
     bufferSize = stream_chunk_bytes * ((bufferSize + stream_chunk_bytes - 1) / stream_chunk_bytes);
 
@@ -1196,7 +1173,7 @@ void ADQAIChannelGroup::daqTrigStream()
     short* daqDataBuffer[CHANNEL_COUNT_MAX];
     short* daqLeftoverSamples[CHANNEL_COUNT_MAX];
     streamingHeader_t* daqStreamHeaders[CHANNEL_COUNT_MAX];
-    double PicoSec = (m_adqType == 8) ? PicoSec25 : PicoSec125;
+    double PicoSec = (adqType() == 8) ? PicoSec25 : PicoSec125;
 
     try
     {
@@ -1233,7 +1210,7 @@ void ADQAIChannelGroup::daqTrigStream()
 
             status = m_adqInterface->SetStreamStatus(1);
             ADQNDS_MSG_ERRLOG_PV(status, "SetStreamStatus to 1 (Stream enabled) failed.");
-            if (m_adqType == 714 || m_adqType == 14)
+            if (adqType() == 714 || adqType() == 14)
             {
                 status = m_adqInterface->SetStreamConfig(2, 0);
                 ADQNDS_MSG_ERRLOG_PV(status, "SetStreamConfig 2 (enable packet headers) failed.");
@@ -1459,7 +1436,7 @@ finish:
 int ADQAIChannelGroup::commitDaisyChainTriggerSource(struct timespec const& now)
 {
     int status = 1;
-    if ((m_masterMode == 1) && (m_adqType == 8))
+    if ((m_masterMode == 1) && (adqType() == 8))
     {
         if (m_trigMode == 2)
         {
@@ -1494,7 +1471,7 @@ void ADQAIChannelGroup::setTriggerIdleState()
     uint32_t internTrigLowSamp = std::numeric_limits<unsigned int>::max() - 4 - m_internTrigHighSamp;
     status = m_adqInterface->SetInternalTriggerHighLow(m_internTrigHighSamp, internTrigLowSamp);
     ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerHighLow failed.");
-    if ((m_adqType == 412) || (m_adqType == 1600) || (m_adqType == 108) || (m_adqType == 14) || (m_adqType == 7) || (m_adqType == 8))
+    if ((adqType() == 412) || (adqType() == 1600) || (adqType() == 108) || (adqType() == 14) || (adqType() == 7) || (adqType() == 8))
     {
         status = m_adqInterface->SetInternalTriggerSyncMode(0);
         ADQNDS_MSG_WARNLOG_PV(status, "SetInternalTriggerSyncMode failed.");
@@ -1503,7 +1480,7 @@ void ADQAIChannelGroup::setTriggerIdleState()
     ADQNDS_MSG_WARNLOG_PV(status, "DisarmTimestampSync failed.");
     status = m_adqInterface->DisarmTrigger();
     ADQNDS_MSG_WARNLOG_PV(status, "DisarmTrigger failed.");
-    if (m_adqType == 8)
+    if (adqType() == 8)
     {
         status = m_adqInterface->DaisyChainSetOutputState(0);
         ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainSetOutputState failed.");
@@ -1625,7 +1602,7 @@ void ADQAIChannelGroup::commitInternTrigFreqChanged(struct timespec const& now)
     if (m_internTrigFreq <= 0)
         m_internTrigFreq = 1;
 
-    m_internTrigPeriod = int32_t(0.5 + m_SampleRate / m_internTrigFreq);
+    m_internTrigPeriod = int32_t(0.5 + SampleRate() / m_internTrigFreq);
     m_internTrigLowSamp = m_internTrigPeriod - m_internTrigHighSamp;
 
     if (m_masterMode != 1)
@@ -1644,7 +1621,7 @@ void ADQAIChannelGroup::commitExternTrigThreshold(struct timespec const& now)
     int status;
     if (m_adqInterface->HasVariableTrigThreshold(EXTERN_TRIG_COUNT))
     {
-        if (m_adqType == 714 || m_adqType == 14)
+        if (adqType() == 714 || adqType() == 14)
         {
             status = m_adqInterface->SetExtTrigThreshold(EXTERN_TRIG_COUNT, m_externTrigThreshold);
             ADQNDS_MSG_WARNLOG_PV(status, "SetExtTrigThreshold failed.");
@@ -1652,7 +1629,7 @@ void ADQAIChannelGroup::commitExternTrigThreshold(struct timespec const& now)
             if (status)
                 m_externTrigThresholdPV.push(now, m_externTrigThreshold);
         }
-        if ((m_adqType == 7) || (m_adqType == 8))
+        if ((adqType() == 7) || (adqType() == 8))
         {
             status = m_adqInterface->SetTriggerThresholdVoltage(m_trigMode + 1, m_externTrigThreshold);
             ADQNDS_MSG_WARNLOG_PV(status, "SetExtTrigThreshold failed.");
@@ -1687,7 +1664,7 @@ void ADQAIChannelGroup::commitLevelTrigLvl(struct timespec const& now)
     int status = m_adqInterface->SetLvlTrigLevel(m_levelTrigLvl);
     ADQNDS_MSG_WARNLOG_PV(status, "SetLvlTrigLevel failed.");
 
-    if (m_adqType == 714 || m_adqType == 14)
+    if (adqType() == 714 || adqType() == 14)
         m_levelTrigLvl = m_adqInterface->GetLvlTrigLevel();
 
     m_levelTrigLvlPV.push(now, m_levelTrigLvl);
@@ -1734,7 +1711,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
             m_levelTrigChanMask = 2;
             break;
         case 3:   // ch A+B
-            if (m_adqType == 7)
+            if (adqType() == 7)
             {
                 ADQNDS_MSG_WARNLOG_PV(0, "ADQ7 allows only one channel to generate the trigger -> "
                     "changed to channel B");
@@ -1790,7 +1767,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
     int status = m_adqInterface->SetLvlTrigChannel(m_levelTrigChanMask);
     ADQNDS_MSG_WARNLOG_PV(status, "SetLvlTrigChannel failed.");
 
-    if (m_adqType == 714 || m_adqType == 14)
+    if (adqType() == 714 || adqType() == 14)
         m_levelTrigChanMask = m_adqInterface->GetLvlTrigChannel();
 
     m_levelTrigChanMaskPV.push(now, m_levelTrigChanMask);
@@ -1798,7 +1775,7 @@ void ADQAIChannelGroup::commitLevelTrigChanMask(struct timespec const& now)
 
 void ADQAIChannelGroup::commitExternTrigDelay(struct timespec const& now)
 {
-    if ((m_adqType == 714) || (m_adqType == 14))
+    if ((adqType() == 714) || (adqType() == 14))
     {
         if (m_externTrigDelay < 0)
             m_externTrigDelay = 0;
@@ -1808,7 +1785,7 @@ void ADQAIChannelGroup::commitExternTrigDelay(struct timespec const& now)
         ndsInfoStream(m_node) << "INFO: Trigger delay: for ADQ14 valid range is [0, 37]." << std::endl;
     }
 
-    if (m_adqType == 7)
+    if (adqType() == 7)
     {
         if (m_externTrigDelay < 1)
             m_externTrigDelay = 1;
@@ -1829,7 +1806,7 @@ void ADQAIChannelGroup::commitDaqMode(struct timespec& now)
 {
     m_daqModeChanged = false;
 
-    if ((m_daqMode == 2) && ((m_adqType == 714) || (m_adqType == 14)))   // Triggered streaming and ADQ14
+    if ((m_daqMode == 2) && ((adqType() == 714) || (adqType() == 14)))   // Triggered streaming and ADQ14
     {
         int status = m_adqInterface->HasTriggeredStreamingFunctionality();
         if (!status)
@@ -1865,7 +1842,7 @@ void ADQAIChannelGroup::commitClockSource(struct timespec const& now)
     int status = m_adqInterface->SetClockSource(m_clockSrc);
     ADQNDS_MSG_WARNLOG_PV(status, "SetClockSource failed.");
 
-    if (m_adqType == 714 || m_adqType == 14)
+    if (adqType() == 714 || adqType() == 14)
     {
         m_clockSrc = m_adqInterface->GetClockSource();
     }
@@ -1961,7 +1938,7 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
             ndsWarningStream(m_node) << "Daisy chain information only available to master modules" << std::endl;
             m_daisyPosition.resize(1);
         }
-        if (m_adqType != 8)
+        if (adqType() != 8)
         {
             ndsWarningStream(m_node) << "Daisy chain position only an option for ADQ8" << std::endl;
             m_daisyPosition.clear();
@@ -1974,14 +1951,14 @@ void ADQAIChannelGroup::commitTriggerDelayOrHoldoff(struct timespec const& now)
             m_device_info.resize(m_daisyPosition.size());
             for (size_t Position = 0; Position < m_device_info.size(); Position++)
             {
-                status = m_adqInterface->DaisyChainGetNofPretriggerSamples(m_daisyPosition[Position], m_SampleRate, &DaisyPreTriggerSamples);
+                status = m_adqInterface->DaisyChainGetNofPretriggerSamples(m_daisyPosition[Position], SampleRate(), &DaisyPreTriggerSamples);
                 ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainGetNofPretriggerSamples failed.");
                 m_device_info[Position].Position = m_daisyPosition[Position];
                 m_device_info[Position].PretriggerSamples = preTrigSamp + DaisyPreTriggerSamples;
                 // The requirement to add 4 is only required if DaisyChainGetTriggerInformation is set to use trigger source 3.
                 //m_device_info[Position].PretriggerSamples += 4;
                 m_device_info[Position].TriggerDelaySamples = trigHoldOffSamp;
-                m_device_info[Position].SampleRate = m_SampleRate;
+                m_device_info[Position].SampleRate = SampleRate();
             }
             preTrigSamp = m_device_info[0].PretriggerSamples;
             if (m_masterMode != 1)
@@ -2074,7 +2051,7 @@ void ADQAIChannelGroup::commitDaisyChain(struct timespec const& now)
     TraceOutWithTime(m_node, "setDaisyChain %d", m_masterMode);
     m_masterModeChanged = false;
     m_sync_immediateChanged = false;
-    if (m_adqType == 8)
+    if (adqType() == 8)
     {
         status = m_adqInterface->DaisyChainEnableOutput(0);
         ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainEnableOutput failed.");
@@ -2497,7 +2474,7 @@ void ADQAIChannelGroup::commitSampleDec(struct timespec& now)
     m_sampleDecChanged = false;
     std::string adqOption = m_adqInterface->GetCardOption();
 
-    if ((m_adqType == 714 || m_adqType == 14) && (adqOption.find("-FWSDR") != std::string::npos))
+    if ((adqType() == 714 || adqType() == 14) && (adqOption.find("-FWSDR") != std::string::npos))
     {
         if (m_sampleDec < 0)
         {
@@ -2593,7 +2570,7 @@ void ADQAIChannelGroup::daqMultiRecord()
     int status;
     streamingHeader_t* daqStreamHeaders[CHANNEL_COUNT_MAX];
     short* daqDataBuffer[CHANNEL_COUNT_MAX];
-    double PicoSec = (m_adqType == 8) ? PicoSec25 : PicoSec125;
+    double PicoSec = (adqType() == 8) ? PicoSec25 : PicoSec125;
     std::vector<TimeStamp_t> TimeStampRecord(m_recordCnt);
     int32_t Record = 0;
     int32_t RecordCntRB = 0;
@@ -2605,7 +2582,7 @@ void ADQAIChannelGroup::daqMultiRecord()
 
         TraceOutWithTime(m_node, "daqMultiRecord started");
 
-        if (m_adqType == 8)
+        if (adqType() == 8)
         {
             status = m_adqInterface->DaisyChainEnable(1);
             ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainEnable failed.");
@@ -2662,7 +2639,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                 SLEEP(1);
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
-                    if (m_adqType == 8)
+                    if (adqType() == 8)
                         DaisyChainGetStatus(__LINE__);
                     if (m_adqInterface->GetStreamOverflow())
                         ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected");
@@ -2740,7 +2717,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                     ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainGetTriggerInformation failed.");
                 }
             }
-            if ((m_adqType == 8) && (m_masterMode == 1) && (m_device_info.size() > 0))
+            if ((adqType() == 8) && (m_masterMode == 1) && (m_device_info.size() > 0))
             {
                 m_daisyRecordStart.resize(m_device_info.size() * m_recordCntCollect);
                 m_daisyTimeStamp.resize(m_recordCntCollect);
@@ -2777,7 +2754,7 @@ void ADQAIChannelGroup::daqMultiRecord()
     setTriggerIdleState();
     {
         std::lock_guard<std::mutex> lock(m_adqDevMutex);
-        if (m_adqType == 8)
+        if (adqType() == 8)
         {
             status = m_adqInterface->DaisyChainEnable(0);
             ADQNDS_MSG_WARNLOG_PV(status, "DaisyChainEnable failed.");
@@ -2820,15 +2797,15 @@ void ADQAIChannelGroup::daqContinStream()
 
     try
     {
-        if (m_adqType == 714 || m_adqType == 14)
+        if (adqType() == 714 || adqType() == 14)
         {
             bufferSize = BUFFERSIZE_ADQ14;
         }
-        if (m_adqType == 7)
+        if (adqType() == 7)
         {
             bufferSize = BUFFERSIZE_ADQ7;
         }
-        if (m_adqType == 8)
+        if (adqType() == 8)
         {
             bufferSize = BUFFERSIZE_ADQ8;
         }
@@ -2988,15 +2965,15 @@ void ADQAIChannelGroup::daqRawStream()
 
     try
     {
-        if (m_adqType == 714 || m_adqType == 14)
+        if (adqType() == 714 || adqType() == 14)
         {
             bufferSize = BUFFERSIZE_ADQ14;
         }
-        if (m_adqType == 7)
+        if (adqType() == 7)
         {
             bufferSize = BUFFERSIZE_ADQ7;
         }
-        if (m_adqType == 8)
+        if (adqType() == 8)
         {
             bufferSize = BUFFERSIZE_ADQ8;
         }
@@ -3112,19 +3089,6 @@ void ADQAIChannelGroup::daqRawStream()
 ADQAIChannelGroup::~ADQAIChannelGroup()
 {
 }
-
-std::string ADQAIChannelGroup::utc_system_timestamp(struct timespec const& now, char sep) const
-{
-    // https://stackoverflow.com/questions/15106102/how-to-use-c-stdostream-with-printf-like-formatting
-    const int bufsize = 31;
-    const int tmpsize = 21;
-    char buf[bufsize];
-    struct tm* tm = gmtime(&now.tv_sec);
-    strftime(buf, tmpsize, "%Y-%m-%d %H:%M:%S.", tm);
-    sprintf(buf + tmpsize - 1, "%09lu%c", now.tv_nsec, sep);
-    return buf;
-}
-
 
 void ADQAIChannelGroup::ThrowException(std::string const& text)
 {

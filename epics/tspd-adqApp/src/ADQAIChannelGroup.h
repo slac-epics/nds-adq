@@ -483,12 +483,6 @@ public:
      */
     void getInternTrigEdge(timespec* pTimestamp, int32_t* pValue);
 
-    /** @fn getLogMsg
-     * @brief Gets the log messages.
-     */
-    void getLogMsg(timespec* pTimestamp, std::string* pValue);
-    void setLogMsg(const timespec& pTimestamp, std::string const& pValue);
-
     /** @fn getEnumerationOrder
      * @brief Gets the bus enumeration order of this module.
      */
@@ -580,7 +574,6 @@ private:
     int m_sync_immediate;
 
     unsigned int m_chanCnt;
-    int m_adqType;
 
     int32_t m_daqMode;
     bool m_daqModeChanged;
@@ -654,7 +647,6 @@ private:
     int32_t m_internTrigHighSamp;
     bool m_internTrigHighSampChanged;
     int32_t m_internTrigLowSamp;
-    int64_t m_SampleRate;
     int32_t m_internTrigFreq;
     bool m_internTrigFreqChanged;
     std::vector<double> m_trigTimeStamp;
@@ -714,8 +706,6 @@ private:
 #endif
     static std::mutex m_StaticMutex;
 
-    std::string m_logMsg;
-    nds::PVDelegateIn<std::string> m_logMsgPV;
     nds::PVDelegateIn<int32_t> m_masterEnumerationPV;
     nds::PVDelegateIn<int32_t> m_thisEnumerationPV;
     nds::PVDelegateIn<int32_t> m_nextEnumerationPV;
@@ -762,23 +752,6 @@ private:
     nds::PVDelegateIn<double> m_streamTimePV;
 
     nds::Thread m_daqThread;
-    /** @def ADQNDS_MSG_WARNLOG_PV
-     * @brief Macro for warning information in case of minor failures.
-     * Used in ADQAIChannelGroup methods.
-     * @param status status of the function that calls this macro.
-     * @param text input information message.
-     */
-    void ADQNDS_MSG_WARNLOG_PV(int status, std::string const& text)
-    {
-        if (!status)
-        {
-            struct timespec now = { 0, 0 };
-            clock_gettime(CLOCK_REALTIME, &now);
-            std::string Warning = "WARNING: " + utc_system_timestamp(now, ' ') + " " + m_node.getFullExternalName() + " " + text;
-            m_logMsgPV.push(now, std::string(Warning));
-            ndsWarningStream(m_node) << Warning << std::endl;
-        }
-    }
     /** @def ADQNDS_MSG_ERRLOG_PV
      * @brief Macro for informing the user about occured major failures and
      * stopping data acquisition. Used in ADQAIChannelGroup methods.
@@ -790,7 +763,6 @@ private:
         double m_TrigTimeStamp;
     };
     void RecordTimeStampsAsCSV(std::vector<TimeStamp_t> const& TimeStampRecord, int32_t Record);
-    std::string utc_system_timestamp(struct timespec const& now, char sep) const;
     void ThrowException(std::string const& text);
     void ADQNDS_MSG_ERRLOG_PV(int status, std::string const& text) {
         if (!status)

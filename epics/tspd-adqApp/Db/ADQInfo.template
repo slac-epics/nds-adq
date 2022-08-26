@@ -10,6 +10,16 @@
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
+record(waveform,"${PREFIX}-${ADQSN}:${INFO}:LOGMSG") {
+    field(DESC, "Message log")
+    field(FTVL,"CHAR")
+    field(NELM,"512")
+    field(SCAN,"I/O Intr")
+    field(DTYP,"asynInt8ArrayIn")
+    field(INP,"@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) LogMsg")
+    field(PINI, "YES")
+}
+
 record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODNAME") {
     field(DESC, "Product name of the device")
     field(FTVL, "CHAR")
@@ -163,6 +173,49 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPRSVD") {
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempRSVD")
+    field(PINI, "YES")
+}
+
+record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL1_LOCK_LOST") {
+    field(DESC, "PLL1 lock lost")
+    field(HIHI, "2")
+    field(HIGH, "1")
+    field(ZRVL, 0)
+    field(ZRST, "Lock OK")
+    field(ONVL, 1)
+    field(ONST, "Lock recovered")
+    field(TWVL, 2)
+    field(TWST, "Lock failed")
+    field(SCAN, "1 second")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PLL1_lock_lost")
+    field(PINI, "YES")
+}
+
+record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL2_LOCK_LOST") {
+    field(DESC, "PLL2 lock lost")
+    field(HIHI, "2")
+    field(HIGH, "1")
+    field(ZRVL, 0)
+    field(ZRST, "Lock OK")
+    field(ONVL, 1)
+    field(ONST, "Lock recovered")
+    field(TWVL, 2)
+    field(TWST, "Lock failed")
+    field(SCAN, "1 second")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PLL2_lock_lost")
+    field(PINI, "YES")
+}
+
+record(longin, "${PREFIX}-${ADQSN}:${INFO}:FREQUENCYDESCREPANCY") {
+    field(DESC, "Reference frequency descrepancy")
+    field(EGU,  "Hz")
+    field(HIHI, "1000")
+    field(HIGH, "500")
+    field(SCAN, "1 second")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) frequencyDescrepancy")
     field(PINI, "YES")
 }
 

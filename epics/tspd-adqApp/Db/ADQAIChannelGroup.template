@@ -14,16 +14,6 @@
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
-record(waveform,"${PREFIX}-${ADQSN}:${GRP}:LOGMSG") {
-    field(DESC, "Message log")
-    field(FTVL,"CHAR")
-    field(NELM,"512")
-    field(SCAN,"I/O Intr")
-    field(DTYP,"asynInt8ArrayIn")
-    field(INP,"@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) LogMsg")
-    field(PINI, "YES")
-}
-
 record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:DAQMODE") {
     field(DESC, "Set DAQ mode")
     field(SCAN, "Passive")
