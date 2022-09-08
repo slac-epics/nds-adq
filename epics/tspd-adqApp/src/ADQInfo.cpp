@@ -140,6 +140,8 @@ ADQInfo::ADQInfo(const std::string& name, nds::Node& parentNode, ADQInterface* a
     m_pll2_lock_lostPV.processAtInit(PINI);
     m_node.addChild(m_pll2_lock_lostPV);
     m_pll2_lock_lost = 0;
+    m_frequencyDescrepancyPV.processAtInit(PINI);
+    m_node.addChild(m_frequencyDescrepancyPV);
     m_frequencyDescrepancy = 0;
 
     // PV for sample rate
@@ -345,6 +347,7 @@ void ADQInfo::reportLockLost(const char* pllNum, int& m_lock_lost, int lock_lost
             Iter++;
         Warning += *Iter;
         Warning += " to ";
+        Iter = lockStatusList.begin();
         for (int i = 0; (i < lock_lost) && (i < int(lockStatusList.size())); i++)
             Iter++;
         Warning += *Iter;
@@ -362,22 +365,31 @@ void ADQInfo::getPLL1_lock_lost(timespec* pTimestamp, int32_t* pValue)
     else
     {
         ADQClockSystemStatus ADQClockSystemStatus;
-        int status = m_adqInterface->GetStatus(ADQ_STATUS_ID_CLOCK_SYSTEM, &ADQClockSystemStatus);
-        ADQNDS_MSG_WARNLOG_PV(status, "GetStatus failed.");
+        {
+            std::lock_guard<std::mutex> lock(m_adqDevMutex);
+            int status = m_adqInterface->GetStatus(ADQ_STATUS_ID_CLOCK_SYSTEM, &ADQClockSystemStatus);
+            ADQNDS_MSG_WARNLOG_PV(status, "GetStatus failed.");
+        }
         int32_t pll1_lock_lost = m_pll1_lock_lost;
-        if (!ADQClockSystemStatus.pll1_lock_detect)
-            pll1_lock_lost = 2;
-        else if (ADQClockSystemStatus.pll1_lock_lost_alarm)
-            pll1_lock_lost = 1;
-        reportLockLost("pll1", m_pll1_lock_lost, pll1_lock_lost);
+        if ((ADQClockSystemStatus.pll1_lock_detect != -1) && (ADQClockSystemStatus.pll1_lock_lost_alarm != -1)) {
+            if (!ADQClockSystemStatus.pll1_lock_detect)
+                pll1_lock_lost = 2;
+            else if (ADQClockSystemStatus.pll1_lock_lost_alarm)
+                pll1_lock_lost = 1;
+            reportLockLost("pll1", m_pll1_lock_lost, pll1_lock_lost);
+        }
         *pValue = m_pll1_lock_lost;
         int32_t pll2_lock_lost = m_pll2_lock_lost;
-        if (!ADQClockSystemStatus.pll2_lock_detect)
-            pll2_lock_lost = 2;
-        else if (ADQClockSystemStatus.pll2_lock_lost_alarm)
-            pll2_lock_lost = 1;
-        reportLockLost("pll2", m_pll2_lock_lost, pll2_lock_lost);
-        m_frequencyDescrepancy = int32_t(ADQClockSystemStatus.reference_source_frequency_estimate - m_SampleRate + 0.5);
+        if ((ADQClockSystemStatus.pll2_lock_detect != -1) && (ADQClockSystemStatus.pll2_lock_lost_alarm != -1)) {
+            if (!ADQClockSystemStatus.pll2_lock_detect)
+                pll2_lock_lost = 2;
+            else if (ADQClockSystemStatus.pll2_lock_lost_alarm)
+                pll2_lock_lost = 1;
+            reportLockLost("pll2", m_pll2_lock_lost, pll2_lock_lost);
+        }
+        if (ADQClockSystemStatus.reference_source_frequency_estimate != -1.0) {
+            m_frequencyDescrepancy = int32_t(ADQClockSystemStatus.reference_source_frequency_estimate - m_SampleRate + 0.5);
+        }
     }
     *pTimestamp = m_pll1_lock_lostPV.getTimestamp();
 }

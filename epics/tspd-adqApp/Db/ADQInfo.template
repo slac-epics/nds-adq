@@ -178,8 +178,6 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPRSVD") {
 
 record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL1_LOCK_LOST") {
     field(DESC, "PLL1 lock lost")
-    field(HIHI, "2")
-    field(HIGH, "1")
     field(ZRVL, 0)
     field(ZRST, "Lock OK")
     field(ONVL, 1)
@@ -194,8 +192,6 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL1_LOCK_LOST") {
 
 record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL2_LOCK_LOST") {
     field(DESC, "PLL2 lock lost")
-    field(HIHI, "2")
-    field(HIGH, "1")
     field(ZRVL, 0)
     field(ZRST, "Lock OK")
     field(ONVL, 1)
@@ -209,7 +205,7 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL2_LOCK_LOST") {
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:FREQUENCYDESCREPANCY") {
-    field(DESC, "Reference frequency descrepancy")
+    field(DESC, "Reference frequency discrepancy")
     field(EGU,  "Hz")
     field(HIHI, "1000")
     field(HIGH, "500")
