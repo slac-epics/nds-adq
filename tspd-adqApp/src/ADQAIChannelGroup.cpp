@@ -1259,14 +1259,15 @@ void ADQAIChannelGroup::daqTrigStream()
 
                 buffersFilled = 0;
 
-                status = m_adqInterface->GetStreamOverflow();
                 m_trigTimeStamp.resize(1);
 
-                if (status)
-                {
-                    status = 0;
-                    ADQNDS_MSG_ERRLOG_PV(status, "Streaming overflow detected.");
-                }
+                // This seems to cause problems and may not be needed, so commenting it out.
+                //status = m_adqInterface->GetStreamOverflow();
+                //if (status)
+                //{
+                //    status = 0;
+                //    ADQNDS_MSG_ERRLOG_PV(status, "Streaming overflow detected.");
+                //}
 
                 buffersFilled = 0;
                 int32_t thisTimeout = 1;
@@ -2651,8 +2652,9 @@ void ADQAIChannelGroup::daqMultiRecord()
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
                     if (adqType() == 8)
                         DaisyChainGetStatus(__LINE__);
-                    if (m_adqInterface->GetStreamOverflow())
-                        ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected");
+                    // This seems to cause problems and may not be needed, so commenting it out.
+                    //if (m_adqInterface->GetStreamOverflow())
+                    //    ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected");
                 };
             }
 
@@ -2921,12 +2923,13 @@ void ADQAIChannelGroup::daqContinStream()
                     ndsInfoStream(m_node) << "INFO: Acquisition finished due to achieved target stream time." << std::endl;
                 }
 
-                status = m_adqInterface->GetStreamOverflow();
-                if (status)
-                {
-                    streamCompleted = 1;
-                    ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected.");
-                }
+                // This seems to cause problems and may not be needed, so commenting it out.
+                //status = m_adqInterface->GetStreamOverflow();
+                //if (status)
+                //{
+                //    streamCompleted = 1;
+                //    ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected.");
+                //}
             }
         }
     }
@@ -3035,12 +3038,13 @@ void ADQAIChannelGroup::daqRawStream()
                 bufferSampCnt = MIN(m_adqInterface->GetSamplesPerPage(), m_sampleCntCollect);
                 ndsInfoStream(m_node) << "GetSamplesPerPage " << m_adqInterface->GetSamplesPerPage() << std::endl;
 
-                status = m_adqInterface->GetStreamOverflow();
-                if (status)
-                {
-                    status = 0;
-                    ADQNDS_MSG_ERRLOG_PV(status, "Streaming overflow detected.");
-                }
+                // This seems to cause problems and may not be needed, so commenting it out.
+                //status = m_adqInterface->GetStreamOverflow();
+                //if (status)
+                //{
+                //    status = 0;
+                //    ADQNDS_MSG_ERRLOG_PV(status, "Streaming overflow detected.");
+                //}
             }
 
             // Buffer all data in RAM before writing to disk
