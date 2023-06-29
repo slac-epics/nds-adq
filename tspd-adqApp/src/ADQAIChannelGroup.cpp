@@ -2905,16 +2905,20 @@ void ADQAIChannelGroup::daqContinStream()
 
                     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
                     {
-                        samplesAddedTotal += samplesAdded[chan];
+                        if (m_chanMask & (1 << chan)) {
+                            samplesAddedTotal += samplesAdded[chan];
+                        }
                     }
 
                     // Read data from each channel's buffer
                     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
                     {
-                        int32_t sampleCnt = samplesAdded[chan];
-                        struct timespec now;
-                        clock_gettime(CLOCK_REALTIME, &now);
-                        m_AIChannelsPtr[chan]->readData(daqDataBuffer[chan], sampleCnt, now);
+                        if (m_chanMask & (1 << chan)) {
+                            int32_t sampleCnt = samplesAdded[chan];
+                            struct timespec now;
+                            clock_gettime(CLOCK_REALTIME, &now);
+                            m_AIChannelsPtr[chan]->readData(daqDataBuffer[chan], sampleCnt, now);
+                        }
                     }
                 }
 
@@ -2950,10 +2954,12 @@ void ADQAIChannelGroup::daqContinStream()
 
     for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
     {
-        if (daqDataBuffer[chan])
-            free(daqDataBuffer[chan]);
-        if (daqStreamHeaders[chan])
-            free(daqStreamHeaders[chan]);
+        if (m_chanMask & (1 << chan)) {
+            if (daqDataBuffer[chan])
+                free(daqDataBuffer[chan]);
+            if (daqStreamHeaders[chan])
+                free(daqStreamHeaders[chan]);
+        }
     }
 
     try
