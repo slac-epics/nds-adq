@@ -1281,7 +1281,8 @@ void ADQAIChannelGroup::daqTrigStream()
                 ADQNDS_MSG_ERRLOG_PV(status, "WaitForTransferBuffer failed.");
                 if (buffersFilled)
                 {
-                    ndsInfoStream(m_node) << "INFO: Receiving data..." << std::endl;
+                    //ndsInfoStream(m_node) << "INFO: Receiving data..." << std::endl;
+                    ndsDebugStream(m_node) << "DEBUG: Receiving data..." << std::endl;
                     status = m_adqInterface->GetDataStreaming((void**)daqDataBuffer, (void**)daqStreamHeaders, m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
                     TraceOutWithTime(m_node, "GetDataStreaming returned %u buffers with %u %u %u %u samples on records %u %u %u %u",
                         buffersFilled, samplesAddedCnt[0], samplesAddedCnt[1], samplesAddedCnt[2], samplesAddedCnt[3],
@@ -2891,7 +2892,8 @@ void ADQAIChannelGroup::daqContinStream()
 
                 for (unsigned int buf = 0; buf < buffersFilled; buf++)
                 {
-                    ndsInfoStream(m_node) << "INFO: Receiving data..." << std::endl;
+                    //ndsInfoStream(m_node) << "INFO: Receiving data..." << std::endl;
+                    ndsDebugStream(m_node) << "DEBUG: Receiving data..." << std::endl;
                     status = m_adqInterface->GetDataStreaming((void**)daqDataBuffer,
                         (void**)daqStreamHeaders,
                         m_chanMask,
