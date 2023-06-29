@@ -146,6 +146,9 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     m_internTrigLowSamp = m_internTrigPeriod - m_internTrigHighSamp;
     m_levelTrigChan = 1; // 0 is not a valid trigger channel number.
     m_DaisyChainStatus = 0;
+    m_trigMode = 1;
+    m_externTrigEdge = 1;
+    m_externTrigThreshold = 1.5;
 
     // Create vector of pointers to each chanel
     for (size_t channelNum(0); channelNum != m_chanCnt; ++channelNum)
@@ -174,7 +177,8 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string& name, nds::Node& parentN
     if (m_chanCnt == 4)
     {
         chanMaskList = { "A", "B", "C", "D", "A+B", "C+D", "A+B+C+D" };
-        m_chanActive = 6;
+        //m_chanActive = 6;
+        m_chanActive = 0;
         m_chanMask = 0X0F;
     }
     if (m_chanCnt == 2)
