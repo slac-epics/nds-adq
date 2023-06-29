@@ -36,7 +36,8 @@ ADQAIChannel::ADQAIChannel(const std::string& name, nds::Node& parentNode, int32
     m_inputImpedanceChanged = m_inputRangeChanged = m_dcBiasChanged = true;
     m_chanDecChanged = false; //Decimation not supported on some models.
 
-    m_inputRange = 1000; // in mV
+    //m_inputRange = 1000; // in mV
+    m_inputRange = 5000; // in mV
     m_inputImpedance = m_dcBias = m_chanDec = 0;
 
     // PV for input range
