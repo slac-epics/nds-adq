@@ -1211,6 +1211,9 @@ void ADQAIChannelGroup::daqTrigStream()
 
             status = m_adqInterface->TriggeredStreamingSetup(m_recordCnt, m_sampleCnt, m_preTrigSamp, m_trigHoldOffSamp, m_chanMask);
             ADQNDS_MSG_ERRLOG_PV(status, "TriggeredStreamingSetup failed.");
+            TraceOutWithTime(m_node, 
+                    "TriggeredStreamingSetup: m_recordCnt=%u, m_sampleCnt=%u, m_preTrigSamp=%u, m_trigHoldOffSamp=%u, m_chanMask=%u", 
+                    m_recordCnt, m_sampleCnt, m_preTrigSamp, m_trigHoldOffSamp);
 
             status = m_adqInterface->FlushPacketOnRecordStop(1);
             ADQNDS_MSG_ERRLOG_PV(status, "FlushPacketOnRecordStop failed.");
