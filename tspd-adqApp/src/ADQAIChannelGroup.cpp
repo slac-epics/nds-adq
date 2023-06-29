@@ -1403,7 +1403,7 @@ void ADQAIChannelGroup::daqTrigStream()
                 m_recordCntPV.push(now, recordCnt);
                 TraceOutWithTime(m_node, "Sent recordcount %d", recordCnt);
             }
-        } while (recordCnt < m_recordCnt);
+        } while ((recordCnt < m_recordCnt) || (m_recordCnt == -1));
     }
     catch (nds::NdsError const&) {
     }
