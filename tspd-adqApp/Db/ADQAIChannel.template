@@ -83,7 +83,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
     field(DESC, "Received data")
     field(FTVL, "SHORT")
     # This is the maximum number samples in a record * NRECORDSCOLLECT
-    field(NELM, "${NSAMPLES=2000}")
+    field(NELM, "${NSAMPLES=100000}")
     field(PRIO, "HIGH")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt16ArrayIn")
