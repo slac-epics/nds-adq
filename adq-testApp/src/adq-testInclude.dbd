@@ -1,6 +1,0 @@
-include "base.dbd"
-include "nds3-epics.dbd"
-include "asyn.dbd"
-registrar(drvAsynIPPortRegisterCommands)
-registrar(drvAsynSerialPortRegisterCommands)
-registrar(vxi11RegisterCommands)
