@@ -445,9 +445,9 @@ void ADQAIChannelGroup::getChanMask(timespec* pTimestamp, int32_t* pValue)
 
 void ADQAIChannelGroup::setDbsBypass(const timespec& pTimestamp, const int32_t& pValue)
 {
-    m_dbsBypass = pValue;
     m_dbsBypassPV.getTimestamp() = pTimestamp;
     m_dbsBypassChanged = (m_dbsBypass != pValue);
+    m_dbsBypass = pValue;
     commitChanges();
 }
 
@@ -459,9 +459,9 @@ void ADQAIChannelGroup::getDbsBypass(timespec* pTimestamp, int32_t* pValue)
 
 void ADQAIChannelGroup::setDbsDc(const timespec& pTimestamp, const int32_t& pValue)
 {
-    m_dbsDc = pValue;
     m_dbsDcPV.getTimestamp() = pTimestamp;
     m_dbsDcChanged = (m_dbsDc != pValue);
+    m_dbsDc = pValue;
     commitChanges();
 }
 
@@ -473,9 +473,9 @@ void ADQAIChannelGroup::getDbsDc(timespec* pTimestamp, int32_t* pValue)
 
 void ADQAIChannelGroup::setDbsLowSat(const timespec& pTimestamp, const int32_t& pValue)
 {
-    m_dbsLowSat = pValue;
     m_dbsLowSatPV.getTimestamp() = pTimestamp;
     m_dbsLowSatChanged = (m_dbsLowSat != pValue);
+    m_dbsLowSat = pValue;
     commitChanges();
 }
 
@@ -487,9 +487,9 @@ void ADQAIChannelGroup::getDbsLowSat(timespec* pTimestamp, int32_t* pValue)
 
 void ADQAIChannelGroup::setDbsUpSat(const timespec& pTimestamp, const int32_t& pValue)
 {
-    m_dbsUpSat = pValue;
     m_dbsUpSatPV.getTimestamp() = pTimestamp;
     m_dbsUpSatChanged = (m_dbsUpSat != pValue);
+    m_dbsUpSat = pValue;
     commitChanges();
 }
 
