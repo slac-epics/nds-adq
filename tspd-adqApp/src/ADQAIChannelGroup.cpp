@@ -2847,6 +2847,7 @@ void ADQAIChannelGroup::daqContinStream()
             status = m_adqInterface->StartStreaming();
             ADQNDS_MSG_ERRLOG_PV(status, "StartStreaming failed.");
 
+            TraceOutWithTime(m_node, "Starting timer...");
             timerStart();
 
             if (m_trigMode == 0)
@@ -2918,6 +2919,7 @@ void ADQAIChannelGroup::daqContinStream()
                 }
 
                 elapsedSeconds = timerSpentTimeMs() / 1000.0;
+                TraceOutWithTime(m_node, "elapsedSeconds=%f", elapsedSeconds);
 
                 if (elapsedSeconds > m_streamTime)
                 {
