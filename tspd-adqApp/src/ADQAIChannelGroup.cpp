@@ -18,10 +18,13 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+#include <stdio.h>
+#include <stdarg.h>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
+#define _DEBUG
 #ifdef _DEBUG
 #define TRACEDEBUG
 #else
@@ -3127,7 +3130,7 @@ void ADQAIChannelGroup::TraceOutWithTime(nds::Port& node, const char *pszFormat,
     ::OutputDebugString(szTraceBuffer2);
     ::OutputDebugString("\n");
 #else
-    ndsWarningStream(node) << std::string(szTraceBuffer) << std::endl;
+    ndsWarningStream(node) << std::string(szTraceBuffer2) << std::endl;
 #endif
 }
 #endif // TRACEDEBUG
