@@ -1110,7 +1110,7 @@ unsigned int timerSpentTimeMs(void)
         std::cout << "Failed to get system time." << std::endl;
         return -1;
     }
-    return (unsigned int)((int)(ts.tv_sec - tsref.tv_sec) * 1000 + (int)(ts.tv_nsec - tsref.tv_nsec) / 1000000);
+    return (unsigned int)((int)(ts.tv_sec - tsref.tv_sec) * 1000 + (int)(ts.tv_nsec - tsref.tv_nsec) / 1000000.0);
 }
 
 int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX], streamingHeader_t* (&daqStreamHeaders)[CHANNEL_COUNT_MAX], short* (*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
@@ -2910,7 +2910,7 @@ void ADQAIChannelGroup::daqContinStream()
                     }
                 }
 
-                elapsedSeconds = timerSpentTimeMs() / 1000;
+                elapsedSeconds = timerSpentTimeMs() / 1000.0;
 
                 if (elapsedSeconds > m_streamTime)
                 {
