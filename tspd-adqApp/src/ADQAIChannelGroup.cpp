@@ -24,7 +24,7 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
-#define _DEBUG
+//#define _DEBUG
 #ifdef _DEBUG
 #define TRACEDEBUG
 #else
