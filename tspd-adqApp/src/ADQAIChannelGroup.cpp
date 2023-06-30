@@ -2681,7 +2681,7 @@ void ADQAIChannelGroup::daqMultiRecord()
             {
                 std::lock_guard<std::mutex> lock(m_adqDevMutex);
                 status = m_adqInterface->GetDataWHTS((void**)daqDataBuffer, daqStreamHeaders[0], NULL,
-                    m_sampleCnt, sizeof(short), Record, m_recordCntCollect,
+                    m_recordCnt*m_sampleCnt, sizeof(short), Record, m_recordCntCollect,
                     m_chanMask, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
                 ADQNDS_MSG_ERRLOG_PV(status, "GetDataWHTS failed.");
             }
