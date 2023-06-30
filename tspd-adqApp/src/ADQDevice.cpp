@@ -286,17 +286,22 @@ void ADQDevice::CloseDevice()
 {
     if (m_adqCtrlUnit == NULL)
         return;
+
     if (m_adqCtrlUnit->size() > 0)
     {
         if (m_adqChanGrpPtr)
+        {
             m_adqChanGrpPtr->onSwitchOff();
+            delete m_adqChanGrpPtr;
+        }
+
         std::map<std::string, int>::const_iterator ADQIter = m_adqCtrlUnit->find(m_adqSnRdbk);
-        delete m_adqChanGrpPtr;
         if (ADQIter != m_adqCtrlUnit->end())
         {
             m_adqCtrlUnit->CloseDevice(ADQIter);
         }
     }
+
     if ((m_adqCtrlUnit->size() == 0) && (m_adqCtrlUnit))
     {
         delete m_adqCtrlUnit;
@@ -324,3 +329,4 @@ ADQDevice::~ADQDevice()
  * Name is provided by the shared module for other NDS3 functions (e.g. ndsCreateDevice).
  */
 NDS_DEFINE_DRIVER(tspd_adq, ADQDevice)
+
