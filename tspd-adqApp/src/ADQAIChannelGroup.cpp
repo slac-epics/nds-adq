@@ -1116,6 +1116,7 @@ unsigned int timerSpentTimeMs(void)
 int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX], streamingHeader_t* (&daqStreamHeaders)[CHANNEL_COUNT_MAX], short* (*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
 {
     unsigned int bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
+    unsigned int headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
     unsigned int stream_chunk_bytes = 512;
     if (adqType() == 714 || adqType() == 14)
         stream_chunk_bytes = ADQ14_STREAM_CHUNK_BYTES;
@@ -1124,6 +1125,10 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
     if (adqType() == 8)
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
     bufferSize = stream_chunk_bytes * ((bufferSize + stream_chunk_bytes - 1) / stream_chunk_bytes);
+    headerBufferSize = stream_chunk_bytes * ((headerBufferSize + stream_chunk_bytes - 1) / stream_chunk_bytes);
+    TraceOutWithTime(m_node, 
+            "ADQAIChannelGroup::allocateBuffers: m_sampleCnt=%u, m_recordCntCollect=%u, bufferSize=%u, headerBufferSize=%u",
+            m_sampleCnt, m_recordCntCollect, bufferSize, headerBufferSize);
 
     for (unsigned int chan = 0; chan < CHANNEL_COUNT_MAX; ++chan)
     {
@@ -1131,6 +1136,7 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
         daqStreamHeaders[chan] = NULL;
         if (daqLeftoverSamples != NULL)
             (*daqLeftoverSamples)[chan] = NULL;
+
         if (!((1 << chan) & m_chanMask))
             continue;
 
@@ -1141,7 +1147,7 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
             ADQNDS_MSG_ERRLOG_PV(bufferSize, "Failed to allocate memory for target buffers.");
         }
 
-        daqStreamHeaders[chan] = (streamingHeader_t*)malloc(sizeof(streamingHeader_t) * m_recordCntCollect);
+        daqStreamHeaders[chan] = (streamingHeader_t*)malloc(headerBufferSize);
         if (!daqStreamHeaders[chan])
         {
             bufferSize = 0;
