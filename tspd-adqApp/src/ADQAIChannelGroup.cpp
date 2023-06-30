@@ -1429,12 +1429,14 @@ finish:
 
     for (unsigned int chan = 0; chan < CHANNEL_COUNT_MAX; ++chan)
     {
-        if (daqDataBuffer[chan])
-            free(daqDataBuffer[chan]);
-        if (daqStreamHeaders[chan])
-            free(daqStreamHeaders[chan]);
-        if (daqLeftoverSamples[chan])
-            free(daqLeftoverSamples[chan]);
+        if (m_chanMask & (1 << chan)) {
+            if (daqDataBuffer[chan])
+                free(daqDataBuffer[chan]);
+            if (daqStreamHeaders[chan])
+                free(daqStreamHeaders[chan]);
+            if (daqLeftoverSamples[chan])
+                free(daqLeftoverSamples[chan]);
+        }
     }
 
     try
