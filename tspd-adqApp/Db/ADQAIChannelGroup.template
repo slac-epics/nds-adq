@@ -172,6 +172,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:TRIGTIMESTAMP") {
     field(FTVL, "DOUBLE")
     field(NELM, "${NRECORDSCOLLECT=1}")
     field(EGU,  "mS")
+    field(PREC, "2")
     field(PRIO, "HIGH")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) TrigTimeStamp")
 }
