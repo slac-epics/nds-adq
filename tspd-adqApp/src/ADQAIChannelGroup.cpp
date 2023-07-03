@@ -1113,10 +1113,10 @@ unsigned int timerSpentTimeMs(void)
     return (unsigned int)((int)(ts.tv_sec - tsref.tv_sec) * 1000 + (int)(ts.tv_nsec - tsref.tv_nsec) / 1000000.0);
 }
 
-int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX], streamingHeader_t* (&daqStreamHeaders)[CHANNEL_COUNT_MAX], short* (*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
+int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX], 
+        streamingHeader_t* (&daqStreamHeaders)[CHANNEL_COUNT_MAX], 
+        short* (*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
 {
-    unsigned int bufferSize;
-    unsigned int headerBufferSize;
     unsigned int stream_chunk_bytes = 512;
     if (adqType() == 714 || adqType() == 14)
         stream_chunk_bytes = ADQ14_STREAM_CHUNK_BYTES;
@@ -1125,13 +1125,8 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
     if (adqType() == 8)
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
 
-    if (m_daqMode == 0) {
-        bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
-        headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
-    } else {
-        bufferSize = 2*stream_chunk_bytes;
-        headerBufferSize = 2*stream_chunk_bytes;
-    }
+    unsigned int bufferSize = 2*stream_chunk_bytes;
+    unsigned int headerBufferSize = 2*stream_chunk_bytes;
     TraceOutWithTime(m_node, 
             "ADQAIChannelGroup::allocateBuffers: m_sampleCnt=%u, m_recordCnt=%u, m_recordCntCollect=%u, bufferSize=%u, headerBufferSize=%u",
             m_sampleCnt, m_recordCnt, m_recordCntCollect, bufferSize, headerBufferSize);
@@ -2602,17 +2597,34 @@ void ADQAIChannelGroup::daqMultiRecord()
 {
     int acqRecTotal = 0;
     int status;
-    streamingHeader_t* daqStreamHeaders[CHANNEL_COUNT_MAX];
+    streamingHeader_t* daqStreamHeaders;
     short* daqDataBuffer[CHANNEL_COUNT_MAX];
     double PicoSec = (adqType() == 8) ? PicoSec25 : PicoSec125;
     std::vector<TimeStamp_t> TimeStampRecord(m_recordCnt);
     int32_t Record = 0;
     int32_t RecordCntRB = 0;
+    unsigned int bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
+    unsigned int headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
 
     try
     {
-        if (!allocateBuffers(daqDataBuffer, daqStreamHeaders, NULL))
-            ADQNDS_MSG_ERRLOG_PV(0, "allocateBuffers failed.");
+        for (unsigned int chan = 0; chan < m_chanCnt; chan++)
+        {
+            if (m_chanMask & (1 << chan))
+            {
+                daqDataBuffer[chan] = (short*)malloc((size_t)bufferSize);
+                if (!daqDataBuffer[chan])
+                {
+                    ADQNDS_MSG_ERRLOG_PV(0, "Failed to allocate memory for target buffers.");
+                }
+            }
+        }
+
+        daqStreamHeaders = (streamingHeader_t*)malloc((size_t)headerBufferSize);
+        if (!daqStreamHeaders)
+        {
+            ADQNDS_MSG_ERRLOG_PV(0, "Failed to allocate memory for target headers.");
+        }
 
         TraceOutWithTime(m_node, "daqMultiRecord started");
 
@@ -2709,7 +2721,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                 std::lock_guard<std::mutex> lock(m_adqDevMutex);
                 TraceOutWithTime(m_node, "Getting data for record %u -> %u",
                         Record, Record + m_recordCntCollect);
-                status = m_adqInterface->GetDataWHTS((void**)daqDataBuffer, daqStreamHeaders[0], NULL,
+                status = m_adqInterface->GetDataWHTS((void**)daqDataBuffer, (void**)daqStreamHeaders, NULL,
                     m_sampleCnt*m_recordCntCollect, sizeof(short), Record, m_recordCntCollect,
                     m_chanMask, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
                 ADQNDS_MSG_ERRLOG_PV(status, "GetDataWHTS failed.");
@@ -2721,7 +2733,7 @@ void ADQAIChannelGroup::daqMultiRecord()
             for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
             {
                 // time in ms.
-                double trigTimeStamp = daqStreamHeaders[0][Collected].timeStamp * PicoSec;
+                double trigTimeStamp = daqStreamHeaders[Collected].timeStamp * PicoSec;
                 if ((m_masterMode != 2) && (Record == 0) && (Collected == 0))
                 {
                     // Timestamp issue: the first time stamp recorded is not reset.
