@@ -1115,8 +1115,8 @@ unsigned int timerSpentTimeMs(void)
 
 int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX], streamingHeader_t* (&daqStreamHeaders)[CHANNEL_COUNT_MAX], short* (*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
 {
-    unsigned int bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
-    unsigned int headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
+    unsigned int bufferSize;
+    unsigned int headerBufferSize;
     unsigned int stream_chunk_bytes = 512;
     if (adqType() == 714 || adqType() == 14)
         stream_chunk_bytes = ADQ14_STREAM_CHUNK_BYTES;
@@ -1124,11 +1124,17 @@ int ADQAIChannelGroup::allocateBuffers(short* (&daqDataBuffer)[CHANNEL_COUNT_MAX
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
     if (adqType() == 8)
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
-    bufferSize = stream_chunk_bytes * ((bufferSize + stream_chunk_bytes - 1) / stream_chunk_bytes);
-    headerBufferSize = stream_chunk_bytes * ((headerBufferSize + stream_chunk_bytes - 1) / stream_chunk_bytes);
+
+    if (m_daqMode == 0) {
+        bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
+        headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
+    } else {
+        bufferSize = 2*stream_chunk_bytes;
+        headerBufferSize = 2*stream_chunk_bytes;
+    }
     TraceOutWithTime(m_node, 
-            "ADQAIChannelGroup::allocateBuffers: m_sampleCnt=%u, m_recordCntCollect=%u, bufferSize=%u, headerBufferSize=%u",
-            m_sampleCnt, m_recordCntCollect, bufferSize, headerBufferSize);
+            "ADQAIChannelGroup::allocateBuffers: m_sampleCnt=%u, m_recordCnt=%u, m_recordCntCollect=%u, bufferSize=%u, headerBufferSize=%u",
+            m_sampleCnt, m_recordCnt, m_recordCntCollect, bufferSize, headerBufferSize);
 
     for (unsigned int chan = 0; chan < CHANNEL_COUNT_MAX; ++chan)
     {
@@ -1221,6 +1227,7 @@ void ADQAIChannelGroup::daqTrigStream()
                     "TriggeredStreamingSetup: m_recordCnt=%u, m_sampleCnt=%u, m_preTrigSamp=%u, m_trigHoldOffSamp=%u, m_chanMask=%u", 
                     m_recordCnt, m_sampleCnt, m_preTrigSamp, m_trigHoldOffSamp);
 
+            // This appears to be needed even though the doc says it probably isn't.
             status = m_adqInterface->FlushPacketOnRecordStop(1);
             ADQNDS_MSG_ERRLOG_PV(status, "FlushPacketOnRecordStop failed.");
 
@@ -1232,12 +1239,16 @@ void ADQAIChannelGroup::daqTrigStream()
                 ADQNDS_MSG_ERRLOG_PV(status, "SetStreamConfig 2 (enable packet headers) failed.");
             }
 
-            status = m_adqInterface->SetTransferBuffers(m_chanCnt, bufferSize);
+            // This sets the number and size of the kernel buffers.  
+            // The number and size can be tuned for optimum performance.
+            // bufferSize must be the same size as the user space buffer.
+            status = m_adqInterface->SetTransferBuffers(2, bufferSize);
             ADQNDS_MSG_ERRLOG_PV(status, "SetTransferBuffers failed.");
 
             status = m_adqInterface->StartStreaming();
             ADQNDS_MSG_ERRLOG_PV(status, "StartStreaming failed.");
         }
+
         if (m_trigMode == 0)
         {
             for (int i = 0; i < m_recordCnt; ++i)
@@ -1287,10 +1298,11 @@ void ADQAIChannelGroup::daqTrigStream()
                 ADQNDS_MSG_ERRLOG_PV(status, "WaitForTransferBuffer failed.");
                 if (buffersFilled)
                 {
-                    //ndsInfoStream(m_node) << "INFO: Receiving data..." << std::endl;
                     ndsDebugStream(m_node) << "DEBUG: Receiving data..." << std::endl;
-                    status = m_adqInterface->GetDataStreaming((void**)daqDataBuffer, (void**)daqStreamHeaders, m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
-                    TraceOutWithTime(m_node, "GetDataStreaming returned %u buffers with %u %u %u %u samples on records %u %u %u %u",
+                    status = m_adqInterface->GetDataStreaming((void**)daqDataBuffer, (void**)daqStreamHeaders,
+                            m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
+                    TraceOutWithTime(m_node,
+                            "GetDataStreaming returned %u buffers with %u %u %u %u samples on records %u %u %u %u",
                         buffersFilled, samplesAddedCnt[0], samplesAddedCnt[1], samplesAddedCnt[2], samplesAddedCnt[3],
                         recordsDoneCnt[0], recordsDoneCnt[1], recordsDoneCnt[2], recordsDoneCnt[3]);
                     ADQNDS_MSG_ERRLOG_PV(status, "GetDataStreaming failed.");
@@ -1301,6 +1313,7 @@ void ADQAIChannelGroup::daqTrigStream()
                     memset(headersAdded, 0, sizeof(headersAdded));
                     memset(headerStatus, 0, sizeof(headerStatus));
                 }
+
                 nds::state_t localState = m_stateMachine.getLocalState();
                 if ((localState != nds::state_t::running) &&
                     (localState != nds::state_t::starting))
@@ -1310,7 +1323,8 @@ void ADQAIChannelGroup::daqTrigStream()
                 }
             }
 
-            // Go through each channel's m_daqDataBuffer data: check on incomplete records, add samples of incomplete records to the next records
+            // Go through each channel's m_daqDataBuffer data: check on incomplete records,
+            // add samples of incomplete records to the next records
             maxLeftoverSamplesCnt = 0;
             for (unsigned int chan = 0; chan < CHANNEL_COUNT_MAX; ++chan)
             {
