@@ -17,14 +17,12 @@ LIBRARY_IOC_Linux += tspd-adq
 DBD += tspd-adq.dbd
 
 tspd-adq_DBD += base.dbd
-tspd-adq_DBD += asyn.dbd
 
 # The following are compiled and added to the Support library
 tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQInfo.cpp ADQDevice.cpp
 
 tspd-adq_LIBS += adq
 tspd-adq_LIBS += nds3
-tspd-adq_LIBS += asyn
 
 tspd-adq_LIBS += $(EPICS_BASE_IOC_LIBS)
 
