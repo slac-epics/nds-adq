@@ -2628,9 +2628,11 @@ void ADQAIChannelGroup::daqMultiRecord()
             status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
             ADQNDS_MSG_ERRLOG_PV(status, "MultiRecordSetChannelMask failed.");
 
+            TraceOutWithTime(m_node, "MultiRecordSetup: m_recordCnt=%u, m_sampleCnt=%u", m_recordCnt, m_sampleCnt);
             status = m_adqInterface->MultiRecordSetup(m_recordCnt, m_sampleCnt);
             ADQNDS_MSG_ERRLOG_PV(status, "MultiRecordSetup failed.");
         }
+
         status = armTrigger();
         ADQNDS_MSG_ERRLOG_PV(status, "armTrigger failed.");
 
@@ -2654,6 +2656,9 @@ void ADQAIChannelGroup::daqMultiRecord()
                     std::lock_guard<std::mutex> staticlock(m_StaticMutex);
                     acqRecTotal = m_adqInterface->GetAcquiredRecords();
                 }
+
+                TraceOutWithTime(m_node, "RecordCntRB=%u, acqRecTotal=%u", RecordCntRB, acqRecTotal);
+
                 if (RecordCntRB < acqRecTotal)
                 {
                     struct timespec now = { 0, 0 };
@@ -2661,16 +2666,22 @@ void ADQAIChannelGroup::daqMultiRecord()
                     RecordCntRB = acqRecTotal;
                     m_recordCntPV.push(now, RecordCntRB);
                 }
+
                 if (acqRecTotal >= Record + m_recordCntCollect)
                     break;
+
                 if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
                     (m_stateMachine.getLocalState() != nds::state_t::starting))
                 {
-                    ndsWarningStream(m_node) << "daqMultiRecord exited on frame " << Record << " after GetAcquiredRecords() with state " << int(m_stateMachine.getLocalState()) << " for " << m_node.getFullName() << std::endl;
+                    ndsWarningStream(m_node) << "daqMultiRecord exited on frame " << Record
+                            << " after GetAcquiredRecords() with state " << int(m_stateMachine.getLocalState())
+                            << " for " << m_node.getFullName() << std::endl;
                     break;
                 }
 
+                // This SLEEP is needed
                 SLEEP(1);
+
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
                     if (adqType() == 8)
@@ -2696,8 +2707,10 @@ void ADQAIChannelGroup::daqMultiRecord()
             // We stop monitoring the hardware temperatures etc., in order to maximimise real-time performance.
             {
                 std::lock_guard<std::mutex> lock(m_adqDevMutex);
+                TraceOutWithTime(m_node, "Getting data for record %u -> %u",
+                        Record, Record + m_recordCntCollect);
                 status = m_adqInterface->GetDataWHTS((void**)daqDataBuffer, daqStreamHeaders[0], NULL,
-                    m_recordCnt*m_sampleCnt, sizeof(short), Record, m_recordCntCollect,
+                    m_sampleCnt*m_recordCntCollect, sizeof(short), Record, m_recordCntCollect,
                     m_chanMask, 0, m_sampleCnt, ADQ_TRANSFER_MODE_NORMAL);
                 ADQNDS_MSG_ERRLOG_PV(status, "GetDataWHTS failed.");
             }
@@ -2709,34 +2722,39 @@ void ADQAIChannelGroup::daqMultiRecord()
             {
                 // time in ms.
                 double trigTimeStamp = daqStreamHeaders[0][Collected].timeStamp * PicoSec;
-                if ((m_masterMode != 2) && (Record == 0))
+                if ((m_masterMode != 2) && (Record == 0) && (Collected == 0))
                 {
                     // Timestamp issue: the first time stamp recorded is not reset.
                     if ((m_trigMode == 1) || (m_trigMode == 2))
-                        m_PRETime = trigTimeStamp;
+                        trigTimeStamp = 0;
                     else
                     {
                         m_PRETime = 0;
                         trigTimeStamp = 0;
                     }
                 }
-                m_trigTimeStamp[Collected] = trigTimeStamp - m_PRETime;
+                m_trigTimeStamp[Collected] = trigTimeStamp;
                 TimeStampRecord[Record + Collected].m_ClockTimeStamp = now;
                 TimeStampRecord[Record + Collected].m_TrigTimeStamp = m_trigTimeStamp[Collected];
-                TraceOutWithTime(m_node, "%s record %d timestamp %f", (m_masterMode == 1) ? "Master" : "Slave ", Record + Collected, m_trigTimeStamp[Collected]);
+                TraceOutWithTime(m_node, "%s record %d timestamp %f", (m_masterMode == 1) ? "Master" : "Slave",
+                        Record + Collected, m_trigTimeStamp[Collected]);
             }
+
             for (unsigned int chan = 0; chan < m_chanCnt; ++chan)
             {
                 if ((m_chanMask & (1 << chan)) != 0)
                     // Read buffers by each channel and send them to DATA PVs
                     m_AIChannelsPtr[chan]->readData(daqDataBuffer[chan], m_sampleCnt*m_recordCntCollect, now);
             }
+
+            std::reverse(m_trigTimeStamp.begin(), m_trigTimeStamp.end());
             m_trigTimeStampPV.push(now, m_trigTimeStamp);
+
+            if ((m_masterMode == 1) && (m_device_info.size() > 0))
+            {
             std::vector<std::vector<int64_t>> RecordStart(m_recordCntCollect);
             std::vector<ADQDaisyChainTriggerInformation> trig_info(m_recordCntCollect);
             std::vector <std::vector<double>> ExtendedPrecision(m_recordCntCollect);
-            if ((m_masterMode == 1) && (m_device_info.size() > 0))
-            {
                 for (int32_t Record = 0; Record < m_recordCntCollect; Record++)
                 {
                     RecordStart[Record].resize(m_device_info.size());
@@ -2751,19 +2769,19 @@ void ADQAIChannelGroup::daqMultiRecord()
                         &(m_device_info[0]), int(m_device_info.size()), &(trig_info[0]));
                     ADQNDS_MSG_ERRLOG_PV(status, "DaisyChainGetTriggerInformation failed.");
                 }
-            }
-            if ((adqType() == 8) && (m_masterMode == 1) && (m_device_info.size() > 0))
-            {
-                m_daisyRecordStart.resize(m_device_info.size() * m_recordCntCollect);
-                m_daisyTimeStamp.resize(m_recordCntCollect);
-                for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
+                if (adqType() == 8)
                 {
-                    m_daisyTimeStamp[Collected] = (trig_info[Collected].Timestamp * PicoSec) - m_PRETime;
-                    for (size_t Module = 0; Module < m_device_info.size(); Module++)
-                        m_daisyRecordStart[Collected * m_device_info.size() + Module] = RecordStart[Collected][Module];
+                    m_daisyRecordStart.resize(m_device_info.size() * m_recordCntCollect);
+                    m_daisyTimeStamp.resize(m_recordCntCollect);
+                    for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
+                    {
+                        m_daisyTimeStamp[Collected] = (trig_info[Collected].Timestamp * PicoSec) - m_PRETime;
+                        for (size_t Module = 0; Module < m_device_info.size(); Module++)
+                            m_daisyRecordStart[Collected * m_device_info.size() + Module] = RecordStart[Collected][Module];
+                    }
+                    m_daisyTimeStampPV.push(now, m_daisyTimeStamp);
+                    m_daisyRecordStartPV.push(now, m_daisyRecordStart);
                 }
-                m_daisyTimeStampPV.push(now, m_daisyTimeStamp);
-                m_daisyRecordStartPV.push(now, m_daisyRecordStart);
             }
         }
     }
@@ -2771,16 +2789,21 @@ void ADQAIChannelGroup::daqMultiRecord()
     }
 
     double MaxTimestampDeviation = 0;
-    double PRETime = TimeStampRecord[0].m_ClockTimeStamp.tv_sec * 1000 + TimeStampRecord[0].m_ClockTimeStamp.tv_nsec / 1000000.0;
+    double PRETime = TimeStampRecord[0].m_ClockTimeStamp.tv_sec * 1000
+            + TimeStampRecord[0].m_ClockTimeStamp.tv_nsec / 1000000.0;
     for (int32_t CSVRecord = 0; CSVRecord < Record; CSVRecord++)
     {
-        double NowTime = TimeStampRecord[CSVRecord].m_ClockTimeStamp.tv_sec * 1000 + TimeStampRecord[CSVRecord].m_ClockTimeStamp.tv_nsec / 1000000.0;
+        double NowTime = TimeStampRecord[CSVRecord].m_ClockTimeStamp.tv_sec * 1000
+                + TimeStampRecord[CSVRecord].m_ClockTimeStamp.tv_nsec / 1000000.0;
         NowTime = NowTime - PRETime;
         if (m_recordCntCollect == 1)
-            MaxTimestampDeviation = std::max(MaxTimestampDeviation, fabs(NowTime - TimeStampRecord[CSVRecord].m_TrigTimeStamp));
+            MaxTimestampDeviation = std::max(MaxTimestampDeviation,
+                    fabs(NowTime - TimeStampRecord[CSVRecord].m_TrigTimeStamp));
     }
+
     if (MaxTimestampDeviation > 20) {
-        ndsWarningStream(m_node) << "maximum time stamp deviation was " << MaxTimestampDeviation << " for " << m_node.getFullName() << std::endl;
+        ndsWarningStream(m_node) << "maximum time stamp deviation was " << MaxTimestampDeviation
+                << " for " << m_node.getFullName() << std::endl;
     }
 
     if (((Record > 0) && (Record < m_recordCnt)) || (MaxTimestampDeviation > 10))
