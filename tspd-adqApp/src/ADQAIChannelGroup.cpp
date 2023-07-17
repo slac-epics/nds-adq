@@ -24,7 +24,7 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 
-//#define _DEBUG
+define _DEBUG
 #ifdef _DEBUG
 #define TRACEDEBUG
 #else
@@ -2660,6 +2660,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                     SLEEP(1);
                 }
             }
+
             while (true)
             {
                 // Polling for enough records to be available.
@@ -2669,7 +2670,8 @@ void ADQAIChannelGroup::daqMultiRecord()
                     acqRecTotal = m_adqInterface->GetAcquiredRecords();
                 }
 
-                TraceOutWithTime(m_node, "RecordCntRB=%u, acqRecTotal=%u", RecordCntRB, acqRecTotal);
+                TraceOutWithTime(m_node, "Record=%u, m_recordCntCollect=%u, RecordCntRB=%u, acqRecTotal=%u",
+                        Record, m_recordCntCollect, RecordCntRB, acqRecTotal);
 
                 if (RecordCntRB < acqRecTotal)
                 {
@@ -2680,7 +2682,7 @@ void ADQAIChannelGroup::daqMultiRecord()
                 }
 
                 if (acqRecTotal >= Record + m_recordCntCollect)
-                    break;
+                    break;  // There is a record to fetch
 
                 if ((m_stateMachine.getLocalState() != nds::state_t::running) &&
                     (m_stateMachine.getLocalState() != nds::state_t::starting))
@@ -2691,9 +2693,6 @@ void ADQAIChannelGroup::daqMultiRecord()
                     break;
                 }
 
-                // This SLEEP is needed
-                SLEEP(1);
-
                 {
                     std::lock_guard<std::mutex> lock(m_adqDevMutex);
                     if (adqType() == 8)
@@ -2702,6 +2701,9 @@ void ADQAIChannelGroup::daqMultiRecord()
                     //if (m_adqInterface->GetStreamOverflow())
                     //    ADQNDS_MSG_WARNLOG_PV(0, "GetStreamOverflow detected");
                 };
+                
+                // This SLEEP is needed
+                SLEEP(1);
             }
 
             std::ostringstream textTmp;
