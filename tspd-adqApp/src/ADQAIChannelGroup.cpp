@@ -2322,13 +2322,24 @@ void ADQAIChannelGroup::commitActiveChan(struct timespec const &now)
             }
         }
     }
-    if ((m_daqMode == 3) && (m_chanInt > 8)) // Raw streaming
+    if (m_daqMode == 3) // Raw streaming
     {
-        ADQNDS_MSG_WARNLOG_PV(0, "WARNLOG: Only one channel can be set for Raw Streaming -> changed to channel "
-                                 "D.");
-        m_chanMask = 0x8;
-        m_chanInt = 8;
-        m_chanActive = 3;
+        if (m_chanInt == 3) // ch A+B
+        {
+            ADQNDS_MSG_WARNLOG_PV(0, "WARNLOG: Only one channel can be set for Raw Streaming -> changed to channel "
+                                     "B.");
+            m_chanMask = 0x2;
+            m_chanInt = 2;
+            m_chanActive = 1;
+        }
+        else if (m_chanInt > 8) // ch C+D or A+B+C+D
+        {
+            ADQNDS_MSG_WARNLOG_PV(0, "WARNLOG: Only one channel can be set for Raw Streaming -> changed to channel "
+                                     "D.");
+            m_chanMask = 0x8;
+            m_chanInt = 8;
+            m_chanActive = 3;
+        }
     }
 
     m_chanMaskPV.push(now, m_chanMask);
