@@ -11,6 +11,8 @@
 #include <unistd.h>
 #endif
 #include <algorithm>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <ADQAPI.h>
 #include <nds3/nds.h>
@@ -20,19 +22,21 @@
 #include "ADQDefinition.h"
 #include "ADQDevice.h"
 
-ADQDevice::CADQControl* ADQDevice::m_adqCtrlUnit = NULL;
+ADQDevice::CADQControl *ADQDevice::m_adqCtrlUnit = NULL;
 
 class ADQDevice::CADQControl
 {
     // ADQ Control Unit
-    void* m_adqCtrlUnit;
-    std::map<std::string, int> m_ADQDeviceMap;  // Mapping to ADQ device index
-    std::vector<ADQInterface*> m_adqInterfaces; // The list of ADQ objects
+    void *m_adqCtrlUnit;
+    std::map<std::string, int> m_ADQDeviceMap;   // Mapping to ADQ device index
+    std::vector<ADQInterface *> m_adqInterfaces; // The list of ADQ objects
     std::map<int, std::vector<int>> m_device_position;
+
 public:
     void detect_daisy_chain_order();
 
-    std::map<std::string, int>::const_iterator find(std::string const& adqSnRdbk) const {
+    std::map<std::string, int>::const_iterator find(std::string const &adqSnRdbk) const
+    {
         std::map<std::string, int>::const_iterator ADQIter = m_ADQDeviceMap.find(adqSnRdbk);
         if (ADQIter == m_ADQDeviceMap.end())
             throw nds::NdsError("Requested ADQ device was not found.");
@@ -40,41 +44,47 @@ public:
             throw nds::NdsError("Requested ADQ device index was not found.");
         return ADQIter;
     }
-    size_t size() const {
+    size_t size() const
+    {
         return m_ADQDeviceMap.size();
     }
-    std::map<std::string, int>::const_iterator end() const {
+    std::map<std::string, int>::const_iterator end() const
+    {
         return m_ADQDeviceMap.end();
     }
-    ADQInterface const* adqInterface(size_t Enumeration) const {
+    ADQInterface const *adqInterface(size_t Enumeration) const
+    {
         return m_adqInterfaces[Enumeration];
     }
-    ADQInterface* adqInterface(size_t Enumeration) {
+    ADQInterface *adqInterface(size_t Enumeration)
+    {
         return m_adqInterfaces[Enumeration];
     }
-    std::map<int, std::vector<int>> const& device_position() const {
+    std::map<int, std::vector<int>> const &device_position() const
+    {
         return m_device_position;
     }
-    std::map<int, std::vector<int>>::const_iterator device_position(int Enumeration) const {
+    std::map<int, std::vector<int>>::const_iterator device_position(int Enumeration) const
+    {
         return m_device_position.find(Enumeration);
     }
-    void CloseDevice(std::map<std::string, int>::const_iterator ADQIter) {
+    void CloseDevice(std::map<std::string, int>::const_iterator ADQIter)
+    {
         ADQControlUnit_CloseDevice(m_adqCtrlUnit, ADQIter->second);
         m_adqInterfaces[ADQIter->second] = NULL;
         m_ADQDeviceMap.erase(ADQIter);
     }
-    CADQControl();
+    CADQControl(const nds::namedParameters_t &);
     ~CADQControl();
 };
 // ADQ Control Unit
 
-ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const nds::namedParameters_t& parameters) :
-    m_node(deviceName)
+ADQDevice::ADQDevice(nds::Factory &factory, const std::string &deviceName, const nds::namedParameters_t &parameters) : m_node(deviceName)
 {
     try
     {
         if (!m_adqCtrlUnit)
-            m_adqCtrlUnit = new CADQControl;
+            m_adqCtrlUnit = new CADQControl(parameters);
 
         nds::namedParameters_t::const_iterator ParamIter = parameters.find("ADQSN");
         if (ParamIter == parameters.end())
@@ -107,12 +117,12 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
             }
 
         m_adqChanGrpPtr = new ADQAIChannelGroup(parameters.at("ADQSN"), m_node,
-            m_adqCtrlUnit->adqInterface(thisEnumeration), masterEnumeration, thisEnumeration, nextEnumeration);
-        
+                                                m_adqCtrlUnit->adqInterface(thisEnumeration), masterEnumeration, thisEnumeration, nextEnumeration);
+
         // Initialize NDS device after declaration of all its PVs
         m_node.initialize(this, factory);
     }
-    catch (const nds::NdsError& e)
+    catch (const nds::NdsError &e)
     {
         delete m_adqCtrlUnit;
         m_adqCtrlUnit = NULL;
@@ -120,25 +130,74 @@ ADQDevice::ADQDevice(nds::Factory& factory, const std::string& deviceName, const
     }
 }
 
-ADQDevice::CADQControl::CADQControl()
+ADQDevice::CADQControl::CADQControl(const nds::namedParameters_t &parameters)
 {
-    struct ADQInfoListEntry* adqInfoStruct;
+    unsigned int status;
+    struct ADQInfoListEntry *adqInfoStruct;
     unsigned int adqDevList = 0;
-    m_adqCtrlUnit = ::CreateADQControlUnit();   // Creates an ADQControlUnit
+    m_adqCtrlUnit = ::CreateADQControlUnit(); // Creates an ADQControlUnit
     if (!m_adqCtrlUnit)
     {
         throw nds::NdsError("Failed to create ADQ Control Unit (CreateADQControlUnit).");
     }
-    //int status = ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, ".");
-    int status = ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, "/tmp");
+
+    // Enable error logging for devices (saves files to the directory specified by LOGPATH)
+    // LOGPATH defaults to /tmp if not specified
+    // TODO: refactor all this
+    std::string logPath;
+    std::string defaultLogPath("/tmp");
+    auto iter = parameters.find("LOGPATH");
+    if (iter != parameters.end())
+    {
+        // Log path specified
+        logPath = iter->second;
+
+        // Check if log path exists
+        struct stat info;
+        if (stat(logPath.c_str(), &info) != 0)
+        {
+            // Log path not found, use default
+            std::cout << "WARNING: " << logPath << " does not exist, defaulting to " << defaultLogPath << std::endl;
+            logPath = defaultLogPath;
+        }
+        else if (!(info.st_mode & S_IFDIR))
+        {
+            // Log path not a directory, use default
+            std::cout << "WARNING: " << logPath << " is not a directory, defaulting to " << defaultLogPath << std::endl;
+            logPath = defaultLogPath;
+        }
+        else
+        {
+            // Test for write access to log path
+            int write_status = access(logPath.c_str(), W_OK);
+            if (write_status != 0)
+            {
+                // Log path not writable, use default
+                std::cout << "WARNING: " << logPath << " is not writeable, defaulting to " << defaultLogPath << std::endl;
+                logPath = defaultLogPath;
+            }
+        }
+    }
+    else
+    {
+        // Log path not specified, use default
+        logPath = defaultLogPath;
+    }
+
+    // Disable error trace if log path is /tmp and is not writeable
+    int write_status = access(defaultLogPath.c_str(), W_OK);
+    if (logPath != defaultLogPath || write_status != 0)
+    {
+        ADQControlUnit_EnableErrorTrace(m_adqCtrlUnit, LOG_LEVEL_INFO, logPath.c_str());
+    }
 
     // Check revisions
     const int adqApiRev = ADQAPI_GetRevision();
     if (!IS_VALID_DLL_REVISION(adqApiRev))
     {
         std::cout << "WARNING: The included header file and the linked library are of different revisions. This "
-            "may cause corrupt behavior."
-            << std::endl;
+                     "may cause corrupt behavior."
+                  << std::endl;
     }
     // Find all connected devices
     status = ADQControlUnit_ListDevices(m_adqCtrlUnit, &adqInfoStruct, &adqDevList);
@@ -172,7 +231,7 @@ ADQDevice::CADQControl::CADQControl()
         }
 
         // Pointer to ADQ device interface
-        ADQInterface* adqInterface = ADQControlUnit_GetADQ(m_adqCtrlUnit, adqDevListNum + 1);
+        ADQInterface *adqInterface = ADQControlUnit_GetADQ(m_adqCtrlUnit, adqDevListNum + 1);
         if (!adqInterface)
             throw nds::NdsError("Could not obtain ADQ interface.");
 
@@ -183,7 +242,7 @@ ADQDevice::CADQControl::CADQControl()
             throw nds::NdsError("DLL validation fail.");
         }
         // Check if this ADQ serial number is the one requested
-        const char* adqSnRdbk = adqInterface->GetBoardSerialNumber();
+        const char *adqSnRdbk = adqInterface->GetBoardSerialNumber();
 
         // Check if ADQ started normally
         status = adqInterface->IsStartedOK();
@@ -269,7 +328,7 @@ void ADQDevice::CADQControl::detect_daisy_chain_order()
     // Walk through the next_device list to determine the devices' positions in
     // the daisy chain.
     for (std::map<int, std::vector<int32_t>>::iterator DaisyIter = m_device_position.begin();
-        DaisyIter != m_device_position.end(); DaisyIter++)
+         DaisyIter != m_device_position.end(); DaisyIter++)
     {
         int next_slave_num = DaisyIter->first;
         while (true)
@@ -329,4 +388,3 @@ ADQDevice::~ADQDevice()
  * Name is provided by the shared module for other NDS3 functions (e.g. ndsCreateDevice).
  */
 NDS_DEFINE_DRIVER(tspd_adq, ADQDevice)
-
