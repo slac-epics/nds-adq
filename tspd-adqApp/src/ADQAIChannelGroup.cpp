@@ -2650,6 +2650,11 @@ void ADQAIChannelGroup::daqMultiRecord()
 
         {
             std::lock_guard<std::mutex> lock(m_adqDevMutex);
+
+            // Replicate transfer buffer setup from triggered streaming mode
+            status = m_adqInterface->SetTransferBuffers(2, bufferSize);
+            ADQNDS_MSG_ERRLOG_PV(status, "SetTransferBuffers failed.");
+
             TraceOutWithTime(m_node, "MultiRecordSetChannelMask %d", m_chanMask);
             status = m_adqInterface->MultiRecordSetChannelMask(m_chanMask);
             ADQNDS_MSG_ERRLOG_PV(status, "MultiRecordSetChannelMask failed.");
