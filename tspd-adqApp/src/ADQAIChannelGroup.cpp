@@ -1192,6 +1192,7 @@ void ADQAIChannelGroup::daqTrigStream()
     streamingHeader_t *daqStreamHeaders[CHANNEL_COUNT_MAX];
     double PicoSec = (adqType() == 8) ? PicoSec25 : PicoSec125;
     struct timespec currEvrTime;
+    bool bufferFlushed = false;
 
     try
     {
@@ -1295,6 +1296,7 @@ void ADQAIChannelGroup::daqTrigStream()
                 ADQNDS_MSG_ERRLOG_PV(status, "WaitForTransferBuffer failed.");
                 if (buffersFilled)
                 {
+                    bufferFlushed = false;
                     ndsDebugStream(m_node) << "DEBUG: Receiving data..." << std::endl;
                     status = m_adqInterface->GetDataStreaming((void **)daqDataBuffer, (void **)daqStreamHeaders,
                                                               m_chanMask, samplesAddedCnt, headersAdded, headerStatus);
@@ -1310,6 +1312,14 @@ void ADQAIChannelGroup::daqTrigStream()
                     memset(samplesAddedCnt, 0, sizeof(samplesAddedCnt));
                     memset(headersAdded, 0, sizeof(headersAdded));
                     memset(headerStatus, 0, sizeof(headerStatus));
+
+                    // Flush DMA buffer once to capture any remaining record data.
+                    if (!bufferFlushed)
+                    {
+                        status = m_adqInterface->FlushDMA();
+                        ADQNDS_MSG_ERRLOG_PV(status, "FlushDMA failed.");
+                        bufferFlushed = true;
+                    }
                 }
 
                 nds::state_t localState = m_stateMachine.getLocalState();
