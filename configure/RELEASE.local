@@ -21,6 +21,8 @@
 # ==========================================================
 NDS3_MODULE_VERSION = pheest
 NDSEPICS_MODULE_VERSION = pheest
+EVENT_MODULE_VERSION = R4.8.4
+TIMINGAPI_MODULE_VERSION = R0.6
 
 # ==========================================================
 # Define module paths using pattern
@@ -31,6 +33,8 @@ NDSEPICS_MODULE_VERSION = pheest
 CBXFELTEMP = /afs/slac/g/controls/development/users/cbxfelDigitizer
 NDS3 = $(CBXFELTEMP)/nds-core/$(NDS3_MODULE_VERSION)
 NDSEPICS = $(CBXFELTEMP)/nds-epics/$(NDSEPICS_MODULE_VERSION)
+EVENT = $(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
+TIMINGAPI = $(EPICS_MODULES)/timingApi/$(TIMINGAPI_MODULE_VERSION)
 
 # Set EPICS_BASE last so it appears last in the DB, DBD, INCLUDE, and LIB search paths
 EPICS_BASE = $(EPICS_SITE_TOP)/base/$(BASE_MODULE_VERSION)

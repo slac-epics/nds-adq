@@ -17,12 +17,19 @@ LIBRARY_IOC_Linux += tspd-adq
 DBD += tspd-adq.dbd
 
 tspd-adq_DBD += base.dbd
+ifeq ($(T_A),linuxRT-x86_64)
+tspd-adq_DBD += evrSupport.dbd
+tspd-adq_DBD += devMrfEr.dbd
+endif
 
 # The following are compiled and added to the Support library
 tspd-adq_SRCS += ADQAIChannel.cpp  ADQAIChannelGroup.cpp  ADQInfo.cpp ADQDevice.cpp
 
 tspd-adq_LIBS += adq
 tspd-adq_LIBS += nds3
+ifeq ($(T_A),linuxRT-x86_64)
+tspd-adq_LIBS += evrSupport
+endif
 
 tspd-adq_LIBS += $(EPICS_BASE_IOC_LIBS)
 
