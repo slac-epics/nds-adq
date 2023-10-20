@@ -16,6 +16,7 @@
 #include <typeinfo>
 #include <math.h>
 #include <deque>
+#include <bitset>
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -1120,6 +1121,9 @@ int ADQAIChannelGroup::allocateBuffers(short *(&daqDataBuffer)[CHANNEL_COUNT_MAX
                                        streamingHeader_t *(&daqStreamHeaders)[CHANNEL_COUNT_MAX],
                                        short *(*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
 {
+    unsigned int bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
+    unsigned int headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
+    unsigned int activeChanCount = std::bitset<CHANNEL_COUNT_MAX>(m_chanMask).count();
     unsigned int stream_chunk_bytes = 512;
     if (adqType() == 714 || adqType() == 14)
         stream_chunk_bytes = ADQ14_STREAM_CHUNK_BYTES;
@@ -1128,8 +1132,11 @@ int ADQAIChannelGroup::allocateBuffers(short *(&daqDataBuffer)[CHANNEL_COUNT_MAX
     if (adqType() == 8)
         stream_chunk_bytes = ADQ7_STREAM_CHUNK_BYTES;
 
-    unsigned int bufferSize = 2 * stream_chunk_bytes;
-    unsigned int headerBufferSize = 2 * stream_chunk_bytes;
+    // Buffer size correction so that all samples are read from all active channels in one go
+    bufferSize = (bufferSize + 16) * 128 / 127;
+    bufferSize += (stream_chunk_bytes - bufferSize % stream_chunk_bytes) % stream_chunk_bytes;
+    bufferSize *= activeChanCount;
+    headerBufferSize *= activeChanCount;
     TraceOutWithTime(m_node,
                      "ADQAIChannelGroup::allocateBuffers: m_sampleCnt=%u, m_recordCnt=%u, m_recordCntCollect=%u, bufferSize=%u, headerBufferSize=%u",
                      m_sampleCnt, m_recordCnt, m_recordCntCollect, bufferSize, headerBufferSize);
