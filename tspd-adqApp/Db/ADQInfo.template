@@ -80,7 +80,7 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:ISALIVE") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPLOCAL") {
     field(DESC, "Local temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "105")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
@@ -90,7 +90,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPLOCAL") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPADC-1") {
     field(DESC, "ADC1 temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
@@ -101,7 +101,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPADC-1") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPADC-2") {
     field(DESC, "ADC2 temperature")
-    field(EGU, "°C")
+    field(EGU, "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
@@ -112,7 +112,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPADC-2") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPFPGA") {
     field(DESC, "FPGA temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "95")
     field(HIGH, "90")
     field(SCAN, "1 second")
@@ -123,7 +123,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPFPGA") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2A") {
     field(DESC, "Diode temperature")
-    field(EGU, "°C")
+    field(EGU, "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
@@ -134,7 +134,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2A") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2A") {
     field(DESC, "Diode temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
@@ -145,7 +145,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2A") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2B") {
     field(DESC, "Diode temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
@@ -156,7 +156,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2B") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC1") {
     field(DESC, "Diode temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
@@ -167,7 +167,7 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC1") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPRSVD") {
     field(DESC, "Diode temperature")
-    field(EGU,  "°C")
+    field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
