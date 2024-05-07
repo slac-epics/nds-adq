@@ -46,11 +46,32 @@ DIRECTORY_TARGETS += $(INSTALL_LOCATION_STARTUP)
 # Need a shared library - the digitizer driver loads this on boot.
 SHARED_LIBRARIES=YES
 
-
 # =============================
 # Define the archiecture versions
 # =============================
 LINUXRT_BUILDROOT_VERSION=buildroot-2019.08
 LINUX_VERSION=rhel7
+
+# =======================================================
+# Names/locations of external non-EPICS packages
+# =======================================================
+
+# ========================================
+# ADQ vendor library
+# ========================================
+ADQ_PACKAGE_NAME = teledyne/libadq0
+ADQ_VERSION      = 2023.2
+ADQ_TOP          = $(PACKAGE_SITE_TOP)/$(ADQ_PACKAGE_NAME)/$(ADQ_VERSION)
+ADQ_LIB          = $(ADQ_TOP)/$(PKG_ARCH)/lib
+ADQ_INCLUDE      = $(ADQ_TOP)/$(PKG_ARCH)/include
+
+# ========================================
+# NDS3 core
+# ========================================
+NDS3_PACKAGE_NAME = nds-core
+NDS3_VERSION      = R3.2.0-0.1.0
+NDS3_TOP          = $(PACKAGE_SITE_TOP)/$(NDS3_PACKAGE_NAME)/$(NDS3_VERSION)
+NDS3_LIB          = $(NDS3_TOP)/$(PKG_ARCH)/lib
+NDS3_INCLUDE      = $(NDS3_TOP)/$(PKG_ARCH)/include
 
 # End of file

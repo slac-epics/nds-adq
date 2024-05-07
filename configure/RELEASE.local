@@ -19,8 +19,7 @@
 # Don't set your version to anything such as "test" that
 # could match a directory name.
 # ==========================================================
-NDS3_MODULE_VERSION = pheest
-NDSEPICS_MODULE_VERSION = pheest
+NDSEPICS_MODULE_VERSION = R3.1.0-0.0.1
 EVENT_MODULE_VERSION = R4.8.4
 TIMINGAPI_MODULE_VERSION = R0.6
 
@@ -30,9 +29,7 @@ TIMINGAPI_MODULE_VERSION = R0.6
 #  or
 # FOO = /Full/Path/To/Development/Version 
 # ==========================================================)
-CBXFELTEMP = /afs/slac/g/controls/development/users/cbxfelDigitizer
-NDS3 = $(CBXFELTEMP)/nds-core/$(NDS3_MODULE_VERSION)
-NDSEPICS = $(CBXFELTEMP)/nds-epics/$(NDSEPICS_MODULE_VERSION)
+NDSEPICS = $(EPICS_MODULES)/nds-epics/$(NDSEPICS_MODULE_VERSION)
 EVENT = $(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
 TIMINGAPI = $(EPICS_MODULES)/timingApi/$(TIMINGAPI_MODULE_VERSION)
 
