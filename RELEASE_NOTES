@@ -1,0 +1,9 @@
+#==============================================================
+#  RELEASE_NOTES
+#  Release notes for the nds-adq module, a driver for Teledyne SPD ADQ digitizers.
+#  From: https://github.com/pheest/nds-adq
+#--------------------------------------------------------------
+
+R0.0.0-0.0.1  May 6, 2024  M. Dunning (mdunning)
+    Modify for SLAC workflow.  Fix many issues with acquisition and general functionality.
+    Tested with ADQ14 PCIe digitizer.
