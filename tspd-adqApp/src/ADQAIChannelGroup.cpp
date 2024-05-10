@@ -2399,9 +2399,10 @@ void ADQAIChannelGroup::commitRecordCount(struct timespec &now)
 
     if ((m_recordCnt == -1) && (m_daqMode != 2))
     {
-        m_recordCnt = 0;
+        m_recordCnt = 1;
         status = 0;
         ADQNDS_MSG_WARNLOG_PV(status, "Infinite collection is enabled only in Triggered mode.");
+        m_recordCntPV.push(now, m_recordCnt);
     }
 
     if (m_recordCnt >= 0)
