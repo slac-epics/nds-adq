@@ -1877,6 +1877,11 @@ void ADQAIChannelGroup::commitDaqMode(struct timespec &now)
             m_daqMode = 1;
         }
     }
+
+    if ((m_daqMode != 2) && (m_recordCnt = -1)) {
+        m_recordCnt = 1;
+    }
+
     m_daqModePV.push(now, m_daqMode);
 
     // Trigger sample and records numbers to update
