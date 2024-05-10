@@ -2456,7 +2456,7 @@ void ADQAIChannelGroup::commitRecordCountCollect(struct timespec const &now)
     if (m_recordCntCollect > m_recordCnt)
     {
         m_recordCntCollect = m_recordCnt;
-        ADQNDS_MSG_WARNLOG_PV(status, "Number of records to collect cannot be higher than total number of records.");
+        ADQNDS_MSG_WARNLOG_PV(0, "Number of records to collect cannot be higher than total number of records.");
         ndsWarningStream(m_node) << "Number of records to collect cannot be higher than total number of records." << std::endl;
     }
 
