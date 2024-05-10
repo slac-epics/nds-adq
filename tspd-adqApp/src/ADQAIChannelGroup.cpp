@@ -2402,6 +2402,7 @@ void ADQAIChannelGroup::commitRecordCount(struct timespec &now)
         m_recordCnt = 1;
         status = 0;
         ADQNDS_MSG_WARNLOG_PV(status, "Infinite collection is enabled only in Triggered mode.");
+        ndsWarningStream(m_node) << "Infinite collection is enabled only in Triggered mode." << std::endl;
         m_recordCntPV.push(now, m_recordCnt);
     }
 
@@ -2455,6 +2456,7 @@ void ADQAIChannelGroup::commitRecordCountCollect(struct timespec const &now)
     if (m_recordCntCollect > m_recordCnt)
     {
         m_recordCntCollect = m_recordCnt;
+        ADQNDS_MSG_WARNLOG_PV(status, "Number of records to collect cannot be higher than total number of records.");
         ndsWarningStream(m_node) << "Number of records to collect cannot be higher than total number of records." << std::endl;
     }
 
