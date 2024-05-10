@@ -19,8 +19,8 @@
 # Don't set your version to anything such as "test" that
 # could match a directory name.
 # ==========================================================
-NDSEPICS_MODULE_VERSION = R3.1.0-0.0.1
-EVENT_MODULE_VERSION = R4.8.4
+NDSEPICS_MODULE_VERSION  = R3.1.0-0.0.1
+EVRCLIENT_MODULE_VERSION = R1.5.2
 TIMINGAPI_MODULE_VERSION = R0.6
 
 # ==========================================================
@@ -29,8 +29,8 @@ TIMINGAPI_MODULE_VERSION = R0.6
 #  or
 # FOO = /Full/Path/To/Development/Version 
 # ==========================================================)
-NDSEPICS = $(EPICS_MODULES)/nds-epics/$(NDSEPICS_MODULE_VERSION)
-EVENT = $(EPICS_MODULES)/event/$(EVENT_MODULE_VERSION)
+NDSEPICS  = $(EPICS_MODULES)/nds-epics/$(NDSEPICS_MODULE_VERSION)
+EVRCLIENT = $(EPICS_MODULES)/evrClient/$(EVRCLIENT_MODULE_VERSION)
 TIMINGAPI = $(EPICS_MODULES)/timingApi/$(TIMINGAPI_MODULE_VERSION)
 
 # Set EPICS_BASE last so it appears last in the DB, DBD, INCLUDE, and LIB search paths
