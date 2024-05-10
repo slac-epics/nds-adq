@@ -28,11 +28,9 @@
 #include <epicsTime.h>
 #include <evrTime.h>
 
-// #define _DEBUG
+//#define _DEBUG
 #ifdef _DEBUG
 #define TRACEDEBUG
-#else
-// #define TRACEDEBUG
 #endif
 
 #include "ADQAIChannel.h"
@@ -1121,8 +1119,8 @@ int ADQAIChannelGroup::allocateBuffers(short *(&daqDataBuffer)[CHANNEL_COUNT_MAX
                                        streamingHeader_t *(&daqStreamHeaders)[CHANNEL_COUNT_MAX],
                                        short *(*daqLeftoverSamples)[CHANNEL_COUNT_MAX])
 {
-    unsigned int bufferSize = m_sampleCnt * m_recordCntCollect * sizeof(short);
-    unsigned int headerBufferSize = m_sampleCnt * m_recordCntCollect * sizeof(streamingHeader_t);
+    unsigned int bufferSize = m_sampleCnt * sizeof(short);
+    unsigned int headerBufferSize = m_sampleCnt * sizeof(streamingHeader_t);
     unsigned int activeChanCount = std::bitset<CHANNEL_COUNT_MAX>(m_chanMask).count();
     unsigned int stream_chunk_bytes = 512;
     if (adqType() == 714 || adqType() == 14)
