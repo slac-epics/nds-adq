@@ -31,19 +31,22 @@ record(ai, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE-RB") {
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputRange-RB")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTIMPEDANCE") {
+record(bo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTIMPEDANCE") {
     field(DESC, "${CH} Input Impedance")
-    field(SCAN, "Passive")
-    field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputImpedance")
+    field(ZNAM, "50 Ohm")
+    field(ONAM, "1 MOhm")
+    field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTIMPEDANCE-RB") {
+record(bi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTIMPEDANCE-RB") {
     field(DESC, "${CH} Input Impedance Rdbk")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputImpedance-RB")
+    field(ZNAM, "50 Ohm")
+    field(ONAM, "1 MOhm")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 

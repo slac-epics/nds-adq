@@ -242,11 +242,19 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:BYTESPERSAMPLE") {
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:BUSTYPE") {
+record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:BUSTYPE") {
     field(DESC, "Bus type")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) BusType")
+    field(ZRVL, "0")
+    field(ZRST, "PCIe")
+    field(ONVL, "1")
+    field(ONST, "PCIe Lite")
+    field(TWVL, "2")
+    field(TWST, "USB2")
+    field(THVL, "3")
+    field(THST, "USB3")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
@@ -260,16 +268,19 @@ record(longin, "${PREFIX}-${ADQSN}:${INFO}:BUSADDR") {
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:PCIELINKWID") {
     field(DESC, "PCIe link width")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PCIeLinkWid")
+    field(EGU,  "lanes")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${INFO}:PCIELINKRATE") {
     field(DESC, "PCIe link rate")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PCIeLinkRate")
+    field(EGU,  "(gen)")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
+

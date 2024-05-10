@@ -251,21 +251,22 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:CHANMASK-RB") {
     field(PINI, "YES")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:DBSBYPASS") {
+record(bo, "${PREFIX}-${ADQSN}:${GRP}:DBSBYPASS") {
     field(DESC, "DBS settings")
-    field(SCAN, "Passive")
-    field(DRVH, "1")
-    field(DRVL, "0")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) DBSBypass")
+    field(ZNAM, "DBS Active")
+    field(ONAM, "DBS Bypassed")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:DBSBYPASS-RB") {
+record(bi, "${PREFIX}-${ADQSN}:${GRP}:DBSBYPASS-RB") {
     field(DESC, "DBS settings Rdbk")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) DBSBypass-RB")
+    field(ZNAM, "DBS Active")
+    field(ONAM, "DBS Bypassed")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
@@ -475,35 +476,77 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:TRIGHOLDOFFSAMP-RB") {
     field(PINI, "YES")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:CLOCKSRC") {
+record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:CLOCKSRC") {
     field(DESC, "Clock source")
-    field(SCAN, "Passive")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ClockSrc")
+    field(ZRVL, "0")
+    field(ZRST, "Int/Int 10 MHz")
+    field(ONVL, "1")
+    field(ONST, "Int/Ext 10 MHz")
+    field(TWVL, "2")
+    field(TWST, "Ext")
+    field(THVL, "3")
+    field(THST, "Int/Ext 10 MHz (PXIsync)")
+    field(FRVL, "4")
+    field(FRST, "Int/Ext TCLKA")
+    field(FVVL, "5")
+    field(FVST, "Int/Ext TCLKB")
+    field(SXVL, "6")
+    field(SXST, "Int/Ext 100 MHz (PXIe)")
+    field(SVVL, "7")
+    field(SVST, "Int/Ext 10 MHz (JitCln)")
+    field(EIVL, "8")
+    field(EIST, "Int/Ext 10 MHz (Delay)")
+    field(NIVL, "9")
+    field(NIST, "Int/Ext (Free target)")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:CLOCKSRC-RB") {
+record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:CLOCKSRC-RB") {
     field(DESC, "Clock source Rdbk")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ClockSrc-RB")
+    field(ZRVL, "0")
+    field(ZRST, "Int/Int 10 MHz")
+    field(ONVL, "1")
+    field(ONST, "Int/Ext 10 MHz")
+    field(TWVL, "2")
+    field(TWST, "Ext")
+    field(THVL, "3")
+    field(THST, "Int/Ext 10 MHz (PXIsync)")
+    field(FRVL, "4")
+    field(FRST, "Int/Ext TCLKA")
+    field(FVVL, "5")
+    field(FVST, "Int/Ext TCLKB")
+    field(SXVL, "6")
+    field(SXST, "Int/Ext 100 MHz (PXIe)")
+    field(SVVL, "7")
+    field(SVST, "Int/Ext 10 MHz (JitCln)")
+    field(EIVL, "8")
+    field(EIST, "Int/Ext 10 MHz (Delay)")
+    field(NIVL, "9")
+    field(NIST, "Int/Ext (Free target)")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:CLOCKREFOUT") {
+record(bo, "${PREFIX}-${ADQSN}:${GRP}:CLOCKREFOUT") {
     field(DESC, "Clock reference output signal")
-    field(SCAN, "Passive")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ClockRefOut")
+    field(ZNAM, "Disabled")
+    field(ONAM, "Enabled")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:CLOCKREFOUT-RB") {
+record(bi, "${PREFIX}-${ADQSN}:${GRP}:CLOCKREFOUT-RB") {
     field(DESC, "Clock reference output signal Rdbk")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ClockRefOut-RB")
+    field(ZNAM, "Disabled")
+    field(ONAM, "Enabled")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
@@ -649,17 +692,18 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:LEVELTRIGCHANMASK-RB") {
 
 record(longout, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGDELAY") {
     field(DESC, "External Trigger delay")
-    field(SCAN, "Passive")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ExternTrigDelay")
+    field(EGU,  "ClkCyc")
     field(PINI, "YES")
 }
 
 record(longin, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGDELAY-RB") {
     field(DESC, "External Trigger delay Rdbk")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ExternTrigDelay-RB")
+    field(EGU,  "ClkCyc")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
@@ -711,20 +755,22 @@ record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGEDGE-RB") {
     field(PINI, "YES")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGINPUTIMPEDANCE") {
+record(bo, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGINPUTIMPEDANCE") {
     field(DESC, "Trigger Input Impedance")
-    field(SCAN, "Passive")
-    field(PINI, "YES")
     field(DTYP, "asynInt32")
     field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ExternTrigInputImpedance")
+    field(ZNAM, "50 Ohm")
+    field(ONAM, "High-Z")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGINPUTIMPEDANCE-RB") {
+record(bi, "${PREFIX}-${ADQSN}:${GRP}:EXTERNTRIGINPUTIMPEDANCE-RB") {
     field(DESC, "Trigger Input Impedance Rdbk")
-    field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
     field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ExternTrigInputImpedance-RB")
+    field(ZNAM, "50 Ohm")
+    field(ONAM, "High-Z")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
