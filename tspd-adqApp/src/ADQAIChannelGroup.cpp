@@ -1901,9 +1901,9 @@ void ADQAIChannelGroup::commitClockSource(struct timespec const &now)
         m_clockSrc = 0;
     }
 
-    if (m_clockSrc > 6)
+    if (m_clockSrc > 9)
     {
-        m_clockSrc = 6;
+        m_clockSrc = 9;
     }
 
     int status = m_adqInterface->SetClockSource(m_clockSrc);
