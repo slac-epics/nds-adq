@@ -1889,6 +1889,7 @@ void ADQAIChannelGroup::commitDaqMode(struct timespec &now)
     m_recordCntPV.push(now, m_recordCnt);
     m_sampleCntPV.read(&now, &m_sampleCnt);
     m_sampleCntPV.push(now, m_sampleCnt);
+    m_sampleCntMaxPV.push(now, m_sampleCntMax);
     // Trigger records to collect to update
     m_recordCntCollectPV.read(&now, &m_recordCntCollect);
     m_recordCntCollectPV.push(now, m_recordCntCollect);
