@@ -319,7 +319,7 @@ record(longin, "${PREFIX}-${ADQSN}:${GRP}:DBSUPSAT-RB") {
 }
 
 record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:PATTERNMODE") {
-    field(DESC, "Set trigger mode")
+    field(DESC, "Set pattern mode")
     field(SCAN, "Passive")
     field(ZRVL, 0)
     field(ZRST, "Normal")
@@ -335,7 +335,7 @@ record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:PATTERNMODE") {
 }
 
 record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:PATTERNMODE-RB") {
-    field(DESC, "Trigger mode readback Rdbk")
+    field(DESC, "Pattern mode readback")
     field(SCAN, "I/O Intr")
     field(ZRVL, 0)
     field(ZRST, "Normal")
