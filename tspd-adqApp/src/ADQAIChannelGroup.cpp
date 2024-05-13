@@ -1844,7 +1844,11 @@ void ADQAIChannelGroup::commitExternTrigDelay(struct timespec const &now)
         if (m_externTrigDelay > 37)
             m_externTrigDelay = 37;
 
-        ndsInfoStream(m_node) << "INFO: Trigger delay: for ADQ14 valid range is [0, 37]." << std::endl;
+        if ((m_externTrigDelay != 0) && (m_externTrigDelay != 37)) {
+            ndsInfoStream(m_node) << "INFO: Trigger delay for ADQ14 must be 0 or 37." << std::endl;
+            ADQNDS_MSG_WARNLOG_PV(0, "Trigger delay for ADQ14 must be 0 or 37.");
+            return;
+        }
     }
 
     if (adqType() == 7)
