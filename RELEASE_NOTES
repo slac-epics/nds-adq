@@ -4,6 +4,14 @@
 #  From: https://github.com/pheest/nds-adq
 #--------------------------------------------------------------
 
+R0.0.0-0.1.0  May 13, 2024  M. Dunning (mdunning)
+    Make record names compatible with SLAC naming conventions
+    Use mbbi/mbbo for enum records
+    Add check on m_recordCnt, prevents crash when switching modes with m_recordCnt = -1
+    Adjust buffer size for TrigStream so that it doesn't depend on number of records to collect (prevents crash)
+    Use evrClient instead of event module
+
 R0.0.0-0.0.1  May 6, 2024  M. Dunning (mdunning)
     Modify for SLAC workflow.  Fix many issues with acquisition and general functionality.
     Tested with ADQ14 PCIe digitizer.
+

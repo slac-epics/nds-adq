@@ -14,75 +14,75 @@
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
-record(ao, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE") {
+record(ao, "$(P):${CH}:INPUTRANGE") {
     field(DESC, "${CH} input range")
     field(EGU,  "mVpp")
     field(SCAN, "Passive")
     field(DTYP, "asynFloat64")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputRange")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0)${CH}-InputRange")
     field(PINI, "YES")
 }
 
-record(ai, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTRANGE-RB") {
+record(ai, "$(P):${CH}:INPUTRANGE-RB") {
     field(DESC, "${CH} input range Rdbk")
     field(EGU,  "mVpp")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputRange-RB")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-InputRange-RB")
 }
 
-record(bo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTIMPEDANCE") {
+record(bo, "$(P):${CH}:INPUTIMPEDANCE") {
     field(DESC, "${CH} Input Impedance")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputImpedance")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0)${CH}-InputImpedance")
     field(ZNAM, "50 Ohm")
     field(ONAM, "1 MOhm")
     field(PINI, "YES")
 }
 
-record(bi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:INPUTIMPEDANCE-RB") {
+record(bi, "$(P):${CH}:INPUTIMPEDANCE-RB") {
     field(DESC, "${CH} Input Impedance Rdbk")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-InputImpedance-RB")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-InputImpedance-RB")
     field(ZNAM, "50 Ohm")
     field(ONAM, "1 MOhm")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DCBIAS") {
+record(longout, "$(P):${CH}:DCBIAS") {
     field(DESC, "${CH} Adjusted BIAS")
     field(SCAN, "Passive")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-DCBias")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0)${CH}-DCBias")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DCBIAS-RB") {
+record(longin, "$(P):${CH}:DCBIAS-RB") {
     field(DESC, "${CH} Adjusted BIAS Rdbk")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-DCBias-RB")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-DCBias-RB")
     field(PINI, "YES")
 }
 
-record(longout, "${PREFIX}-${ADQSN}:${GRP}:${CH}:CHANDEC") {
+record(longout, "$(P):${CH}:CHANDEC") {
     field(DESC, "${CH} decimation (for ADQ7-FWSDR)")
     field(SCAN, "Passive")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ${CH}-ChanDec")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0) ${CH}-ChanDec")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${GRP}:${CH}:CHANDEC-RB") {
+record(longin, "$(P):${CH}:CHANDEC-RB") {
     field(DESC, "${CH} decimation (for ADQ7-FWSDR) Rdbk")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0) ${CH}-ChanDec-RB")
+    field(INP,  "@asyn($(PORT):$(GRP), 0) ${CH}-ChanDec-RB")
     field(PINI, "YES")
 }
 
-record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
+record(waveform, "$(P):${CH}:DATA") {
     field(DESC, "Received data")
     field(FTVL, "SHORT")
     # This is the maximum number samples in a record * NRECORDSCOLLECT
@@ -90,7 +90,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
     field(PRIO, "HIGH")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt16ArrayIn")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-Data")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-Data")
 }
 
 # # # # # # # # # # # # # # # # # # # # # #
@@ -99,7 +99,7 @@ record(waveform, "${PREFIX}-${ADQSN}:${GRP}:${CH}:DATA") {
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
-record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
+record(mbbo, "$(P):${CH}:SETSTATE") {
     field(DESC, "Set local state ${CH}")
     field(SCAN, "Passive")
     field(ZRVL, 0)
@@ -121,11 +121,11 @@ record(mbbo, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:SETSTATE") {
     field(EIVL, 8)
     field(EIST, "FAULT")
     field(DTYP, "asynInt32")
-    field(OUT,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-StateMachine-setState")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0)${CH}-StateMachine-setState")
     field(PINI, "YES")
 }
 
-record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:GETSTATE") {
+record(mbbi, "$(P):${CH}:GETSTATE") {
     field(DESC, "Get local state ${CH}")
     field(SCAN, "I/O Intr")
     field(ZRVL, 0)
@@ -148,6 +148,6 @@ record(mbbi, "${PREFIX}-${ADQSN}:${GRP}:${CH}:STATEMACHINE:GETSTATE") {
     field(EIST, "FAULT")
     field(EISV, "MAJOR")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${GRP}, 0)${CH}-StateMachine-getState")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-StateMachine-getState")
     field(PINI, "YES")
 }

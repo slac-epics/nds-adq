@@ -10,63 +10,63 @@
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
 
-record(waveform,"${PREFIX}-${ADQSN}:${INFO}:LOGMSG") {
+record(waveform,"$(P):LOGMSG") {
     field(DESC, "Message log")
     field(FTVL,"CHAR")
     field(NELM,"512")
     field(SCAN,"I/O Intr")
     field(DTYP,"asynInt8ArrayIn")
-    field(INP,"@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) LogMsg")
+    field(INP,"@asyn($(PORT):$(INFO), 0) LogMsg")
     field(PINI, "YES")
 }
 
-record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODNAME") {
+record(waveform, "$(P):PRODNAME") {
     field(DESC, "Product name of the device")
     field(FTVL, "CHAR")
     field(NELM, 32)
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt8ArrayIn")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) ProdName")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) ProdName")
     field(PINI, "YES")
 }
 
-record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODSERIAL") {
+record(waveform, "$(P):PRODSERIAL") {
     field(DESC, "Serial number of the device")
     field(FTVL, "CHAR")
     field(NELM, 32)
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt8ArrayIn")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) ProdSerial")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) ProdSerial")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:PRODID") {
+record(longin, "$(P):PRODID") {
     field(DESC, "Product ID of the device")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) ProdID")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) ProdID")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:PRODTYPE") {
+record(longin, "$(P):PRODTYPE") {
     field(DESC, "Type of the device")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) ProdType")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) ProdType")
     field(PINI, "YES")
 }
     
-record(waveform, "${PREFIX}-${ADQSN}:${INFO}:PRODOPT") {
+record(waveform, "$(P):PRODOPT") {
     field(DESC, "Option of the device")
     field(FTVL, "CHAR")
     field(NELM, 32)
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt8ArrayIn")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) ProdOpt")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) ProdOpt")
     field(PINI, "YES")
 }
 
-record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:ISALIVE") {
+record(mbbi, "$(P):ISALIVE") {
     field(DESC, "Is the digitiser still communicable?")
     field(ZRVL, 0)
     field(ZRST, "Fail")
@@ -74,109 +74,109 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:ISALIVE") {
     field(ONST, "OK")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) isAlive")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) isAlive")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPLOCAL") {
+record(longin, "$(P):TEMPLOCAL") {
     field(DESC, "Local temperature")
     field(EGU,  "C")
     field(HIHI, "105")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempLocal")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempLocal")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPADC-1") {
+record(longin, "$(P):TEMPADC-1") {
     field(DESC, "ADC1 temperature")
     field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempADC-1")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempADC-1")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPADC-2") {
+record(longin, "$(P):TEMPADC-2") {
     field(DESC, "ADC2 temperature")
     field(EGU, "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempADC-2")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempADC-2")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPFPGA") {
+record(longin, "$(P):TEMPFPGA") {
     field(DESC, "FPGA temperature")
     field(EGU,  "C")
     field(HIHI, "95")
     field(HIGH, "90")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempFPGA")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempFPGA")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2A") {
+record(longin, "$(P):TEMPDCDC2A") {
     field(DESC, "Diode temperature")
     field(EGU, "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempDCDC2A")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempDCDC2A")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2A") {
+record(longin, "$(P):TEMPDCDC2A") {
     field(DESC, "Diode temperature")
     field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempDCDC2A")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempDCDC2A")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC2B") {
+record(longin, "$(P):TEMPDCDC2B") {
     field(DESC, "Diode temperature")
     field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempDCDC2B")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempDCDC2B")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPDCDC1") {
+record(longin, "$(P):TEMPDCDC1") {
     field(DESC, "Diode temperature")
     field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempDCDC1")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempDCDC1")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:TEMPRSVD") {
+record(longin, "$(P):TEMPRSVD") {
     field(DESC, "Diode temperature")
     field(EGU,  "C")
     field(HIHI, "105")
     field(HIGH, "100")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) TempRSVD")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) TempRSVD")
     field(PINI, "YES")
 }
 
-record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL1_LOCK_LOST") {
+record(mbbi, "$(P):PLL1_LOCK_LOST") {
     field(DESC, "PLL1 lock lost")
     field(ZRVL, 0)
     field(ZRST, "Lock OK")
@@ -186,11 +186,11 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL1_LOCK_LOST") {
     field(TWST, "Lock failed")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PLL1_lock_lost")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) PLL1_lock_lost")
     field(PINI, "YES")
 }
 
-record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL2_LOCK_LOST") {
+record(mbbi, "$(P):PLL2_LOCK_LOST") {
     field(DESC, "PLL2 lock lost")
     field(ZRVL, 0)
     field(ZRST, "Lock OK")
@@ -200,52 +200,52 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:PLL2_LOCK_LOST") {
     field(TWST, "Lock failed")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PLL2_lock_lost")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) PLL2_lock_lost")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:FREQUENCYDESCREPANCY") {
+record(longin, "$(P):FREQUENCYDESCREPANCY") {
     field(DESC, "Reference frequency discrepancy")
     field(EGU,  "Hz")
     field(HIHI, "1000")
     field(HIGH, "500")
     field(SCAN, "1 second")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) frequencyDescrepancy")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) frequencyDescrepancy")
     field(PINI, "YES")
 }
 
-record(ai, "${PREFIX}-${ADQSN}:${INFO}:SAMPRATE") {
+record(ai, "$(P):SAMPRATE") {
     field(DESC, "Sample rate")
     field(EGU,  "Hz")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) SampRate")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) SampRate")
     field(PINI, "YES")
 }
 
-record(ai, "${PREFIX}-${ADQSN}:${INFO}:SAMPRATEDEC") {
+record(ai, "$(P):SAMPRATEDEC") {
     field(DESC, "Sample rate with decimation")
     field(EGU, "Hz")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynFloat64")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) SampRateDec")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) SampRateDec")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:BYTESPERSAMPLE") {
+record(longin, "$(P):BYTESPERSAMPLE") {
     field(DESC, "Number of bytes per sample")
     field(EGU, "b/Samp")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) BytesPerSample")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) BytesPerSample")
     field(PINI, "YES")
 }
 
-record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:BUSTYPE") {
+record(mbbi, "$(P):BUSTYPE") {
     field(DESC, "Bus type")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) BusType")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) BusType")
     field(ZRVL, "0")
     field(ZRST, "PCIe")
     field(ONVL, "1")
@@ -258,27 +258,27 @@ record(mbbi, "${PREFIX}-${ADQSN}:${INFO}:BUSTYPE") {
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:BUSADDR") {
+record(longin, "$(P):BUSADDR") {
     field(DESC, "Bus address")
     field(SCAN, "I/O Intr")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) BusAddr")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) BusAddr")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:PCIELINKWID") {
+record(longin, "$(P):PCIELINKWID") {
     field(DESC, "PCIe link width")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PCIeLinkWid")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) PCIeLinkWid")
     field(EGU,  "lanes")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
-record(longin, "${PREFIX}-${ADQSN}:${INFO}:PCIELINKRATE") {
+record(longin, "$(P):PCIELINKRATE") {
     field(DESC, "PCIe link rate")
     field(DTYP, "asynInt32")
-    field(INP,  "@asyn(${PREFIX}-${ADQSN}:${INFO}, 0) PCIeLinkRate")
+    field(INP,  "@asyn($(PORT):$(INFO), 0) PCIeLinkRate")
     field(EGU,  "(gen)")
     field(SCAN, "I/O Intr")
     field(PINI, "YES")
