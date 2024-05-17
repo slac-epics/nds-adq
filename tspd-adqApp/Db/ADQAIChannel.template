@@ -95,10 +95,67 @@ record(waveform, "$(P):${CH}:DATA") {
 
 # # # # # # # # # # # # # # # # # # # # # #
 #                                         #
+#       Data Statistics                   #
+#                                         #
+# # # # # # # # # # # # # # # # # # # # # #
+record(longout, "$(P):${CH}:STATS_WIN_START") {
+    field(DESC, "Stats window start")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0)${CH}-StatsWinStart")
+    field(PINI, "YES")
+}
+
+record(longin, "$(P):${CH}:STATS_WIN_START-RB") {
+    field(DESC, "Stats window start")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-StatsWinStart-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(longout, "$(P):${CH}:STATS_WIN_STOP") {
+    field(DESC, "Stats window stop")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0)${CH}-StatsWinStop")
+    field(PINI, "YES")
+}
+
+record(longin, "$(P):${CH}:STATS_WIN_STOP-RB") {
+    field(DESC, "Stats window stop")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-StatsWinStop-RB")
+    field(SCAN, "I/O Intr")
+    field(PINI, "YES")
+}
+
+record(ai, "$(P):${CH}:DATA_INT") {
+    field(DESC, "Data integral")
+    field(DTYP, "asynFloat64")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-DataIntegral")
+    field(EGU,  "cnt-pts")
+    field(PREC, "0")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P):${CH}:DATA_MIN") {
+    field(DESC, "Data min")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-DataMin")
+    field(SCAN, "I/O Intr")
+}
+
+record(longin, "$(P):${CH}:DATA_MAX") {
+    field(DESC, "Data max")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT):$(GRP), 0)${CH}-DataMax")
+    field(SCAN, "I/O Intr")
+}
+
+# # # # # # # # # # # # # # # # # # # # # #
+#                                         #
 #       StateMachine for Channels         #
 #                                         #
 # # # # # # # # # # # # # # # # # # # # # #
-
 record(mbbo, "$(P):${CH}:SETSTATE") {
     field(DESC, "Set local state ${CH}")
     field(SCAN, "Passive")

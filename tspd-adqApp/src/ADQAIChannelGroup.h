@@ -561,6 +561,17 @@ public:
      * @brief This method processes Raw streaming data acquisition.
      */
     void daqRawStream();
+    
+    /** @fn setStatsEnable
+     * @brief Sets statsEnable (waveform statistics).
+     */
+    void setStatsEnable(const timespec& pTimestamp, const int32_t& pValue);
+
+    /** @fn getStatsEnable
+     * @brief Gets statsEnable (waveform statistics).
+     */
+    void getStatsEnable(timespec* pTimestamp, int32_t* pValue);
+
 
 private:
     int32_t m_masterEnumeration;
@@ -662,6 +673,9 @@ private:
 
     bool m_streamTimeChanged;
     double m_streamTime;
+    
+    bool m_statsEnableChanged;
+    int32_t m_statsEnable;
 
     /** @brief This method processes changes are applied to parameters.
      *
@@ -750,6 +764,7 @@ private:
     nds::PVDelegateIn<int32_t> m_internTrigEdgePV;
     nds::PVDelegateIn<int32_t> m_timeoutPV;
     nds::PVDelegateIn<double> m_streamTimePV;
+    nds::PVDelegateIn<int32_t> m_statsEnablePV;
 
     nds::Thread m_daqThread;
     /** @def ADQNDS_MSG_ERRLOG_PV

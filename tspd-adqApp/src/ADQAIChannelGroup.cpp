@@ -54,52 +54,53 @@ static const double PicoSec125 = 0.000000125;
  **********************************************************/
 
 ADQAIChannelGroup::ADQAIChannelGroup(const std::string &name, nds::Node &parentNode,
-                                     ADQInterface *adqInterface, int32_t masterEnumeration, int32_t thisEnumeration, int32_t nextEnumeration) : ADQInfo(name, parentNode, adqInterface),
-                                                                                                                                                m_node(nds::Port(name + GROUP_CHAN_DEVICE, nds::nodeType_t::generic)),
-                                                                                                                                                m_masterEnumerationPV(createPvRb<int32_t>("masterEnumeration", &ADQAIChannelGroup::getMasterEnumeration)),
-                                                                                                                                                m_thisEnumerationPV(createPvRb<int32_t>("thisEnumeration", &ADQAIChannelGroup::getThisEnumeration)),
-                                                                                                                                                m_nextEnumerationPV(createPvRb<int32_t>("nextEnumeration", &ADQAIChannelGroup::getNextEnumeration)),
-                                                                                                                                                m_daisyPositionPV(createPvRb<std::vector<int32_t>>("DaisyPosition-RB", &ADQAIChannelGroup::getDaisyPosition)),
-                                                                                                                                                m_sync_immediatePV(createPvRb<int32_t>("sync_immediate-RB", &ADQAIChannelGroup::getsync_immediate)),
-                                                                                                                                                m_daqModePV(createPvRb<int32_t>("DAQMode-RB", &ADQAIChannelGroup::getDaqMode)),
-                                                                                                                                                m_patternModePV(createPvRb<int32_t>("PatternMode-RB", &ADQAIChannelGroup::getPatternMode)),
-                                                                                                                                                m_chanActivePV(createPvRb<int32_t>("ChanActive-RB", &ADQAIChannelGroup::getChanActive)),
-                                                                                                                                                m_chanMaskPV(createPvRb<int32_t>("ChanMask-RB", &ADQAIChannelGroup::getChanMask)),
-                                                                                                                                                m_dbsBypassPV(createPvRb<int32_t>("DBSBypass-RB", &ADQAIChannelGroup::getDbsBypass)),
-                                                                                                                                                m_dbsDcPV(createPvRb<int32_t>("DBSDC-RB", &ADQAIChannelGroup::getDbsDc)),
-                                                                                                                                                m_dbsLowSatPV(createPvRb<int32_t>("DBSLowSat-RB", &ADQAIChannelGroup::getDbsLowSat)),
-                                                                                                                                                m_dbsUpSatPV(createPvRb<int32_t>("DBSUpSat-RB", &ADQAIChannelGroup::getDbsUpSat)),
-                                                                                                                                                m_recordCntPV(createPvRb<int32_t>("RecordCnt-RB", &ADQAIChannelGroup::getRecordCnt)),
-                                                                                                                                                m_recordCntCollectPV(createPvRb<int32_t>("RecordCntCollect-RB", &ADQAIChannelGroup::getRecordCntCollect)),
-                                                                                                                                                m_sampleCntPV(createPvRb<int32_t>("SampCnt-RB", &ADQAIChannelGroup::getSampleCnt)),
-                                                                                                                                                m_sampleCntMaxPV(createPvRb<int32_t>("SampCntMax-RB", &ADQAIChannelGroup::getSampleCntMax)),
-                                                                                                                                                m_sampleCntTotalPV(createPvRb<int32_t>("SampCntTotal-RB", &ADQAIChannelGroup::getSamplesTotal)),
-                                                                                                                                                m_sampleSkipPV(createPvRb<int32_t>("SampSkip-RB", &ADQAIChannelGroup::getSampleSkip)),
-                                                                                                                                                m_sampleDecPV(createPvRb<int32_t>("SampDec-RB", &ADQAIChannelGroup::getSampleDec)),
-                                                                                                                                                m_preTrigSampPV(createPvRb<int32_t>("PreTrigSamp-RB", &ADQAIChannelGroup::getPreTrigSamp)),
-                                                                                                                                                m_trigHoldOffSampPV(createPvRb<int32_t>("TrigHoldOffSamp-RB", &ADQAIChannelGroup::getTrigHoldOffSamp)),
-                                                                                                                                                m_clockSrcPV(createPvRb<int32_t>("ClockSrc-RB", &ADQAIChannelGroup::getClockSrc)),
-                                                                                                                                                m_clockRefOutPV(createPvRb<int32_t>("ClockRefOut-RB", &ADQAIChannelGroup::getClockRefOut)),
-                                                                                                                                                m_trigModePV(createPvRb<int32_t>("TrigMode-RB", &ADQAIChannelGroup::getTrigMode)),
-                                                                                                                                                m_masterModePV(createPvRb<int32_t>("MasterMode-RB", &ADQAIChannelGroup::getMasterMode)),
-                                                                                                                                                m_trigTimeStampPV(createPvRb<std::vector<double>>("TrigTimeStamp", &ADQAIChannelGroup::getTrigTimeStamp)),
-                                                                                                                                                m_daisyRecordStartPV(createPvRb<std::vector<int32_t>>("DaisyRecordStart", &ADQAIChannelGroup::getDaisyRecordStart)),
-                                                                                                                                                m_daisyTimeStampPV(createPvRb<std::vector<double>>("DaisyTimeStamp", &ADQAIChannelGroup::getDaisyTimeStamp)),
-                                                                                                                                                m_swTrigEdgePV(createPvRb<int32_t>("SWTrigEdge-RB", &ADQAIChannelGroup::getSWTrigEdge)),
-                                                                                                                                                m_levelTrigLvlPV(createPvRb<int32_t>("LevelTrigLvl-RB", &ADQAIChannelGroup::getLevelTrigLvl)),
-                                                                                                                                                m_levelTrigEdgePV(createPvRb<int32_t>("LevelTrigEdge-RB", &ADQAIChannelGroup::getLevelTrigEdge)),
-                                                                                                                                                m_levelTrigChanPV(createPvRb<int32_t>("LevelTrigChan-RB", &ADQAIChannelGroup::getLevelTrigChan)),
-                                                                                                                                                m_levelTrigChanMaskPV(createPvRb<int32_t>("LevelTrigChanMask-RB", &ADQAIChannelGroup::getLevelTrigChanMask)),
-                                                                                                                                                m_externTrigDelayPV(createPvRb<int32_t>("ExternTrigDelay-RB", &ADQAIChannelGroup::getExternTrigDelay)),
-                                                                                                                                                m_externTrigThresholdPV(createPvRb<double>("ExternTrigThreshold-RB", &ADQAIChannelGroup::getExternTrigThreshold)),
-                                                                                                                                                m_externTrigEdgePV(createPvRb<int32_t>("ExternTrigEdge-RB", &ADQAIChannelGroup::getExternTrigEdge)),
-                                                                                                                                                m_externTrigInputImpedancePV(createPvRb<int32_t>("ExternTrigInputImpedance-RB", &ADQAIChannelGroup::getExternTrigInputImpedance)),
-                                                                                                                                                m_internTrigHighSampPV(createPvRb<int32_t>("InternTrigHighSamp-RB", &ADQAIChannelGroup::getInternTrigHighSamp)),
-                                                                                                                                                m_internTrigLowSampPV(createPvRb<int32_t>("InternTrigLowSamp-RB", &ADQAIChannelGroup::getInternTrigLowSamp)),
-                                                                                                                                                m_internTrigFreqPV(createPvRb<int32_t>("InternTrigFreq-RB", &ADQAIChannelGroup::getInternTrigFreq)),
-                                                                                                                                                m_internTrigEdgePV(createPvRb<int32_t>("InternTrigEdge-RB", &ADQAIChannelGroup::getInternTrigEdge)),
-                                                                                                                                                m_timeoutPV(createPvRb<int32_t>("Timeout-RB", &ADQAIChannelGroup::getTimeout)),
-                                                                                                                                                m_streamTimePV(createPvRb<double>("StreamTime-RB", &ADQAIChannelGroup::getStreamTime))
+        ADQInterface *adqInterface, int32_t masterEnumeration, int32_t thisEnumeration, int32_t nextEnumeration) : ADQInfo(name, parentNode, adqInterface),
+                m_node(nds::Port(name + GROUP_CHAN_DEVICE, nds::nodeType_t::generic)),
+                m_masterEnumerationPV(createPvRb<int32_t>("masterEnumeration", &ADQAIChannelGroup::getMasterEnumeration)),
+                m_thisEnumerationPV(createPvRb<int32_t>("thisEnumeration", &ADQAIChannelGroup::getThisEnumeration)),
+                m_nextEnumerationPV(createPvRb<int32_t>("nextEnumeration", &ADQAIChannelGroup::getNextEnumeration)),
+                m_daisyPositionPV(createPvRb<std::vector<int32_t>>("DaisyPosition-RB", &ADQAIChannelGroup::getDaisyPosition)),
+                m_sync_immediatePV(createPvRb<int32_t>("sync_immediate-RB", &ADQAIChannelGroup::getsync_immediate)),
+                m_daqModePV(createPvRb<int32_t>("DAQMode-RB", &ADQAIChannelGroup::getDaqMode)),
+                m_patternModePV(createPvRb<int32_t>("PatternMode-RB", &ADQAIChannelGroup::getPatternMode)),
+                m_chanActivePV(createPvRb<int32_t>("ChanActive-RB", &ADQAIChannelGroup::getChanActive)),
+                m_chanMaskPV(createPvRb<int32_t>("ChanMask-RB", &ADQAIChannelGroup::getChanMask)),
+                m_dbsBypassPV(createPvRb<int32_t>("DBSBypass-RB", &ADQAIChannelGroup::getDbsBypass)),
+                m_dbsDcPV(createPvRb<int32_t>("DBSDC-RB", &ADQAIChannelGroup::getDbsDc)),
+                m_dbsLowSatPV(createPvRb<int32_t>("DBSLowSat-RB", &ADQAIChannelGroup::getDbsLowSat)),
+                m_dbsUpSatPV(createPvRb<int32_t>("DBSUpSat-RB", &ADQAIChannelGroup::getDbsUpSat)),
+                m_recordCntPV(createPvRb<int32_t>("RecordCnt-RB", &ADQAIChannelGroup::getRecordCnt)),
+                m_recordCntCollectPV(createPvRb<int32_t>("RecordCntCollect-RB", &ADQAIChannelGroup::getRecordCntCollect)),
+                m_sampleCntPV(createPvRb<int32_t>("SampCnt-RB", &ADQAIChannelGroup::getSampleCnt)),
+                m_sampleCntMaxPV(createPvRb<int32_t>("SampCntMax-RB", &ADQAIChannelGroup::getSampleCntMax)),
+                m_sampleCntTotalPV(createPvRb<int32_t>("SampCntTotal-RB", &ADQAIChannelGroup::getSamplesTotal)),
+                m_sampleSkipPV(createPvRb<int32_t>("SampSkip-RB", &ADQAIChannelGroup::getSampleSkip)),
+                m_sampleDecPV(createPvRb<int32_t>("SampDec-RB", &ADQAIChannelGroup::getSampleDec)),
+                m_preTrigSampPV(createPvRb<int32_t>("PreTrigSamp-RB", &ADQAIChannelGroup::getPreTrigSamp)),
+                m_trigHoldOffSampPV(createPvRb<int32_t>("TrigHoldOffSamp-RB", &ADQAIChannelGroup::getTrigHoldOffSamp)),
+                m_clockSrcPV(createPvRb<int32_t>("ClockSrc-RB", &ADQAIChannelGroup::getClockSrc)),
+                m_clockRefOutPV(createPvRb<int32_t>("ClockRefOut-RB", &ADQAIChannelGroup::getClockRefOut)),
+                m_trigModePV(createPvRb<int32_t>("TrigMode-RB", &ADQAIChannelGroup::getTrigMode)),
+                m_masterModePV(createPvRb<int32_t>("MasterMode-RB", &ADQAIChannelGroup::getMasterMode)),
+                m_trigTimeStampPV(createPvRb<std::vector<double>>("TrigTimeStamp", &ADQAIChannelGroup::getTrigTimeStamp)),
+                m_daisyRecordStartPV(createPvRb<std::vector<int32_t>>("DaisyRecordStart", &ADQAIChannelGroup::getDaisyRecordStart)),
+                m_daisyTimeStampPV(createPvRb<std::vector<double>>("DaisyTimeStamp", &ADQAIChannelGroup::getDaisyTimeStamp)),
+                m_swTrigEdgePV(createPvRb<int32_t>("SWTrigEdge-RB", &ADQAIChannelGroup::getSWTrigEdge)),
+                m_levelTrigLvlPV(createPvRb<int32_t>("LevelTrigLvl-RB", &ADQAIChannelGroup::getLevelTrigLvl)),
+                m_levelTrigEdgePV(createPvRb<int32_t>("LevelTrigEdge-RB", &ADQAIChannelGroup::getLevelTrigEdge)),
+                m_levelTrigChanPV(createPvRb<int32_t>("LevelTrigChan-RB", &ADQAIChannelGroup::getLevelTrigChan)),
+                m_levelTrigChanMaskPV(createPvRb<int32_t>("LevelTrigChanMask-RB", &ADQAIChannelGroup::getLevelTrigChanMask)),
+                m_externTrigDelayPV(createPvRb<int32_t>("ExternTrigDelay-RB", &ADQAIChannelGroup::getExternTrigDelay)),
+                m_externTrigThresholdPV(createPvRb<double>("ExternTrigThreshold-RB", &ADQAIChannelGroup::getExternTrigThreshold)),
+                m_externTrigEdgePV(createPvRb<int32_t>("ExternTrigEdge-RB", &ADQAIChannelGroup::getExternTrigEdge)),
+                m_externTrigInputImpedancePV(createPvRb<int32_t>("ExternTrigInputImpedance-RB", &ADQAIChannelGroup::getExternTrigInputImpedance)),
+                m_internTrigHighSampPV(createPvRb<int32_t>("InternTrigHighSamp-RB", &ADQAIChannelGroup::getInternTrigHighSamp)),
+                m_internTrigLowSampPV(createPvRb<int32_t>("InternTrigLowSamp-RB", &ADQAIChannelGroup::getInternTrigLowSamp)),
+                m_internTrigFreqPV(createPvRb<int32_t>("InternTrigFreq-RB", &ADQAIChannelGroup::getInternTrigFreq)),
+                m_internTrigEdgePV(createPvRb<int32_t>("InternTrigEdge-RB", &ADQAIChannelGroup::getInternTrigEdge)),
+                m_timeoutPV(createPvRb<int32_t>("Timeout-RB", &ADQAIChannelGroup::getTimeout)),
+                m_streamTimePV(createPvRb<double>("StreamTime-RB", &ADQAIChannelGroup::getStreamTime)),
+                m_statsEnablePV(createPvRb<int32_t>("StatsEnable-RB", &ADQAIChannelGroup::getStatsEnable))
 {
     parentNode.addChild(m_node);
 
@@ -126,14 +127,14 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string &name, nds::Node &parentN
                 m_trigModeChanged = m_masterModeChanged = m_swTrigEdgeChanged = m_levelTrigLvlChanged = m_levelTrigEdgeChanged =
                     m_levelTrigChanChanged = m_levelTrigChanMaskChanged = m_externTrigDelayChanged = m_externTrigThresholdChanged =
                         m_externTrigEdgeChanged = m_externTrigInputImpedanceChanged = m_internTrigHighSampChanged = m_internTrigFreqChanged = m_internTrigEdgeChanged =
-                            m_timeoutChanged = m_streamTimeChanged = m_sync_immediateChanged = false;
+                            m_timeoutChanged = m_streamTimeChanged = m_sync_immediateChanged = m_statsEnableChanged = false;
     m_clockSrcChanged = true;
     m_daqMode = m_patternMode = m_dbsBypass = m_dbsDc = m_dbsLowSat = m_dbsUpSat = m_recordCnt = m_recordCntCollect =
         m_sampleCnt = m_sampleCntMax = m_sampleCntTotal = m_sampleSkip = m_sampleDec = m_preTrigSamp = m_trigHoldOffSamp =
             m_clockSrc = m_clockRefOut = m_chanActive = m_chanInt = m_chanMask = m_trigMode = m_masterMode = m_swTrigEdge = m_levelTrigLvl =
                 m_levelTrigEdge = m_levelTrigChanMask = m_externTrigDelay = m_externTrigThreshold = m_externTrigEdge = m_externTrigInputImpedance =
                     m_internTrigHighSamp = m_internTrigLowSamp = m_internTrigFreq = m_internTrigPeriod = m_internTrigEdge =
-                        m_timeout = m_streamTime = m_PRETime = m_sync_immediate = 0;
+                        m_timeout = m_streamTime = m_PRETime = m_sync_immediate = m_statsEnable = 0;
 
     m_chanMask = 0xFF;
     m_recordCnt = 1;
@@ -288,6 +289,9 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string &name, nds::Node &parentN
 
     // PV for streaming time
     createPv<double>("StreamTime", m_streamTimePV, &ADQAIChannelGroup::setStreamTime, &ADQAIChannelGroup::getStreamTime);
+
+    // PV for stats enable flag
+    createPv<int32_t>("StatsEnable", m_statsEnablePV, &ADQAIChannelGroup::setStatsEnable, &ADQAIChannelGroup::getStatsEnable);
 
     setTriggerIdleState();
     int status = m_adqInterface->SetTriggerMode(1); // SW trigger
@@ -888,6 +892,21 @@ void ADQAIChannelGroup::getStreamTime(timespec *pTimestamp, double *pValue)
     *pTimestamp = m_streamTimePV.getTimestamp();
 }
 
+void ADQAIChannelGroup::setStatsEnable(const timespec &pTimestamp, const int32_t &pValue)
+{
+    m_statsEnable = pValue;
+    m_statsEnablePV.getTimestamp() = pTimestamp;
+    m_statsEnableChanged = true;
+    m_statsEnablePV.push(pTimestamp, m_statsEnable);
+//    commitChanges();
+}
+
+void ADQAIChannelGroup::getStatsEnable(timespec *pTimestamp, int32_t *pValue)
+{
+    *pValue = m_statsEnable;
+    *pTimestamp = m_statsEnablePV.getTimestamp();
+}
+
 /* This function updates readback PVs according to changed ADQ parameters.
  * It also sets trigger options with ADQ API functions.
  */
@@ -997,6 +1016,12 @@ void ADQAIChannelGroup::commitChanges(bool calledFromDaqThread)
             if (m_timeout <= 0)
                 m_timeout = 1000;
             m_timeoutPV.push(now, m_timeout);
+        }
+        
+        if (m_statsEnableChanged)
+        {
+            m_statsEnableChanged = false;
+            m_statsEnablePV.push(now, m_statsEnable);
         }
     }
     catch (nds::NdsError const &)
@@ -1366,6 +1391,9 @@ void ADQAIChannelGroup::daqTrigStream()
                         {
                             // There is enough data in the transfer buffer to complete the record
                             m_AIChannelsPtr[chan]->readData(daqLeftoverSamples[chan], m_sampleCnt);
+                            if (m_statsEnable) {
+                                m_AIChannelsPtr[chan]->getDataStats();
+                            }
                             samplesLeftoverSamplesCnt[chan] -= m_sampleCnt;
                             // If there is at least one complete header
                             recordsDoneCnt[chan]++;
@@ -1379,6 +1407,9 @@ void ADQAIChannelGroup::daqTrigStream()
                         // At least one complete record is available in this new data.
                         recordsDoneCnt[chan]++;
                         m_AIChannelsPtr[chan]->readData(daqDataBuffer[chan], m_sampleCnt);
+                        if (m_statsEnable) {
+                            m_AIChannelsPtr[chan]->getDataStats();
+                        }
                         if (int(samplesAddedCnt[chan]) > m_sampleCnt)
                         {
                             // This new data contains more than one complete record. Store it for use later.
@@ -1444,6 +1475,9 @@ void ADQAIChannelGroup::daqTrigStream()
                     if (!((1 << chan) & m_chanMask))
                         continue;
                     m_AIChannelsPtr[chan]->pushData(currEvrTime);
+                    if (m_statsEnable) {
+                        m_AIChannelsPtr[chan]->pushDataStats(currEvrTime);
+                    }
                 }
                 m_recordCntPV.push(currEvrTime, recordCnt);
                 TraceOutWithTime(m_node, "Sent recordcount %d", recordCnt);

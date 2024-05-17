@@ -28,6 +28,7 @@ public:
      * @param channelNum a number of channel which a constructed class represents.
      */
     ADQAIChannel(const std::string& name, nds::Node& parentNode, int32_t channelNum);
+
     void resize(int32_t sampleCnt) {
         m_data.resize(sampleCnt);
     }
@@ -110,6 +111,50 @@ public:
      * @param logMsgPV a PV from ADQAIGroupChannel that receives any log messages.
      */
     void commitChanges(bool calledFromDaqThread, ADQInterface* adqInterface, nds::PVDelegateIn<std::string>& logMsgPV);
+    
+    void getDataStats();
+
+    void pushDataStats(struct timespec const& now) {
+        m_dataIntegralPV.push(now, m_dataIntegral);
+        m_dataMinPV.push(now, m_dataMin);
+        m_dataMaxPV.push(now, m_dataMax);
+    }
+
+    /** @fn setStatsWinStart
+    * @brief Sets the channel's data integral starting index
+    */
+    void setStatsWinStart(const timespec& pTimestamp, const int32_t& pValue);
+
+    /** @fn getStatsWinStart
+    * @brief Sets the channel's data integral starting index
+     */
+    void getStatsWinStart(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn setStatsWinStop
+    * @brief Sets the channel's data integral starting index
+    */
+    void setStatsWinStop(const timespec& pTimestamp, const int32_t& pValue);
+
+    /** @fn getStatsWinStop
+    * @brief Sets the channel's data integral starting index
+     */
+    void getStatsWinStop(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getDataIntegralPV
+     * @brief This is a dummy method held by the data integral PV for appropriate work in NDS3. 
+     */
+    void getDataIntegralPV(timespec* pTimestamp, double* pValue);
+
+    /** @fn getDataMinPV
+     * @brief This is a dummy method held by the data min PV for appropriate work in NDS3.
+     */
+    void getDataMinPV(timespec* pTimestamp, int32_t* pValue);
+
+    /** @fn getDataMaxPV
+     * @brief This is a dummy method held by the data max PV for appropriate work in NDS3.
+     */
+    void getDataMaxPV(timespec* pTimestamp, int32_t* pValue);
+
 
 private:
     nds::Node m_node;
@@ -136,11 +181,28 @@ private:
     void recover();
     bool allowChange(const nds::state_t, const nds::state_t, const nds::state_t);
 
+    int32_t m_statsWinStart;
+    bool m_statsWinStartChanged;
+    int32_t m_statsWinStop;
+    bool m_statsWinStopChanged;
+    double m_dataIntegral;
+    bool m_dataIntegralChanged;
+    int32_t m_dataMin;
+    bool m_dataMinChanged;
+    int32_t m_dataMax;
+    bool m_dataMaxChanged;
+
     nds::PVDelegateIn<double> m_inputRangePV;
     nds::PVDelegateIn<int32_t> m_inputImpedancePV;
     nds::PVDelegateIn<int32_t> m_dcBiasPV;
     nds::PVDelegateIn<int32_t> m_chanDecPV;
     nds::PVDelegateIn<std::vector<int16_t>> m_dataPV;
+    nds::PVDelegateIn<int32_t> m_statsWinStartPV;
+    nds::PVDelegateIn<int32_t> m_statsWinStopPV;
+    nds::PVDelegateIn<double> m_dataIntegralPV;
+    nds::PVDelegateIn<int32_t> m_dataMinPV;
+    nds::PVDelegateIn<int32_t> m_dataMaxPV;
+
     /** @def ADQNDS_MSG_WARNLOG_PV
      * @brief Macro for warning information in case of minor failures.
      * Used in ADQAIChannelGroup methods.
@@ -162,3 +224,4 @@ private:
 };
 
 #endif /* ADQAICHANNEL_H; */
+

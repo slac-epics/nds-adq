@@ -171,7 +171,7 @@ record(waveform, "$(P):TRIGTIMESTAMP") {
     field(DTYP, "asynFloat64ArrayIn")
     field(FTVL, "DOUBLE")
     field(NELM, "${NRECORDSCOLLECT=1}")
-    field(EGU,  "mS")
+    field(EGU,  "ms")
     field(PREC, "2")
     field(PRIO, "HIGH")
     field(INP,  "@asyn($(PORT):$(GRP), 0) TrigTimeStamp")
@@ -879,6 +879,25 @@ record(ai, "$(P):STREAMTIME-RB") {
     field(PREC, "3")
     field(DTYP, "asynFloat64")
     field(INP,  "@asyn($(PORT):$(GRP), 0) StreamTime-RB")
+    field(PINI, "YES")
+}
+
+record(bo, "$(P):STATS_ENABLE") {
+    field(DESC, "Data stats enable")
+    field(DTYP, "asynInt32")
+    field(OUT,  "@asyn($(PORT):$(GRP), 0) StatsEnable")
+    field(ZNAM, "Disabled")
+    field(ONAM, "Enabled")
+    field(PINI, "YES")
+}
+
+record(bi, "$(P):STATS_ENABLE-RB") {
+    field(DESC, "Data stats enable")
+    field(DTYP, "asynInt32")
+    field(INP,  "@asyn($(PORT):$(GRP), 0) StatsEnable-RB")
+    field(ZNAM, "Disabled")
+    field(ONAM, "Enabled")
+    field(SCAN, "I/O Intr")
     field(PINI, "YES")
 }
 
