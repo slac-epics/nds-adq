@@ -6,6 +6,7 @@
 
 R0.0.0-0.1.1  May 17, 2024  M. Dunning (mdunning)
     Add waveform stats: integral, min, max within a selectable window
+    Make EVR timestamps optional
 
 R0.0.0-0.1.0  May 13, 2024  M. Dunning (mdunning)
     Make record names compatible with SLAC naming conventions

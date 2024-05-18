@@ -6,6 +6,14 @@ include $(TOP)/configure/CONFIG
 
 USR_CXXFLAGS = -std=c++11 -Wall -Wextra -pedantic -pthread -DLINUX
 
+# Set a flag if we're using an EVR, so that the driver gets EVR timestamps
+ifdef EVRCLIENT
+USR_CXXFLAGS += -DEVR_SUPPORT
+endif
+ifdef EVENT
+USR_CXXFLAGS += -DEVR_SUPPORT
+endif
+
 USR_INCLUDES += -I$(ADQ_INCLUDE)
 USR_INCLUDES += -I$(NDS3_INCLUDE)
 

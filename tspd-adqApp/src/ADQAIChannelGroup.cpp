@@ -26,7 +26,9 @@
 #include <ADQAPI.h>
 #include <nds3/nds.h>
 #include <epicsTime.h>
+#ifdef EVR_SUPPORT
 #include <evrTime.h>
+#endif
 
 //#define _DEBUG
 #ifdef _DEBUG
@@ -1221,7 +1223,7 @@ void ADQAIChannelGroup::daqTrigStream()
     short *daqLeftoverSamples[CHANNEL_COUNT_MAX];
     streamingHeader_t *daqStreamHeaders[CHANNEL_COUNT_MAX];
     double PicoSec = (adqType() == 8) ? PicoSec25 : PicoSec125;
-    struct timespec currEvrTime;
+    struct timespec currentTime;
     bool bufferFlushed = false;
 
     try
@@ -1441,19 +1443,23 @@ void ADQAIChannelGroup::daqTrigStream()
                     trigTimeSent = true;
                     TraceOutWithTime(m_node, "Sent timestamp %f", m_trigTimeStamp[0]);
 
-                    // Get EVR timestamp
+                    // Get timestamp
+#ifdef EVR_SUPPORT
                     epicsTimeStamp evrTS;
                     int status = evrTimeGet(&evrTS, 0);
                     if (status == 0) // 0 = success, -1 = failed
                     {
-                        epicsTimeToTimespec(&currEvrTime, &evrTS);
+                        epicsTimeToTimespec(&currentTime, &evrTS);
                     }
                     else
                     {
                         // Use system timestamp
-                        clock_gettime(CLOCK_REALTIME, &currEvrTime);
+                        clock_gettime(CLOCK_REALTIME, &currentTime);
                         ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Couldn't get EVR timestamp. Using system timestamp.");
                     }
+#else
+                    clock_gettime(CLOCK_REALTIME, &currentTime);
+#endif
                 }
             }
 
@@ -1467,19 +1473,19 @@ void ADQAIChannelGroup::daqTrigStream()
             if (recordCnt < recordsDoneMinCnt)
             {
                 recordCnt = recordsDoneMinCnt;
-                m_trigTimeStampPV.push(currEvrTime, m_trigTimeStamp);
+                m_trigTimeStampPV.push(currentTime, m_trigTimeStamp);
                 trigTimeSent = false;
                 allDataSent = (maxLeftoverSamplesCnt == 0);
                 for (unsigned int chan = 0; chan < CHANNEL_COUNT_MAX; ++chan)
                 {
                     if (!((1 << chan) & m_chanMask))
                         continue;
-                    m_AIChannelsPtr[chan]->pushData(currEvrTime);
+                    m_AIChannelsPtr[chan]->pushData(currentTime);
                     if (m_statsEnable) {
-                        m_AIChannelsPtr[chan]->pushDataStats(currEvrTime);
+                        m_AIChannelsPtr[chan]->pushDataStats(currentTime);
                     }
                 }
-                m_recordCntPV.push(currEvrTime, recordCnt);
+                m_recordCntPV.push(currentTime, recordCnt);
                 TraceOutWithTime(m_node, "Sent recordcount %d", recordCnt);
             }
         } while ((recordCnt < m_recordCnt) || (m_recordCnt == -1));
@@ -2827,8 +2833,9 @@ void ADQAIChannelGroup::daqMultiRecord()
                 ADQNDS_MSG_ERRLOG_PV(status, "GetDataWHTS failed.");
             }
 
-            // Get EVR timestamp
+            // Get timestamp
             struct timespec now = {0, 0};
+#ifdef EVR_SUPPORT
             epicsTimeStamp evrTS;
             int status = evrTimeGet(&evrTS, 0);
             if (status == 0) // 0 = success, -1 = failed
@@ -2841,6 +2848,9 @@ void ADQAIChannelGroup::daqMultiRecord()
                 clock_gettime(CLOCK_REALTIME, &now);
                 ADQNDS_MSG_WARNLOG_PV(0, "WARNING: Couldn't get EVR timestamp. Using system timestamp.");
             }
+#else
+            clock_gettime(CLOCK_REALTIME, &now);
+#endif
 
             m_trigTimeStamp.resize(m_recordCntCollect);
             for (int32_t Collected = 0; Collected < m_recordCntCollect; Collected++)
