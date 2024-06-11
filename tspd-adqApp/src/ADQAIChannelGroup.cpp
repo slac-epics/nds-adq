@@ -1922,21 +1922,29 @@ void ADQAIChannelGroup::commitDaqMode(struct timespec &now)
         }
     }
 
+    // m_recordCnt == -1 only valid for triggered stream mode
     if ((m_daqMode != 2) && (m_recordCnt = -1)) {
         m_recordCnt = 1;
     }
 
+    // Raw mode only supports a single channel
+    if ((m_daqMode == 3) && (static_cast<unsigned int>(m_chanActive) > (m_chanCnt - 1))) {
+        m_chanActive = 0;
+        ADQNDS_MSG_WARNLOG_PV(0, "WARNLOG: Only one channel can be set for Raw Streaming -> changed to channel A.");
+    }
+
     m_daqModePV.push(now, m_daqMode);
 
-    // Trigger sample and records numbers to update
+    // Trigger record updates
     m_recordCntPV.read(&now, &m_recordCnt);
     m_recordCntPV.push(now, m_recordCnt);
     m_sampleCntPV.read(&now, &m_sampleCnt);
     m_sampleCntPV.push(now, m_sampleCnt);
     m_sampleCntMaxPV.push(now, m_sampleCntMax);
-    // Trigger records to collect to update
     m_recordCntCollectPV.read(&now, &m_recordCntCollect);
     m_recordCntCollectPV.push(now, m_recordCntCollect);
+    m_chanActivePV.read(&now, &m_chanActive);
+    m_chanActivePV.push(now, m_chanActive);
 }
 
 void ADQAIChannelGroup::commitClockSource(struct timespec const &now)
