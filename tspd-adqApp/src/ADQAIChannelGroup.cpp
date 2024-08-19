@@ -150,7 +150,8 @@ ADQAIChannelGroup::ADQAIChannelGroup(const std::string &name, nds::Node &parentN
     m_internTrigLowSamp = m_internTrigPeriod - m_internTrigHighSamp;
     m_levelTrigChan = 1; // 0 is not a valid trigger channel number.
     m_DaisyChainStatus = 0;
-    m_trigMode = 1;
+    m_daqMode = 2;  // Triggered stream
+    m_trigMode = 1;  // External trig
     m_externTrigEdge = 1;
     m_externTrigThreshold = 1.5;
 

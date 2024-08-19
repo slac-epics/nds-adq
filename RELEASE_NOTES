@@ -4,6 +4,12 @@
 #  From: https://github.com/pheest/nds-adq
 #--------------------------------------------------------------
 
+R0.0.0-0.1.3  Aug 19, 2024  M. Dunning (mdunning)
+    Set DAQ mode to triggered stream by default
+
+R0.0.0-0.1.2  Jun 11, 2024  M. Dunning (mdunning)
+    Fix crash when switching to raw mode with multiple channels
+
 R0.0.0-0.1.1  May 17, 2024  M. Dunning (mdunning)
     Add waveform stats: integral, min, max within a selectable window
     Make EVR timestamps optional
